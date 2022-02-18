@@ -1,34 +1,16 @@
-@dataclass
-class TransformedResult:
-    """An object with fields for columns in the analysis table"""
-    scraper: str
-    transformer: str
-    platform: str
-    channel: str
-    date: datetime
-    date_archived: datetime
-    url: str
-    content: str
-    author_id: str
-    author_username: str
+import cisticola.base
 
+class Transformer:
+    """Interface class for transformers"""
 
-class TwitterResult(ScraperResult):
-    """A Twitter specific ScraperResult, with a method ETL/transforming"""
+    __version__ = "Transformer 0.0.0"
 
-    def transform(self) -> TransformedResult:
-        data = json.loads(self.raw_data)
+    def __init__(self):
+        pass
 
-        transformed = TransformedResult(
-            scraper=self.scraper,
-            transformer=self.__version__,
-            platform=self.platform,
-            channel=self.channel,
-            date=self.date,
-            date_archived=self.date_archived,
-            url=data['url'],
-            content=data['content'],
-            author_id=data['user']['id'],
-            author_username=data['user']['username'])
+    def can_handle(data: cisticola.base.ScraperResult) -> bool:
+        pass
 
-        return transformed
+    def transform(data: cisticola.base.ScraperResult) -> cisticola.base.TransformedResult:
+        pass
+
