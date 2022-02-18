@@ -8,6 +8,9 @@ sqlalchemy = "*"
 snscrape = "*"
 loguru = "*"
 gogettr = "*"
+requests = "*"
+bs4 = "*"
+dateparser = "*"
 
 [dev-packages]
 

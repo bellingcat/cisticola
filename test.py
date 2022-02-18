@@ -4,6 +4,7 @@
 
 import cisticola
 import cisticola.scraper.twitter
+
 from sqlalchemy import create_engine
 
 
@@ -19,6 +20,10 @@ test_channels = [cisticola.base.Channel(id=0, name="Logan Williams (test)", plat
                  cisticola.base.Channel(id=2, name="LizardRepublic", platform_id='lizardrepublic',
                                    category="qanon", followers=None, platform="Gettr",
                                    url="https://www.gettr.com/user/lizardrepublic", country="US",
+                                   influencer=None, public=True, chat=False, notes=""),
+                 cisticola.base.Channel(id=3, name="Patriot Front", platform_id='OVv9QZL4sEsC',
+                                   category="nazi", followers=None, platform="Bitchute",
+                                   url="https://www.bitchute.com/channel/OVv9QZL4sEsC/", country="US",
                                    influencer=None, public=True, chat=False, notes=""),]
 
 

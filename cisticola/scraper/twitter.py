@@ -23,16 +23,17 @@ class TwitterScraper(cisticola.scraper.Scraper):
             TwitterScraper.get_username_from_url(channel.url))
 
         for tweet in scraper.get_items():
-            if since is not None and tweet.id <= int(since.platform_id):
+            if since is not None and tweet.date.timestamp() <= since.date_archived.timestamp():
                 break
 
-            posts.append(cisticola.base.ScraperResult(scraper=self.__version__,
-                                                      platform="Twitter",
-                                                      channel=channel.id,
-                                                      platform_id=tweet.id,
-                                                      date=tweet.date,
-                                                      date_archived=datetime.now(),
-                                                      raw_data=tweet.json()))
+            posts.append(cisticola.base.ScraperResult(
+                scraper=self.__version__,
+                platform="Twitter",
+                channel=channel.id,
+                platform_id=tweet.id,
+                date=tweet.date,
+                date_archived=datetime.now(),
+                raw_data=tweet.json()))
 
         return posts
 

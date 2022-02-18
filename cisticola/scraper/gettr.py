@@ -25,13 +25,14 @@ class GettrScraper(cisticola.scraper.Scraper):
             if since is not None and post['cdate'] <= int(since.date_archived.timestamp()):
                 break
 
-            posts.append(cisticola.base.ScraperResult(scraper=self.__version__,
-                                                      platform="Gettr",
-                                                      channel=username,
-                                                      platform_id=post['_id'],
-                                                      date=datetime.fromtimestamp(post['cdate']/1000.),
-                                                      date_archived=datetime.now(),
-                                                      raw_data=json.dumps(post)))
+            posts.append(cisticola.base.ScraperResult(
+                scraper=self.__version__,
+                platform="Gettr",
+                channel=username,
+                platform_id=post['_id'],
+                date=datetime.fromtimestamp(post['cdate']/1000.),
+                date_archived=datetime.now(),
+                raw_data=json.dumps(post)))
 
         return posts
 
