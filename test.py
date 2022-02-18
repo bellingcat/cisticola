@@ -15,7 +15,11 @@ test_channels = [cisticola.base.Channel(id=0, name="Logan Williams (test)", plat
                  cisticola.base.Channel(id=1, name="JQHN SPARTAN", platform_id=-1001181961026,
                                    category="qanon", followers=None, platform="Telegram",
                                    url="https://t.me/jqhnspartan", country="FR",
-                                   influencer="JQNH SPARTAN", public=True, chat=False, notes="")]
+                                   influencer="JQNH SPARTAN", public=True, chat=False, notes=""),
+                 cisticola.base.Channel(id=2, name="LizardRepublic", platform_id='lizardrepublic',
+                                   category="qanon", followers=None, platform="Gettr",
+                                   url="https://www.gettr.com/user/lizardrepublic", country="US",
+                                   influencer=None, public=True, chat=False, notes=""),]
 
 
 controller = cisticola.ScraperController()
