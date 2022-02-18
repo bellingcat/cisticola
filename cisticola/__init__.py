@@ -1,9 +1,8 @@
 from typing import List
-from datetime import datetime
-from dataclasses import dataclass
 import cisticola.scraper
 import cisticola.base
 from sqlalchemy.orm import sessionmaker
+from loguru import logger
 
 
 class ScraperController:
@@ -15,12 +14,12 @@ class ScraperController:
         self.session = None
         self.mapper_registry = None
 
-    def register_scraper(self, scraper: cisticola.base.Scraper):
+    def register_scraper(self, scraper: cisticola.scraper.Scraper):
         self.scrapers.append(scraper)
 
     def scrape_channels(self, channels: List[cisticola.base.Channel]):
         if self.session is None:
-            cisticola.base.logger.error("No DB session")
+            logger.error("No DB session")
             return
 
         for channel in channels:
@@ -41,19 +40,18 @@ class ScraperController:
                     posts = scraper.get_posts(channel, since=since)
                     handled = True
 
-                    cisticola.base.logger.info(
+                    logger.info(
                         f"{scraper} found {len(posts)} new posts from {channel}")
                     break
 
             if not handled:
-                cisticola.base.logger.warning(
-                    f"No handler found for Channel {channel}")
+                logger.warning(f"No handler found for Channel {channel}")
 
         session = self.session()
         session.bulk_save_objects(posts)
         session.commit()
 
-        cisticola.base.logger.info(f"Added {len(posts)} entries to database")
+        logger.info(f"Added {len(posts)} entries to database")
 
     def connect_to_db(self, engine):
         # create tables

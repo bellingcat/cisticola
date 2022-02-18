@@ -23,7 +23,7 @@ controller = cisticola.ScraperController()
 scraper = cisticola.scraper.twitter.TwitterScraper()
 controller.register_scraper(scraper)
 
-engine = create_engine('sqlite:///test.db')
+engine = create_engine('sqlite:///test2.db')
 controller.connect_to_db(engine)
 
 controller.scrape_channels(test_channels)

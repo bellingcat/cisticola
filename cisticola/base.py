@@ -1,9 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
 from sqlalchemy.orm import registry
 from sqlalchemy import Table, Column, Integer, String, DateTime
-from loguru import logger
 
 mapper_registry = registry()
 
@@ -31,22 +29,6 @@ raw_data_table = Table('raw_data', mapper_registry.metadata,
                        Column('date_archived', DateTime))
 
 mapper_registry.map_imperatively(ScraperResult, raw_data_table)
-
-
-class Scraper:
-    __version__ = "Scraper 0.0.1"
-
-    def __init__(self):
-        pass
-
-    def __str__(self):
-        return self.__version__
-
-    def can_handle(self, channel) -> bool:
-        pass
-
-    def get_posts(self, channel, since=None) -> List[ScraperResult]:
-        pass
 
 
 @dataclass

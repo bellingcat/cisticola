@@ -1,3 +1,18 @@
+@dataclass
+class TransformedResult:
+    """An object with fields for columns in the analysis table"""
+    scraper: str
+    transformer: str
+    platform: str
+    channel: str
+    date: datetime
+    date_archived: datetime
+    url: str
+    content: str
+    author_id: str
+    author_username: str
+
+
 class TwitterResult(ScraperResult):
     """A Twitter specific ScraperResult, with a method ETL/transforming"""
 
