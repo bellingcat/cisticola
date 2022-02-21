@@ -2,6 +2,6 @@
 *.pyc
 *.ipynb
 *.db
-docs/_build/
+docs/build/
 docs/source/_*
 
