@@ -9,6 +9,7 @@ mapper_registry = registry()
 @dataclass
 class ScraperResult:
     """A minimally processed result from a scraper"""
+
     scraper: str
     platform: str
     channel: int
@@ -19,7 +20,8 @@ class ScraperResult:
 
 
 raw_data_table = Table('raw_data', mapper_registry.metadata,
-                       Column('id', Integer, primary_key=True, autoincrement=True),
+                       Column('id', Integer, primary_key=True,
+                              autoincrement=True),
                        Column('scraper', String),
                        Column('platform', String),
                        Column('channel', Integer),
@@ -64,7 +66,8 @@ class TransformedResult:
 
 
 analysis_table = Table('analysis', mapper_registry.metadata,
-                       Column('id', Integer, primary_key=True, autoincrement=True),
+                       Column('id', Integer, primary_key=True,
+                              autoincrement=True),
                        Column('raw_id', Integer, ForeignKey('raw_data.id')),
                        Column('scraper', String),
                        Column('transformer', String),
