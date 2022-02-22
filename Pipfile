@@ -11,6 +11,7 @@ gogettr = "*"
 requests = "*"
 bs4 = "*"
 dateparser = "*"
+sphinx = "*"
 
 [dev-packages]
 

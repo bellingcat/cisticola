@@ -64,7 +64,7 @@ class BitchuteScraper(cisticola.scraper.Scraper):
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
 def strip_tags(html, convert_newlines=True):
-    """
+    r"""
     Strip HTML from a string
 
     :param html: HTML to strip
