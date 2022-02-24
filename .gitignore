@@ -4,4 +4,4 @@
 *.db
 docs/build/
 docs/source/_*
-
+.env
