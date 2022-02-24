@@ -1,11 +1,13 @@
 import cisticola
 import cisticola.scraper.telegram_snscrape
 import cisticola.scraper.twitter
+import cisticola.scraper.gettr
 
 from sqlalchemy import create_engine
 
 
-test_channels = [cisticola.base.Channel(id=0, name="Logan Williams (test)", platform_id=891729132,
+test_channels = [
+    cisticola.base.Channel(id=0, name="Logan Williams (test)", platform_id=891729132,
                                    category="test", followers=None, platform="Twitter",
                                    url="https://twitter.com/obtusatum", screenname="obtusatum", country="US",
                                    influencer=None, public=True, chat=False,
@@ -32,7 +34,10 @@ controller.register_scraper(twitter)
 telegram = cisticola.scraper.telegram_snscrape.TelegramSnscrapeScraper()
 controller.register_scraper(telegram)
 
-engine = create_engine('sqlite:///test.db')
+gettr = cisticola.scraper.gettr.GettrScraper()
+controller.register_scraper(gettr)
+
+engine = create_engine('sqlite:///test3.db')
 controller.connect_to_db(engine)
 
 controller.scrape_channels(test_channels)

@@ -12,7 +12,7 @@ class ScraperResult:
 
     scraper: str
     platform: str
-    channel: int
+    channel: int #TODO there is probably a way of making this a Channel object foreign key
     platform_id: str
     date: datetime
     raw_data: str
