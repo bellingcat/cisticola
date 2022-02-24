@@ -42,6 +42,7 @@ class Channel:
     followers: int
     platform: str
     url: str
+    screenname: str
     country: str
     influencer: str
     public: bool

@@ -1,6 +1,6 @@
 from typing import List
-import cisticola.scraper
 import cisticola.base
+import cisticola.scraper.base
 from sqlalchemy.orm import sessionmaker
 from loguru import logger
 
@@ -14,7 +14,7 @@ class ScraperController:
         self.session = None
         self.mapper_registry = None
 
-    def register_scraper(self, scraper: cisticola.scraper.Scraper):
+    def register_scraper(self, scraper: cisticola.scraper.base.Scraper):
         self.scrapers.append(scraper)
 
     def scrape_channels(self, channels: List[cisticola.base.Channel]):
@@ -30,7 +30,7 @@ class ScraperController:
                     # get most recent post
                     session = self.session()
                     rows = session.query(cisticola.base.ScraperResult).order_by(
-                        cisticola.base.ScraperResult.date_archived).limit(1).all()
+                        cisticola.base.ScraperResult.date.desc()).limit(1).all()
 
                     if len(rows) == 1:
                         since = rows[0]

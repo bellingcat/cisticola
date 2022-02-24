@@ -1,10 +1,11 @@
 import cisticola.base
+import cisticola.scraper.base
 from datetime import datetime
 from typing import List
 import snscrape.modules
 
 
-class TwitterScraper(cisticola.scraper.Scraper):
+class TwitterScraper(cisticola.scraper.base.Scraper):
     """An implementation of a Scraper for Twitter, using snscrape library"""
     __version__ = "TwitterScraper 0.0.1"
 
