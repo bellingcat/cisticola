@@ -13,16 +13,12 @@ class TelegramSnscrapeScraper(cisticola.scraper.base.Scraper):
             return True
 
     def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None):
-        posts = []
         scr = snscrape.modules.telegram.TelegramChannelScraper(
             channel.screenname)
 
         g = scr.get_items()
 
         for post in g:
-            if (len(posts)) >= 10:
-                break
-            
             if since is not None and post.date.replace(tzinfo=timezone.utc) <= since.date.replace(tzinfo=timezone.utc):
                 break
 
@@ -36,7 +32,7 @@ class TelegramSnscrapeScraper(cisticola.scraper.base.Scraper):
                 video_archive_url = self.archive_media(post.video)
                 archived_urls[post.video] = video_archive_url
 
-            posts.append(cisticola.base.ScraperResult(
+            yield cisticola.base.ScraperResult(
                 scraper=self.__version__,
                 platform="Telegram",
                 channel=channel.id,
@@ -45,6 +41,4 @@ class TelegramSnscrapeScraper(cisticola.scraper.base.Scraper):
                 date_archived=datetime.now(timezone.utc),
                 raw_data=post.json(),
                 archived_urls=archived_urls
-            ))
-
-        return posts
+            )

@@ -20,22 +20,19 @@ class TwitterScraper(cisticola.scraper.base.Scraper):
         return username
 
     def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> List[cisticola.base.ScraperResult]:
-        posts = []
         scraper = snscrape.modules.twitter.TwitterProfileScraper(
             TwitterScraper.get_username_from_url(channel.url))
 
         first = True
 
         for tweet in scraper.get_items():
-            if len(posts) >= 10:
-                break
-
             if since is not None and tweet.date.replace(tzinfo=timezone.utc) <= since.date_archived.replace(tzinfo=timezone.utc):
                 # with TwitterProfileScraper, the first tweet could be an old pinned tweet
                 if first:
                     first = False
                     continue
                 else:
+                    print('too far')
                     break
 
             archived_urls = {}
@@ -58,7 +55,7 @@ class TwitterScraper(cisticola.scraper.base.Scraper):
                         archived_url = self.archive_media(url)
                         archived_urls[url] = archived_url
 
-            posts.append(cisticola.base.ScraperResult(
+            yield cisticola.base.ScraperResult(
                 scraper=self.__version__,
                 platform="Twitter",
                 channel=channel.id,
@@ -66,9 +63,7 @@ class TwitterScraper(cisticola.scraper.base.Scraper):
                 date=tweet.date,
                 date_archived=datetime.now(),
                 raw_data=tweet.json(),
-                archived_urls=archived_urls))
-
-        return posts
+                archived_urls=archived_urls)
 
     def can_handle(self, channel):
         if channel.platform == "Twitter" and TwitterScraper.get_username_from_url(channel.url) is not None:

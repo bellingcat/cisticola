@@ -4,6 +4,7 @@ import cisticola.scraper.base
 from sqlalchemy.orm import sessionmaker
 from loguru import logger
 
+MAX_POSTS = 10
 
 class ScraperController:
     """Registers scrapers, uses them to generate ScraperResults. Synchronizes
@@ -27,6 +28,10 @@ class ScraperController:
 
             for scraper in self.scrapers:
                 if scraper.can_handle(channel):
+                    session = self.session()
+                    handled = True
+                    added = 0
+
                     # get most recent post
                     session = self.session()
                     rows = session.query(cisticola.base.ScraperResult).order_by(
@@ -38,20 +43,20 @@ class ScraperController:
                         since = None
 
                     posts = scraper.get_posts(channel, since=since)
-                    handled = True
 
+                    for post in posts:
+                        session.add(post)
+                        added += 1
+                        if added >= MAX_POSTS:
+                            break
+
+                    session.commit()
                     logger.info(
-                        f"{scraper} found {len(posts)} new posts from {channel}")
+                        f"{scraper} found {added} new posts from {channel}")
                     break
 
             if not handled:
                 logger.warning(f"No handler found for Channel {channel}")
-            else:
-                session = self.session()
-                session.bulk_save_objects(posts)
-                session.commit()
-
-                logger.info(f"Added {len(posts)} entries to database")
 
     def connect_to_db(self, engine):
         # create tables
