@@ -509,7 +509,7 @@
         },
         "snscrape": {
             "git": "https://github.com/bellingcat/snscrape.git",
-            "ref": "72b26f2373f3fecf53bdf9c62d7408df3d15a329"
+            "ref": "de4ebed81f3f6a4bb4c65630daab6ec63784959b"
         },
         "soupsieve": {
             "hashes": [
