@@ -6,6 +6,7 @@ from loguru import logger
 
 MAX_POSTS = 10
 
+
 class ScraperController:
     """Registers scrapers, uses them to generate ScraperResults. Synchronizes
     everything with database via ORM."""
@@ -34,7 +35,8 @@ class ScraperController:
 
                     # get most recent post
                     session = self.session()
-                    rows = session.query(cisticola.base.ScraperResult).order_by(
+                    rows = session.query(cisticola.base.ScraperResult).where(
+                        cisticola.base.ScraperResult.channel == channel.id).order_by(
                         cisticola.base.ScraperResult.date.desc()).limit(1).all()
 
                     if len(rows) == 1:
