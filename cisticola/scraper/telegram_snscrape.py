@@ -20,6 +20,9 @@ class TelegramSnscrapeScraper(cisticola.scraper.base.Scraper):
         g = scr.get_items()
 
         for post in g:
+            if (len(posts)) >= 10:
+                break
+            
             if since is not None and post.date.replace(tzinfo=timezone.utc) <= since.date.replace(tzinfo=timezone.utc):
                 break
 

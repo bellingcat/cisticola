@@ -46,12 +46,12 @@ class ScraperController:
 
             if not handled:
                 logger.warning(f"No handler found for Channel {channel}")
+            else:
+                session = self.session()
+                session.bulk_save_objects(posts)
+                session.commit()
 
-        session = self.session()
-        session.bulk_save_objects(posts)
-        session.commit()
-
-        logger.info(f"Added {len(posts)} entries to database")
+                logger.info(f"Added {len(posts)} entries to database")
 
     def connect_to_db(self, engine):
         # create tables
