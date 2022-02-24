@@ -4,7 +4,7 @@ import re
 from html.parser import HTMLParser
 import dateparser
 import json
-from typing import List
+from typing import Generator
 
 import requests
 from bs4 import BeautifulSoup
@@ -23,7 +23,7 @@ class BitchuteScraper(cisticola.scraper.Scraper):
 
         return username
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> List[cisticola.base.ScraperResult]:
+    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
 
         session = requests.Session()
         session.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0"

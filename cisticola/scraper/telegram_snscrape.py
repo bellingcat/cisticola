@@ -1,6 +1,6 @@
 import cisticola.base
 import cisticola.scraper.base
-from typing import List
+from typing import Generator
 import snscrape.modules
 from datetime import datetime, timezone
 
@@ -12,7 +12,7 @@ class TelegramSnscrapeScraper(cisticola.scraper.base.Scraper):
         if channel.platform == "Telegram" and channel.public and not channel.chat:
             return True
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None):
+    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
         scr = snscrape.modules.telegram.TelegramChannelScraper(
             channel.screenname)
 

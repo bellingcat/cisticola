@@ -1,4 +1,4 @@
-from typing import List
+from typing import Generator
 import cisticola.base
 import requests
 import os
@@ -55,5 +55,5 @@ class Scraper:
     def can_handle(self, channel: cisticola.base.Channel) -> bool:
         pass
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> List[cisticola.base.ScraperResult]:
+    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
         pass

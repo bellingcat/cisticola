@@ -1,7 +1,7 @@
 import cisticola.base
 import cisticola.scraper.base
 from datetime import datetime, timezone
-from typing import List
+from typing import Generator
 import snscrape.modules
 from loguru import logger
 
@@ -10,7 +10,7 @@ class TwitterScraper(cisticola.scraper.base.Scraper):
     """An implementation of a Scraper for Twitter, using snscrape library"""
     __version__ = "TwitterScraper 0.0.1"
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> List[cisticola.base.ScraperResult]:
+    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
         scraper = snscrape.modules.twitter.TwitterProfileScraper(channel.platform_id)
 
         first = True
@@ -22,7 +22,6 @@ class TwitterScraper(cisticola.scraper.base.Scraper):
                     first = False
                     continue
                 else:
-                    print('too far')
                     break
 
             archived_urls = {}

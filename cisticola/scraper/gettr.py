@@ -2,7 +2,7 @@ import cisticola.base
 import cisticola.scraper.base
 from datetime import datetime
 import json
-from typing import List
+from typing import Generator
 from gogettr import PublicClient
 
 class GettrScraper(cisticola.scraper.base.Scraper):
@@ -16,7 +16,7 @@ class GettrScraper(cisticola.scraper.base.Scraper):
 
         return username
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> List[cisticola.base.ScraperResult]:
+    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
         client = PublicClient()
         username = GettrScraper.get_username_from_url(channel.url)
         scraper = client.user_activity(username=username, type="posts")
