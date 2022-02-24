@@ -24,7 +24,7 @@ class Scraper:
     def __str__(self):
         return self.__version__
 
-    def archive_media(self, url: str) -> str:
+    def archive_media(self, url: str, key: str = None) -> str:
         n_retries = 0
         r = requests.get(url)
 
@@ -39,8 +39,9 @@ class Scraper:
 
         blob = r.content
 
-        key = url.split('/')[-1]
-        key = key.split('?')[0]
+        if key is None:
+            key = url.split('/')[-1]
+            key = key.split('?')[0]
 
         filename = self.__version__.replace(' ', '_') + '/' + key
 

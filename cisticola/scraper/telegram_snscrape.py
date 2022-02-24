@@ -1,4 +1,3 @@
-
 import cisticola.base
 import cisticola.scraper.base
 from typing import List
@@ -24,15 +23,15 @@ class TelegramSnscrapeScraper(cisticola.scraper.base.Scraper):
             if since is not None and post.date.replace(tzinfo=timezone.utc) <= since.date.replace(tzinfo=timezone.utc):
                 break
 
-            raw_data = post.json()
+            archived_urls = {}
 
             for image_url in post.images:
                 archive_url = self.archive_media(image_url)
-                raw_data = raw_data.replace(image_url, archive_url)
+                archived_urls[image_url] = archive_url
 
             if post.video:
                 video_archive_url = self.archive_media(post.video)
-                raw_data = raw_data.replace(post.video, video_archive_url)
+                archived_urls[post.video] = video_archive_url
 
             posts.append(cisticola.base.ScraperResult(
                 scraper=self.__version__,
@@ -40,8 +39,9 @@ class TelegramSnscrapeScraper(cisticola.scraper.base.Scraper):
                 channel=channel.id,
                 platform_id=post.url,
                 date=post.date,
-                date_archived=datetime.now(),
-                raw_data=raw_data
+                date_archived=datetime.now(timezone.utc),
+                raw_data=post.json(),
+                archived_urls=archived_urls
             ))
 
         return posts

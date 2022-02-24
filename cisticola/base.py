@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from sqlalchemy.orm import registry
-from sqlalchemy import Table, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey
 
 mapper_registry = registry()
 
@@ -17,6 +17,7 @@ class ScraperResult:
     date: datetime
     raw_data: str
     date_archived: datetime
+    archived_urls: dict
 
 
 raw_data_table = Table('raw_data', mapper_registry.metadata,
@@ -28,7 +29,8 @@ raw_data_table = Table('raw_data', mapper_registry.metadata,
                        Column('platform_id', String),
                        Column('date', DateTime),
                        Column('raw_data', String),
-                       Column('date_archived', DateTime))
+                       Column('date_archived', DateTime),
+                       Column('archived_urls', JSON))
 
 mapper_registry.map_imperatively(ScraperResult, raw_data_table)
 

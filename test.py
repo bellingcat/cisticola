@@ -1,7 +1,3 @@
-# TODO/TODECIDE:
-#   should 'username' be a part of the Channel definition somehow?
-#   still need to do some planning for handling media
-
 import cisticola
 import cisticola.scraper.telegram_snscrape
 
@@ -35,7 +31,7 @@ controller = cisticola.ScraperController()
 scraper = cisticola.scraper.telegram_snscrape.TelegramSnscrapeScraper()
 controller.register_scraper(scraper)
 
-engine = create_engine('sqlite:///test3.db')
+engine = create_engine('sqlite:///test4.db')
 controller.connect_to_db(engine)
 
 controller.scrape_channels(test_channels)
