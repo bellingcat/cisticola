@@ -10,18 +10,8 @@ class TwitterScraper(cisticola.scraper.base.Scraper):
     """An implementation of a Scraper for Twitter, using snscrape library"""
     __version__ = "TwitterScraper 0.0.1"
 
-    # TODO snscrape should be able to scrape from user ID alone, but there is
-    # currently a bug/other issue, so it is extracting the username from URL
-    def get_username_from_url(url):
-        username = url.split("twitter.com/")[1]
-        if len(username.split("/")) > 1:
-            return None
-
-        return username
-
     def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> List[cisticola.base.ScraperResult]:
-        scraper = snscrape.modules.twitter.TwitterProfileScraper(
-            TwitterScraper.get_username_from_url(channel.url))
+        scraper = snscrape.modules.twitter.TwitterProfileScraper(channel.platform_id)
 
         first = True
 
@@ -66,5 +56,5 @@ class TwitterScraper(cisticola.scraper.base.Scraper):
                 archived_urls=archived_urls)
 
     def can_handle(self, channel):
-        if channel.platform == "Twitter" and TwitterScraper.get_username_from_url(channel.url) is not None:
+        if channel.platform == "Twitter" and channel.platform_id:
             return True
