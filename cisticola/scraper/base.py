@@ -38,6 +38,8 @@ class Scraper:
             return url
 
         blob = r.content
+        
+        content_type = r.headers.get('Content-Type')
 
         if key is None:
             key = url.split('/')[-1]
@@ -46,7 +48,7 @@ class Scraper:
         filename = self.__version__.replace(' ', '_') + '/' + key
 
         self.s3_client.upload_fileobj(BytesIO(blob), Bucket=os.getenv(
-            'DO_BUCKET'), Key=filename, ExtraArgs={'ACL': 'public-read', 'ContentType': 'image/jpeg'})
+            'DO_BUCKET'), Key=filename, ExtraArgs={'ACL': 'public-read', 'ContentType': content_type})
 
         archived_url = os.getenv('DO_URL') + '/' + filename
 

@@ -4,8 +4,6 @@ import cisticola.scraper.base
 from sqlalchemy.orm import sessionmaker
 from loguru import logger
 
-MAX_POSTS = 10
-
 
 class ScraperController:
     """Registers scrapers, uses them to generate ScraperResults. Synchronizes
@@ -49,8 +47,6 @@ class ScraperController:
                     for post in posts:
                         session.add(post)
                         added += 1
-                        if added >= MAX_POSTS:
-                            break
 
                     session.commit()
                     logger.info(
