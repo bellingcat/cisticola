@@ -2,9 +2,10 @@ import cisticola.base
 import cisticola.scraper.base
 from datetime import datetime
 import json
-from typing import Generator
+from typing import Generator, Tuple
 from gogettr import PublicClient
-
+import ffmpeg
+import tempfile
 class GettrScraper(cisticola.scraper.base.Scraper):
     """An implementation of a Scraper for Gettr, using gogettr library"""
     __version__ = "GettrScraper 0.0.1"
@@ -30,16 +31,20 @@ class GettrScraper(cisticola.scraper.base.Scraper):
             if 'imgs' in post:
                 for img in post['imgs']:
                     url = "https://media.gettr.com/" + img
-                    archived_url = self.archive_media(url)
+                    media_blob, content_type, key = self.url_to_blob(url)
+                    archived_url = self.archive_media(media_blob, content_type, key)
                     archived_urls[img] = archived_url
 
             if 'main' in post:
-                archived_url = self.archive_media("https://media.gettr.com/" + post['main'])
+                url = "https://media.gettr.com/" + post['main']
+                media_blob, content_type, key = self.url_to_blob(url)
+                archived_url = self.archive_media(media_blob, content_type, key)
                 archived_urls[post['main']] = archived_url
 
-            # TODO this is just archiving the playlist file, not the actual video
             if 'vid' in post:
-                archived_url = self.archive_media("https://media.gettr.com/" + post['vid'])
+                url = "https://media.gettr.com/" + post['vid']
+                media_blob, content_type, key = self.m3u8_url_to_blob(url)
+                archived_url = self.archive_media(media_blob, content_type, key)
                 archived_urls[post['vid']] = archived_url
 
             yield cisticola.base.ScraperResult(
@@ -55,3 +60,26 @@ class GettrScraper(cisticola.scraper.base.Scraper):
     def can_handle(self, channel):
         if channel.platform == "Gettr" and GettrScraper.get_username_from_url(channel.url) is not None:
             return True
+
+    def m3u8_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
+        
+        # Using mkv might be more robust: https://stackoverflow.com/a/42871067
+        content_type = 'video/mp4'
+        ext = '.' + content_type.split('/')[-1]
+
+        with tempfile.NamedTemporaryFile(suffix = ext) as temp_file:
+            
+            (
+                ffmpeg
+                .input(url)
+                .output(temp_file.name, vcodec='copy')
+                .global_args('-loglevel', 'error')
+                .run(overwrite_output=True))
+            
+            temp_file.seek(0)
+            blob = temp_file.read()
+
+        if key is None:
+            key = url.split('/')[-2] + ext
+
+        return blob, content_type, key

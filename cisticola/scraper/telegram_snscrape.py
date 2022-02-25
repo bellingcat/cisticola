@@ -25,12 +25,14 @@ class TelegramSnscrapeScraper(cisticola.scraper.base.Scraper):
             archived_urls = {}
 
             for image_url in post.images:
-                archive_url = self.archive_media(image_url)
-                archived_urls[image_url] = archive_url
+                media_blob, content_type, key = self.url_to_blob(image_url)
+                archived_url = self.archive_media(media_blob, content_type, key)
+                archived_urls[image_url] = archived_url
 
             if post.video:
-                video_archive_url = self.archive_media(post.video)
-                archived_urls[post.video] = video_archive_url
+                media_blob, content_type, key = self.url_to_blob(post.video)
+                archived_url = self.archive_media(media_blob, content_type, key)
+                archived_urls[post.video] = archived_url
 
             yield cisticola.base.ScraperResult(
                 scraper=self.__version__,

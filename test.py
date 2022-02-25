@@ -2,6 +2,7 @@ import cisticola
 import cisticola.scraper.telegram_snscrape
 import cisticola.scraper.twitter
 import cisticola.scraper.gettr
+import cisticola.scraper.bitchute
 
 from sqlalchemy import create_engine
 
@@ -20,10 +21,11 @@ test_channels = [
                                    category="qanon", followers=None, platform="Gettr",
                                    url="https://www.gettr.com/user/lizardrepublic", screenname="lizardrepublic", country="US",
                                    influencer=None, public=True, chat=False, notes=""),
-                 cisticola.base.Channel(id=3, name="Patriot Front", platform_id='OVv9QZL4sEsC',
-                                   category="nazi", followers=None, platform="Bitchute",
-                                   url="https://www.bitchute.com/channel/OVv9QZL4sEsC/", screenname=None, country="US",
-                                   influencer=None, public=True, chat=False, notes=""),]
+                cisticola.base.Channel(
+                                    id=4, name="bestonlinejewelrystoresusa@gmail.com", platform_id='bestonlinejewelrystoresusagmailcom',
+                                    category="spam", followers=None, platform="Bitchute",
+                                    url="https://www.bitchute.com/channel/bestonlinejewelrystoresusagmailcom/", screenname=None, country="US",
+                                    influencer=None, public=True, chat=False, notes=""),]
 
 
 controller = cisticola.ScraperController()
@@ -35,6 +37,9 @@ telegram = cisticola.scraper.telegram_snscrape.TelegramSnscrapeScraper()
 controller.register_scraper(telegram)
 
 gettr = cisticola.scraper.gettr.GettrScraper()
+controller.register_scraper(gettr)
+
+bitchute = cisticola.scraper.bitchute.BitchuteScraper()
 controller.register_scraper(gettr)
 
 engine = create_engine('sqlite:///test3.db')

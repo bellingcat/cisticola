@@ -41,7 +41,8 @@ class TwitterScraper(cisticola.scraper.base.Scraper):
                         url = None
 
                     if url is not None:
-                        archived_url = self.archive_media(url)
+                        media_blob, content_type, key = self.url_to_blob(url)
+                        archived_url = self.archive_media(media_blob, content_type, key)
                         archived_urls[url] = archived_url
 
             yield cisticola.base.ScraperResult(

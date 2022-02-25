@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, Tuple
 import cisticola.base
 import requests
 import os
@@ -24,7 +24,8 @@ class Scraper:
     def __str__(self):
         return self.__version__
 
-    def archive_media(self, url: str, key: str = None) -> str:
+    def url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
+
         n_retries = 0
         r = requests.get(url)
 
@@ -38,12 +39,15 @@ class Scraper:
             return url
 
         blob = r.content
-        
         content_type = r.headers.get('Content-Type')
 
         if key is None:
             key = url.split('/')[-1]
             key = key.split('?')[0]
+
+        return blob, content_type, key
+
+    def archive_media(self, blob: bytes, content_type: str, key: str) -> str:
 
         filename = self.__version__.replace(' ', '_') + '/' + key
 

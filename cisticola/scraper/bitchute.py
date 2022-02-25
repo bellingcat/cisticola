@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 import cisticola.base
 
-class BitchuteScraper(cisticola.scraper.Scraper):
+class BitchuteScraper(cisticola.scraper.base.Scraper):
     """An implementation of a Scraper for Bitchute, using classes from the 4cat
     library"""
     __version__ = "BitchuteScraper 0.0.1"
@@ -34,28 +34,33 @@ class BitchuteScraper(cisticola.scraper.Scraper):
 
         # Don't scrape comment information 
         #TODO implement framework for processing and storing comments
-        detail = 'basic'
+        detail = 'comments'
 
-        posts = []
         username = BitchuteScraper.get_username_from_url(channel.url)
         scraper = get_videos_user(session, username, csrftoken, detail)
 
-        for i, post in enumerate(scraper):
+        for post in scraper:
 
-            if since is not None and post['timestamp'] <= since.date_archived.timestamp():
-                print( f'\n\nBREAK ON VIDEO: {i}\n\n')
+            if since is not None and datetime.fromtimestamp(post['timestamp']) <= since.date:
                 break
 
-            posts.append(cisticola.base.ScraperResult(
+            archived_urls = {}
+
+            if 'video_url' in post:
+                url = post['video_url']
+                media_blob, content_type, key = self.url_to_blob(url)
+                archived_url = self.archive_media(media_blob, content_type, key)
+                archived_urls[url] = archived_url
+
+            yield cisticola.base.ScraperResult(
                 scraper=self.__version__,
                 platform="Bitchute",
                 channel=channel.id,
                 platform_id=post['id'],
                 date=datetime.fromtimestamp(post['timestamp']),
                 date_archived=datetime.now(),
-                raw_data=json.dumps(post)))
-
-        return posts
+                raw_data=json.dumps(post),
+                archived_urls=archived_urls)
 
     def can_handle(self, channel):
         if channel.platform == "Bitchute" and BitchuteScraper.get_username_from_url(channel.url) is not None:

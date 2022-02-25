@@ -13,6 +13,7 @@ dateparser = "*"
 sphinx = "*"
 boto3 = "*"
 snscrape = {git = "https://github.com/bellingcat/snscrape.git"}
+ffmpeg-python = "*"
 
 [dev-packages]
 
