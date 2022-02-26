@@ -24,6 +24,11 @@ class Scraper:
     def __str__(self):
         return self.__version__
 
+    def url_to_key(self, url: str, content_type: str) -> str:
+        key = url.split('/')[-1]
+        key = key.split('?')[0]
+        return key 
+
     def url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
 
         n_retries = 0
@@ -42,8 +47,7 @@ class Scraper:
         content_type = r.headers.get('Content-Type')
 
         if key is None:
-            key = url.split('/')[-1]
-            key = key.split('?')[0]
+            key = self.url_to_key(url, content_type)
 
         return blob, content_type, key
 
