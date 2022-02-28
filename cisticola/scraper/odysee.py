@@ -32,6 +32,8 @@ class OdyseeScraper(cisticola.scraper.base.Scraper):
             archived_url = self.archive_media(media_blob, content_type, key)
             archived_urls[url] = archived_url
 
+            all_comments = video.get_all_comments()
+
             yield cisticola.base.ScraperResult(
                 scraper=self.__version__,
                 platform="Odysee",
@@ -41,6 +43,18 @@ class OdyseeScraper(cisticola.scraper.base.Scraper):
                 date_archived=datetime.now(),
                 raw_data=json.dumps(video.info),
                 archived_urls=archived_urls)
+
+            for comment in all_comments:
+
+                yield cisticola.base.ScraperResult(
+                    scraper=self.__version__,
+                    platform="Odysee",
+                    channel=channel.id,
+                    platform_id=comment.info['claim_id'],
+                    date=datetime.fromtimestamp(comment.info['created']),
+                    date_archived=datetime.now(),
+                    raw_data=json.dumps(comment.info),
+                    archived_urls=archived_urls)
 
     def can_handle(self, channel):
         if channel.platform == "Odysee" and OdyseeScraper.get_username_from_url(channel.url) is not None:
