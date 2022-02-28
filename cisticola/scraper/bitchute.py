@@ -26,7 +26,7 @@ class BitchuteScraper(cisticola.scraper.base.Scraper):
     def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
 
         session = requests.Session()
-        session.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0"
+        session.headers.update(self.headers)
         request = session.get("https://www.bitchute.com/search")
         csrftoken = BeautifulSoup(request.text, 'html.parser').findAll(
             "input", {"name": "csrfmiddlewaretoken"})[0].get("value")

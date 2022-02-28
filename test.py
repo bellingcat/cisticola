@@ -4,6 +4,7 @@ import cisticola.scraper.twitter
 import cisticola.scraper.gettr
 import cisticola.scraper.bitchute
 import cisticola.scraper.odysee
+import cisticola.scraper.gab
 
 from sqlalchemy import create_engine
 
@@ -31,6 +32,11 @@ test_channels = [
                                     id=5, name="Mak1n' Bacon (test)", platform_id='Mak1nBacon',
                                     category="test", followers=None, platform="Odysee",
                                     url="https://odysee.com/@Mak1nBacon", screenname='Mak1nBacon', country="US",
+                                    influencer=None, public=True, chat=False, notes=""),
+                cisticola.base.Channel(
+                                    id=6, name="Capt. Marc Simon (test)", platform_id='marc_capt',
+                                    category="test", followers=None, platform="Gab",
+                                    url="https://gab.com/marc_capt", screenname='marc_capt', country="CA",
                                     influencer=None, public=True, chat=False, notes="")]
 
 
@@ -50,6 +56,9 @@ controller.register_scraper(bitchute)
 
 odysee = cisticola.scraper.odysee.OdyseeScraper()
 controller.register_scraper(odysee)
+
+gab = cisticola.scraper.gab.GabScraper()
+controller.register_scraper(gab)
 
 engine = create_engine('sqlite:///test3.db')
 controller.connect_to_db(engine)
