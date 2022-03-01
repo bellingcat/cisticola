@@ -5,6 +5,7 @@ import cisticola.scraper.gettr
 import cisticola.scraper.bitchute
 import cisticola.scraper.odysee
 import cisticola.scraper.gab
+import cisticola.scraper.rumble
 
 from sqlalchemy import create_engine
 
@@ -37,6 +38,11 @@ test_channels = [
                                     id=6, name="Capt. Marc Simon (test)", platform_id='marc_capt',
                                     category="test", followers=None, platform="Gab",
                                     url="https://gab.com/marc_capt", screenname='marc_capt', country="CA",
+                                    influencer=None, public=True, chat=False, notes=""),
+                cisticola.base.Channel(
+                                    id=7, name="we are uploading videos wow products and problem solving products.please share like and subscribe our channelwe are uploading videos wow products and problem solving products.please share like and subscribe our channel", platform_id='c-916305',
+                                    category="test", followers=None, platform="Rumble",
+                                    url="https://rumble.com/c/c-916305", screenname='we are uploading', country="CA",
                                     influencer=None, public=True, chat=False, notes="")]
 
 
@@ -59,6 +65,9 @@ controller.register_scraper(odysee)
 
 gab = cisticola.scraper.gab.GabScraper()
 controller.register_scraper(gab)
+
+rumble = cisticola.scraper.rumble.RumbleScraper()
+controller.register_scraper(rumble)
 
 engine = create_engine('sqlite:///test3.db')
 controller.connect_to_db(engine)

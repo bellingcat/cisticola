@@ -2,9 +2,8 @@ import cisticola.base
 import cisticola.scraper.base
 from datetime import datetime
 import json
-from typing import Generator, Tuple
+from typing import Generator
 from garc import Garc
-import tempfile
 
 class GabScraper(cisticola.scraper.base.Scraper):
     """An implementation of a Scraper for Gab, using GARC library"""
@@ -22,7 +21,7 @@ class GabScraper(cisticola.scraper.base.Scraper):
         scraper = client.userposts(username)
 
         for post in scraper:
-            if since is not None and datetime.fromisoformat(post['created_at'].replace("Z", "+00:00")).replace(tzinfo = None) <= since.date:
+            if since is not None and datetime.fromisoformat(post['created_at'].replace("Z", "+00:00")) <= since.date:
                 break
 
             media_urls = []

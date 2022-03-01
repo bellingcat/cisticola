@@ -16,7 +16,7 @@ snscrape = {git = "https://github.com/bellingcat/snscrape.git"}
 ffmpeg-python = "*"
 polyphemus = {git = "https://github.com/bellingcat/polyphemus.git"}
 garc = "*"
-
+youtube-dl = "*" 
 [dev-packages]
 
 [requires]

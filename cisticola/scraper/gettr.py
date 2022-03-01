@@ -63,12 +63,13 @@ class GettrScraper(cisticola.scraper.base.Scraper):
 
     def m3u8_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
         
-        # Using mkv might be more robust: https://stackoverflow.com/a/42871067
         content_type = 'video/mp4'
         ext = '.' + content_type.split('/')[-1]
 
         with tempfile.NamedTemporaryFile(suffix = ext) as temp_file:
             
+            ydl_opts = {}
+
             (
                 ffmpeg
                 .input(url)
