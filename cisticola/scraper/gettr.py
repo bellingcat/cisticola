@@ -4,8 +4,6 @@ from datetime import datetime
 import json
 from typing import Generator, Tuple
 from gogettr import PublicClient
-import ffmpeg
-import tempfile
 from urllib.parse import urlparse
 
 class GettrScraper(cisticola.scraper.base.Scraper):
@@ -63,24 +61,7 @@ class GettrScraper(cisticola.scraper.base.Scraper):
         if channel.platform == "Gettr" and GettrScraper.get_username_from_url(channel.url) is not None:
             return True
 
-    def m3u8_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
-        
-        content_type = 'video/mp4'
+    def url_to_key(self, url: str, content_type: str) -> str:
         ext = '.' + content_type.split('/')[-1]
-
-        with tempfile.NamedTemporaryFile(suffix = ext) as temp_file:
-            
-            (
-                ffmpeg
-                .input(url)
-                .output(temp_file.name, vcodec='copy')
-                .global_args('-loglevel', 'error')
-                .run(overwrite_output=True))
-            
-            temp_file.seek(0)
-            blob = temp_file.read()
-
-        if key is None:
-            key = urlparse(url).path.split('/')[-2] + ext
-
-        return blob, content_type, key
+        key = urlparse(url).path.split('/')[-2] + ext
+        return key 

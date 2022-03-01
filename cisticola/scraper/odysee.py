@@ -5,6 +5,7 @@ import json
 from typing import Generator
 from polyphemus.base import OdyseeChannel
 from urllib.parse import urlparse
+import requests
 
 class OdyseeScraper(cisticola.scraper.base.Scraper):
     """An implementation of a Scraper for Odysee, using polyphemus library"""
@@ -29,7 +30,14 @@ class OdyseeScraper(cisticola.scraper.base.Scraper):
 
             archived_urls = {}
             url = video.info['streaming_url']
-            media_blob, content_type, key = self.url_to_blob(url)
+
+            # Check if file is a video file or an m3u8 file
+            r = requests.head(url)
+            if r.headers['Content-Type'] == 'text/html; charset=utf-8':
+                media_blob, content_type, key = self.m3u8_url_to_blob(url)
+            else:
+                media_blob, content_type, key = self.url_to_blob(url)
+
             archived_url = self.archive_media(media_blob, content_type, key)
             archived_urls[url] = archived_url
 
@@ -55,7 +63,7 @@ class OdyseeScraper(cisticola.scraper.base.Scraper):
                     date=datetime.fromtimestamp(comment.info['created']),
                     date_archived=datetime.now(),
                     raw_data=json.dumps(comment.info),
-                    archived_urls=archived_urls)
+                    archived_urls={})
 
     def can_handle(self, channel):
         if channel.platform == "Odysee" and OdyseeScraper.get_username_from_url(channel.url) is not None:

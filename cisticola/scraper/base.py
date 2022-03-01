@@ -6,7 +6,8 @@ import boto3
 from io import BytesIO
 from urllib.parse import urlparse
 from loguru import logger
-
+import ffmpeg
+import tempfile
 class Scraper:
     __version__ = "Scraper 0.0.0"
 
@@ -52,6 +53,28 @@ class Scraper:
 
         if key is None:
             key = self.url_to_key(url, content_type)
+
+        return blob, content_type, key
+
+    def m3u8_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
+        
+        content_type = 'video/mp4'
+        ext = '.' + content_type.split('/')[-1]
+
+        with tempfile.NamedTemporaryFile(suffix = ext) as temp_file:
+            
+            (
+                ffmpeg
+                .input(url)
+                .output(temp_file.name, vcodec='copy')
+                .global_args('-loglevel', 'error')
+                .run(overwrite_output=True))
+            
+            temp_file.seek(0)
+            blob = temp_file.read()
+
+        if key is None:
+            key = self.url_to_key(url = url, content_type = content_type)
 
         return blob, content_type, key
 

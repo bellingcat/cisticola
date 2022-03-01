@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Generator
 import snscrape.modules
 from loguru import logger
-
+from urllib.parse import urlparse, parse_qs
 
 class TwitterScraper(cisticola.scraper.base.Scraper):
     """An implementation of a Scraper for Twitter, using snscrape library"""
@@ -58,3 +58,16 @@ class TwitterScraper(cisticola.scraper.base.Scraper):
     def can_handle(self, channel):
         if channel.platform == "Twitter" and channel.platform_id:
             return True
+
+    def url_to_key(self, url: str, content_type: str) -> str:
+        parsed_url = urlparse(url)
+        queries = parse_qs(parsed_url.query)
+
+        # TODO might require additional statements for other media formats
+        if 'jpg' in queries.get('format', []):
+            ext = '.jpg'
+        elif parsed_url.path.endswith('.mp4'):
+            ext = ''
+
+        key = parsed_url.path.split('/')[-1] + ext
+        return key 
