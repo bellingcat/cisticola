@@ -6,6 +6,8 @@ from typing import Generator, Tuple
 from gogettr import PublicClient
 import ffmpeg
 import tempfile
+from urllib.parse import urlparse
+
 class GettrScraper(cisticola.scraper.base.Scraper):
     """An implementation of a Scraper for Gettr, using gogettr library"""
     __version__ = "GettrScraper 0.0.1"
@@ -68,8 +70,6 @@ class GettrScraper(cisticola.scraper.base.Scraper):
 
         with tempfile.NamedTemporaryFile(suffix = ext) as temp_file:
             
-            ydl_opts = {}
-
             (
                 ffmpeg
                 .input(url)
@@ -81,6 +81,6 @@ class GettrScraper(cisticola.scraper.base.Scraper):
             blob = temp_file.read()
 
         if key is None:
-            key = url.split('/')[-2] + ext
+            key = urlparse(url).path.split('/')[-2] + ext
 
         return blob, content_type, key

@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 from typing import Generator
 from polyphemus.base import OdyseeChannel
+from urllib.parse import urlparse
 
 class OdyseeScraper(cisticola.scraper.base.Scraper):
     """An implementation of a Scraper for Odysee, using polyphemus library"""
@@ -61,7 +62,7 @@ class OdyseeScraper(cisticola.scraper.base.Scraper):
             return True
 
     def url_to_key(self, url: str, content_type: str) -> str:
-        key = url.split('/')[-2]
+        key = urlparse(url).path.split('/')[-2]
         ext = content_type.split('/')[-1]
 
         return f'{key}.{ext}'

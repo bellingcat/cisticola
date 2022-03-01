@@ -4,6 +4,7 @@ import requests
 import os
 import boto3
 from io import BytesIO
+from urllib.parse import urlparse
 from loguru import logger
 
 class Scraper:
@@ -28,8 +29,7 @@ class Scraper:
         return self.__version__
 
     def url_to_key(self, url: str, content_type: str) -> str:
-        key = url.split('/')[-1]
-        key = key.split('?')[0]
+        key = urlparse(url).path.split('/')[-1]
         return key 
 
     def url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:

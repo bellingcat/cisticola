@@ -9,7 +9,8 @@ import tempfile
 import requests
 from bs4 import BeautifulSoup
 import youtube_dl
-import json 
+import json
+from urllib.parse import urlparse
 
 BASE_URL = 'https://rumble.com'
 
@@ -82,7 +83,7 @@ class RumbleScraper(cisticola.scraper.base.Scraper):
                     blob = f.read()
 
         if key is None:
-            key = url.split('/')[-2] + ext
+            key = urlparse(url).path.split('/')[-2] + ext
 
         return blob, content_type, key
 
