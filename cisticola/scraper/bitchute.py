@@ -9,9 +9,9 @@ from typing import Generator
 import requests
 from bs4 import BeautifulSoup
 
-import cisticola.base
-
-class BitchuteScraper(cisticola.scraper.base.Scraper):
+from cisticola.base import Channel, ScraperResult
+from cisticola.scraper.base import Scraper
+class BitchuteScraper(Scraper):
     """An implementation of a Scraper for Bitchute, using classes from the 4cat
     library"""
     __version__ = "BitchuteScraper 0.0.1"
@@ -23,7 +23,7 @@ class BitchuteScraper(cisticola.scraper.base.Scraper):
 
         return username
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
 
         session = requests.Session()
         session.headers.update(self.headers)
@@ -32,8 +32,6 @@ class BitchuteScraper(cisticola.scraper.base.Scraper):
             "input", {"name": "csrfmiddlewaretoken"})[0].get("value")
         time.sleep(0.25)
 
-        # Don't scrape comment information 
-        #TODO implement framework for processing and storing comments
         detail = 'comments'
 
         username = BitchuteScraper.get_username_from_url(channel.url)
@@ -52,7 +50,7 @@ class BitchuteScraper(cisticola.scraper.base.Scraper):
                 archived_url = self.archive_media(media_blob, content_type, key)
                 archived_urls[url] = archived_url
 
-            yield cisticola.base.ScraperResult(
+            yield ScraperResult(
                 scraper=self.__version__,
                 platform="Bitchute",
                 channel=channel.id,

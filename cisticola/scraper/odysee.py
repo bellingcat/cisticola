@@ -1,13 +1,15 @@
-import cisticola.base
-import cisticola.scraper.base
 from datetime import datetime
 import json
 from typing import Generator
-from polyphemus.base import OdyseeChannel
 from urllib.parse import urlparse
+
+from polyphemus.base import OdyseeChannel
 import requests
 
-class OdyseeScraper(cisticola.scraper.base.Scraper):
+from cisticola.base import Channel, ScraperResult
+from cisticola.scraper.base import Scraper
+
+class OdyseeScraper(Scraper):
     """An implementation of a Scraper for Odysee, using polyphemus library"""
     __version__ = "OdyseeScraper 0.0.1"
 
@@ -17,7 +19,7 @@ class OdyseeScraper(cisticola.scraper.base.Scraper):
 
         return username
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
 
         username = OdyseeScraper.get_username_from_url(channel.url)
         odysee_channel = OdyseeChannel(channel_name = username)
@@ -43,7 +45,7 @@ class OdyseeScraper(cisticola.scraper.base.Scraper):
 
             all_comments = video.get_all_comments()
 
-            yield cisticola.base.ScraperResult(
+            yield ScraperResult(
                 scraper=self.__version__,
                 platform="Odysee",
                 channel=channel.id,
@@ -55,7 +57,7 @@ class OdyseeScraper(cisticola.scraper.base.Scraper):
 
             for comment in all_comments:
 
-                yield cisticola.base.ScraperResult(
+                yield ScraperResult(
                     scraper=self.__version__,
                     platform="Odysee",
                     channel=channel.id,

@@ -1,20 +1,19 @@
-from concurrent.futures import process
-import cisticola.base
-import cisticola.scraper.base
 from datetime import datetime
 import json
 from typing import Generator, Tuple
 import tempfile
+from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
 import youtube_dl
-import json
-from urllib.parse import urlparse
+
+from cisticola.base import Channel, ScraperResult
+from cisticola.scraper.base import Scraper
 
 BASE_URL = 'https://rumble.com'
 
-class RumbleScraper(cisticola.scraper.base.Scraper):
+class RumbleScraper(Scraper):
     """An implementation of a Scraper for Rumble, using custom functions"""
     __version__ = "RumbleScraper 0.0.1"
 
@@ -23,7 +22,7 @@ class RumbleScraper(cisticola.scraper.base.Scraper):
 
         return username
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
 
         username = RumbleScraper.get_username_from_url(channel.url)
         scraper = get_channel_videos(username)
@@ -40,7 +39,7 @@ class RumbleScraper(cisticola.scraper.base.Scraper):
             archived_url = self.archive_media(media_blob, content_type, key)
             archived_urls[post['media_url']] = archived_url
 
-            yield cisticola.base.ScraperResult(
+            yield ScraperResult(
                 scraper=self.__version__,
                 platform="Rumble",
                 channel=channel.id,

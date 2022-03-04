@@ -1,11 +1,12 @@
-import cisticola.base
-import cisticola.scraper.base
 from datetime import datetime
 import json
 from typing import Generator
+
 from garc import Garc
 
-class GabScraper(cisticola.scraper.base.Scraper):
+from cisticola.base import Channel, ScraperResult
+from cisticola.scraper.base import Scraper
+class GabScraper(Scraper):
     """An implementation of a Scraper for Gab, using GARC library"""
     __version__ = "GabScraper 0.0.1"
 
@@ -14,7 +15,7 @@ class GabScraper(cisticola.scraper.base.Scraper):
 
         return username
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
         client = Garc(profile = 'main')
         username = GabScraper.get_username_from_url(channel.url)
 
@@ -37,7 +38,7 @@ class GabScraper(cisticola.scraper.base.Scraper):
                 archived_url = self.archive_media(media_blob, content_type, key)
                 archived_urls[url] = archived_url
 
-            yield cisticola.base.ScraperResult(
+            yield ScraperResult(
                 scraper=self.__version__,
                 platform="Gab",
                 channel=channel.id,

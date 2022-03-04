@@ -1,18 +1,19 @@
-import cisticola.base
-import cisticola.scraper.base
 from typing import Generator
-import snscrape.modules
 from datetime import datetime, timezone
 
+import snscrape.modules
 
-class TelegramSnscrapeScraper(cisticola.scraper.base.Scraper):
+from cisticola.base import Channel, ScraperResult
+from cisticola.scraper.base import Scraper
+
+class TelegramSnscrapeScraper(Scraper):
     __version__ = "TelegramSnscrapeScraper 0.0.1"
 
     def can_handle(self, channel):
         if channel.platform == "Telegram" and channel.public and not channel.chat:
             return True
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
         scr = snscrape.modules.telegram.TelegramChannelScraper(
             channel.screenname)
 
@@ -34,7 +35,7 @@ class TelegramSnscrapeScraper(cisticola.scraper.base.Scraper):
                 archived_url = self.archive_media(media_blob, content_type, key)
                 archived_urls[post.video] = archived_url
 
-            yield cisticola.base.ScraperResult(
+            yield ScraperResult(
                 scraper=self.__version__,
                 platform="Telegram",
                 channel=channel.id,

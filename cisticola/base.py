@@ -1,10 +1,11 @@
+from typing import List
 from dataclasses import dataclass
 from datetime import datetime
+
 from sqlalchemy.orm import registry
 from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey
 
 mapper_registry = registry()
-
 
 @dataclass
 class ScraperResult:

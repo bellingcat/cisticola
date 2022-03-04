@@ -1,12 +1,13 @@
-import cisticola.base
-import cisticola.scraper.base
 from datetime import datetime
 import json
 from typing import Generator, Tuple
-from gogettr import PublicClient
 from urllib.parse import urlparse
 
-class GettrScraper(cisticola.scraper.base.Scraper):
+from gogettr import PublicClient
+
+from cisticola.base import Channel, ScraperResult
+from cisticola.scraper.base import Scraper
+class GettrScraper(Scraper):
     """An implementation of a Scraper for Gettr, using gogettr library"""
     __version__ = "GettrScraper 0.0.1"
 
@@ -17,7 +18,7 @@ class GettrScraper(cisticola.scraper.base.Scraper):
 
         return username
 
-    def get_posts(self, channel: cisticola.base.Channel, since: cisticola.base.ScraperResult = None) -> Generator[cisticola.base.ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
         client = PublicClient()
         username = GettrScraper.get_username_from_url(channel.url)
         scraper = client.user_activity(username=username, type="posts")
@@ -47,7 +48,7 @@ class GettrScraper(cisticola.scraper.base.Scraper):
                 archived_url = self.archive_media(media_blob, content_type, key)
                 archived_urls[post['vid']] = archived_url
 
-            yield cisticola.base.ScraperResult(
+            yield ScraperResult(
                 scraper=self.__version__,
                 platform="Gettr",
                 channel=channel.id,

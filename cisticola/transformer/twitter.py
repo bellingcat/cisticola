@@ -1,17 +1,17 @@
-import cisticola.transformer
-import cisticola.base
 import json
 
+from cisticola.transformer.base import Transformer 
+from cisticola.base import ScraperResult, TransformedResult 
 
-class TwitterTransformer(cisticola.transformer.Transformer):
+class TwitterTransformer(Transformer):
     """A Twitter specific ScraperResult, with a method ETL/transforming"""
 
     __version__ = "TwitterTransformer 0.0.1"
 
-    def transform(self, data: cisticola.base.ScraperResult) -> cisticola.base.TransformedResult:
+    def transform(self, data: ScraperResult) -> TransformedResult:
         raw = json.loads(data.raw_data)
 
-        transformed = cisticola.base.TransformedResult(
+        transformed = TransformedResult(
             raw_id=data.id,
             scraper=data.scraper,
             transformer=self.__version__,
