@@ -1,7 +1,17 @@
-.DS_Store
+# Sphinx documentation
+docs/build/
+docs/source/_*
+
+# Miscellaneous files
+**/.DS_Store
 *.pyc
 *.ipynb
 *.db
-docs/build/
-docs/source/_*
 .env
+
+# Unit test / coverage reports
+reports
+.coverage
+.cache
+.pytest_cache/
+cover/

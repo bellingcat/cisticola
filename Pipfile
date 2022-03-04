@@ -17,7 +17,12 @@ ffmpeg-python = "*"
 polyphemus = {git = "https://github.com/bellingcat/polyphemus.git"}
 garc = "*"
 youtube-dl = "*" 
+
 [dev-packages]
+pytest = "*"
+pytest-cov = "*"
+pytest-html = "*"
+pytest-metadata = "*"
 
 [requires]
 python_version = "3.9"

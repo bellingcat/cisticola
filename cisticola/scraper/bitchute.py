@@ -16,8 +16,6 @@ class BitchuteScraper(Scraper):
     library"""
     __version__ = "BitchuteScraper 0.0.1"
 
-    # TODO snscrape should be able to scrape from user ID alone, but there is
-    # currently a bug/other issue, so it is extracting the username from URL
     def get_username_from_url(url):
         username = url.split('bitchute.com/channel/')[-1].strip('/')
 
