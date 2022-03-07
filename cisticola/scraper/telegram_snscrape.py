@@ -2,6 +2,7 @@ from typing import Generator
 from datetime import datetime, timezone
 
 import snscrape.modules
+from loguru import logger
 
 from cisticola.base import Channel, ScraperResult
 from cisticola.scraper.base import Scraper
@@ -21,16 +22,21 @@ class TelegramSnscrapeScraper(Scraper):
 
         for post in g:
             if since is not None and post.date.replace(tzinfo=timezone.utc) <= since.date.replace(tzinfo=timezone.utc):
+                logger.info(f'Timestamp of post {post} is earlier than the previous archived timestamp {post.date.replace(tzinfo=timezone.utc)}')
                 break
+
+            logger.info(f'Processing post {post}')
 
             archived_urls = {}
 
             for image_url in post.images:
+                logger.debug(f'Archiving image: {image_url}')
                 media_blob, content_type, key = self.url_to_blob(image_url)
                 archived_url = self.archive_media(media_blob, content_type, key)
                 archived_urls[image_url] = archived_url
 
             if post.video:
+                logger.debug(f'Archiving video: {post.video}')
                 media_blob, content_type, key = self.url_to_blob(post.video)
                 archived_url = self.archive_media(media_blob, content_type, key)
                 archived_urls[post.video] = archived_url

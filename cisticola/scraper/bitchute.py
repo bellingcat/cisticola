@@ -435,7 +435,7 @@ def get_about(user):
     about = {
         'description' : description_soup.text,
         'description_links' : [a['href'] for a in description_soup.find_all('a', href = True)],
-        'created': re.sub('\s', ' ', info_list[0].text.split('Created')[1].strip('. ')),
+        'created': re.sub(r'\s', ' ', info_list[0].text.split('Created')[1].strip('. ')),
         'videos' : int(info_list[1].text.split('videos')[0].strip()),
         'owner_url' : soup.find('p', {'class' : 'owner'}).find('a', href = True)['href'],
         'owner_name' : soup.find('p', {'class' : 'owner'}).text,

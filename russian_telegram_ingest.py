@@ -1,53 +1,60 @@
+import sys
+
 from sqlalchemy import create_engine
+from loguru import logger
 
 from cisticola.base import Channel
 from cisticola.scraper import (
     ScraperController,
     TelegramSnscrapeScraper)
 
+logger.remove()
+logger.add(sys.stderr, level="INFO")
+logger.add("../russian_telegram_ingest.log", level = "INFO")
+
 test_channels = [
-    Channel(
-        id=0, 
-        name="QAnon Россия", 
-        platform_id=-1001319637748,
-        category="Qanon", 
-        followers=94048, 
-        platform="Telegram",
-        url="https://t.me/qanonrus", 
-        screenname="qanonrus", 
-        country="RU",
-        influencer=None, 
-        public=True, 
-        chat=False,
-        notes=""),
-    Channel(
-        id=1, 
-        name="The Great Awakening | Q", 
-        platform_id=-1001325597521,
-        category="Qanon", 
-        followers=5715,
-        platform="Telegram",
-        url="https://t.me/greatawakin", 
-        screenname="greatawakin", 
-        country="RU",
-        influencer=None, 
-        public=True, 
-        chat=False, 
-        notes=""),
-    Channel(
-        id=2, 
-        name="Великое Пробуждение", 
-        platform_id=-1001285898079,
-        category="Qanon", 
-        followers=5861, 
-        platform="Telegram",
-        url="https://t.me/greatawakeningrus", 
-        screenname="greatawakeningrus", 
-        country="RU",
-        influencer=None, 
-        public=True, 
-        chat=False, 
-        notes=""),
+    # Channel(
+    #     id=0, 
+    #     name="QAnon Россия", 
+    #     platform_id=-1001319637748,
+    #     category="Qanon", 
+    #     followers=94048, 
+    #     platform="Telegram",
+    #     url="https://t.me/qanonrus", 
+    #     screenname="qanonrus", 
+    #     country="RU",
+    #     influencer=None, 
+    #     public=True, 
+    #     chat=False,
+    #     notes=""),
+    # Channel(
+    #     id=1, 
+    #     name="The Great Awakening | Q", 
+    #     platform_id=-1001325597521,
+    #     category="Qanon", 
+    #     followers=5715,
+    #     platform="Telegram",
+    #     url="https://t.me/greatawakin", 
+    #     screenname="greatawakin", 
+    #     country="RU",
+    #     influencer=None, 
+    #     public=True, 
+    #     chat=False, 
+    #     notes=""),
+    # Channel(
+    #     id=2, 
+    #     name="Великое Пробуждение", 
+    #     platform_id=-1001285898079,
+    #     category="Qanon", 
+    #     followers=5861, 
+    #     platform="Telegram",
+    #     url="https://t.me/greatawakeningrus", 
+    #     screenname="greatawakeningrus", 
+    #     country="RU",
+    #     influencer=None, 
+    #     public=True, 
+    #     chat=False, 
+    #     notes=""),
     Channel(
         id=3, 
         name="T🕊Редакция Президент Гордон🕊", 

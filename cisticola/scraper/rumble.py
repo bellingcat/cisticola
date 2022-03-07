@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 import youtube_dl
 
 from cisticola.base import Channel, ScraperResult
-from cisticola.scraper.base import Scraper
+from cisticola.scraper import Scraper, make_request
 
 BASE_URL = 'https://rumble.com'
 
@@ -90,7 +90,7 @@ class RumbleScraper(Scraper):
 
 def get_media_url(url):
     
-    r = requests.get(url)
+    r = make_request(url = url)
     soup = BeautifulSoup(r.content, features = 'lxml')
     
     script = json.loads(''.join(soup.find('script', {'type':'application/ld+json'}).text))
@@ -126,7 +126,7 @@ def get_channel_videos(channel):
 
     while True:
         url = channel_url + str(page)
-        r = requests.get(url)
+        r = make_request(url = url, break_codes = [404])
 
         if r.status_code == 404:
             break
