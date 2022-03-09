@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from typing import Generator
 from urllib.parse import urlparse
@@ -19,7 +19,7 @@ class OdyseeScraper(Scraper):
 
         return username
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
         username = OdyseeScraper.get_username_from_url(channel.url)
         odysee_channel = OdyseeChannel(channel_name = username)
@@ -32,7 +32,7 @@ class OdyseeScraper(Scraper):
 
             archived_urls = {}
 
-            if media:
+            if archive_media:
                 url = video.info['streaming_url']
 
                 # Check if file is a video file or an m3u8 file
@@ -42,7 +42,7 @@ class OdyseeScraper(Scraper):
                 else:
                     media_blob, content_type, key = self.url_to_blob(url)
 
-                archived_url = self.archive_media(media_blob, content_type, key)
+                archived_url = self.archive_blob(media_blob, content_type, key)
                 archived_urls[url] = archived_url
 
             all_comments = video.get_all_comments()
@@ -53,7 +53,7 @@ class OdyseeScraper(Scraper):
                 channel=channel.id,
                 platform_id=video.info['claim_id'],
                 date=datetime.fromtimestamp(video.info['created']),
-                date_archived=datetime.now(),
+                date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(video.info),
                 archived_urls=archived_urls)
 

@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+from loguru import logger
 
 from cisticola.base import Channel
 from cisticola.scraper import (
@@ -11,6 +12,8 @@ from cisticola.scraper import (
     TelegramSnscrapeScraper,
     TelegramTelethonScraper,
     TwitterScraper)
+
+logger.add("../test.log")
 
 test_channels = [
     Channel(
@@ -118,12 +121,12 @@ scrapers = [
     OdyseeScraper(),
     RumbleScraper(),
     TelegramSnscrapeScraper(),
-    TwitterScraper()
-    TelegramTelethonScraper()]
+    TelegramTelethonScraper(),
+    TwitterScraper()]
 
 controller.register_scrapers(scrapers)
 
 engine = create_engine('sqlite:///test3.db')
 controller.connect_to_db(engine)
 
-controller.scrape_channels(test_channels, media = True)
+controller.scrape_channels(test_channels, archive_media = False)

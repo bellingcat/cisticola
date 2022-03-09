@@ -12,7 +12,7 @@ class TwitterScraper(Scraper):
     """An implementation of a Scraper for Twitter, using snscrape library"""
     __version__ = "TwitterScraper 0.0.1"
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         scraper = TwitterProfileScraper(channel.platform_id)
 
         first = True
@@ -28,24 +28,26 @@ class TwitterScraper(Scraper):
 
             archived_urls = {}
 
-            if tweet.media:
-                for media in tweet.media:
-                    if type(media) == Video:
-                        variant = max(
-                            [v for v in media.variants if v.bitrate], key=lambda v: v.bitrate)
-                        url = variant.url
-                    elif type(media) == Gif:
-                        url = media.variants[0].url
-                    elif type(media) == Photo:
-                        url = media.fullUrl
-                    else:
-                        logger.warning(f"Could not get media URL of {media}")
-                        url = None
+            if archive_media:
 
-                    if url is not None:
-                        media_blob, content_type, key = self.url_to_blob(url)
-                        archived_url = self.archive_media(media_blob, content_type, key)
-                        archived_urls[url] = archived_url
+                if tweet.media:
+                    for media in tweet.media:
+                        if type(media) == Video:
+                            variant = max(
+                                [v for v in media.variants if v.bitrate], key=lambda v: v.bitrate)
+                            url = variant.url
+                        elif type(media) == Gif:
+                            url = media.variants[0].url
+                        elif type(media) == Photo:
+                            url = media.fullUrl
+                        else:
+                            logger.warning(f"Could not get media URL of {media}")
+                            url = None
+
+                        if url is not None:
+                            media_blob, content_type, key = self.url_to_blob(url)
+                            archived_url = self.archive_blob(media_blob, content_type, key)
+                            archived_urls[url] = archived_url
 
             yield ScraperResult(
                 scraper=self.__version__,
@@ -53,7 +55,7 @@ class TwitterScraper(Scraper):
                 channel=channel.id,
                 platform_id=tweet.id,
                 date=tweet.date,
-                date_archived=datetime.now(),
+                date_archived=datetime.now(timezone.utc),
                 raw_data=tweet.json(),
                 archived_urls=archived_urls)
 

@@ -14,7 +14,7 @@ class TelegramSnscrapeScraper(Scraper):
         if channel.platform == "Telegram" and channel.public and not channel.chat:
             return True
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         scr = snscrape.modules.telegram.TelegramChannelScraper(
             channel.screenname)
 
@@ -29,18 +29,18 @@ class TelegramSnscrapeScraper(Scraper):
 
             archived_urls = {}
 
-            if media:
+            if archive_media:
 
                 for image_url in post.images:
                     logger.debug(f'Archiving image: {image_url}')
                     media_blob, content_type, key = self.url_to_blob(image_url)
-                    archived_url = self.archive_media(media_blob, content_type, key)
+                    archived_url = self.archive_blob(media_blob, content_type, key)
                     archived_urls[image_url] = archived_url
 
                 if post.video:
                     logger.debug(f'Archiving video: {post.video}')
                     media_blob, content_type, key = self.url_to_blob(post.video)
-                    archived_url = self.archive_media(media_blob, content_type, key)
+                    archived_url = self.archive_blob(media_blob, content_type, key)
                     archived_urls[post.video] = archived_url
 
             yield ScraperResult(

@@ -26,7 +26,7 @@ class TelegramTelethonScraper(Scraper):
         if channel.platform == "Telegram" and channel.public and not channel.chat:
             return True
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
         username = self.get_username_from_url(channel.url)
 
@@ -47,7 +47,7 @@ class TelegramTelethonScraper(Scraper):
 
                 archived_urls = {}
 
-                if media:
+                if archive_media:
 
                     if post.media is not None:
                         with tempfile.TemporaryDirectory() as temp_dir:
@@ -61,7 +61,7 @@ class TelegramTelethonScraper(Scraper):
                                 blob = f.read()
                         
                         # TODO specify Content-Type
-                        archived_url = self.archive_media(blob = blob, content_type = '', key = output_file_with_ext)
+                        archived_url = self.archive_blob(blob = blob, content_type = '', key = output_file_with_ext)
                         archived_urls[post_url] = archived_url
 
                 yield ScraperResult(

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from typing import Generator, Tuple
 import tempfile
@@ -22,7 +22,7 @@ class RumbleScraper(Scraper):
 
         return username
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
         username = RumbleScraper.get_username_from_url(channel.url)
         scraper = get_channel_videos(username)
@@ -33,12 +33,12 @@ class RumbleScraper(Scraper):
 
             archived_urls = {}
 
-            if media:
+            if archive_media:
 
                 url = post['media_url']
 
                 media_blob, content_type, key = self.url_to_blob(url)
-                archived_url = self.archive_media(media_blob, content_type, key)
+                archived_url = self.archive_blob(media_blob, content_type, key)
                 archived_urls[post['media_url']] = archived_url
 
             yield ScraperResult(
@@ -46,8 +46,8 @@ class RumbleScraper(Scraper):
                 platform="Rumble",
                 channel=channel.id,
                 platform_id=post['media_url'].split('/')[-2],
-                date=datetime.fromisoformat(post['datetime']).replace(tzinfo=None),
-                date_archived=datetime.now(),
+                date=datetime.fromisoformat(post['datetime']).replace(tzinfo=timezone.utc),
+                date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post),
                 archived_urls=archived_urls)
 

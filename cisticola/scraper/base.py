@@ -69,7 +69,7 @@ class Scraper:
 
         return blob, content_type, key
 
-    def archive_media(self, blob: bytes, content_type: str, key: str) -> str:
+    def archive_blob(self, blob: bytes, content_type: str, key: str) -> str:
 
         filename = self.__version__.replace(' ', '_') + '/' + key
 
@@ -83,7 +83,7 @@ class Scraper:
     def can_handle(self, channel: Channel) -> bool:
         raise NotImplementedError
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         raise NotImplementedError
 
 
@@ -103,7 +103,7 @@ class ScraperController:
         self.scrapers.extend(scraper)
     
     @logger.catch
-    def scrape_channels(self, channels: List[Channel], media: bool = True):
+    def scrape_channels(self, channels: List[Channel], archive_media: bool = True):
         if self.session is None:
             logger.error("No DB session")
             return
@@ -128,7 +128,7 @@ class ScraperController:
                     else:
                         since = None
 
-                    posts = scraper.get_posts(channel, since=since, media=media)
+                    posts = scraper.get_posts(channel, since=since, archive_media=archive_media)
 
                     for post in posts:
                         session.add(post)

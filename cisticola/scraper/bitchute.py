@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 import re 
 from html.parser import HTMLParser
@@ -22,7 +22,7 @@ class BitchuteScraper(Scraper):
 
         return username
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
         session = requests.Session()
         session.headers.update(self.headers)
@@ -43,11 +43,11 @@ class BitchuteScraper(Scraper):
 
             archived_urls = {}
 
-            if media:
+            if archive_media:
                 if 'video_url' in post:
                     url = post['video_url']
                     media_blob, content_type, key = self.url_to_blob(url)
-                    archived_url = self.archive_media(media_blob, content_type, key)
+                    archived_url = self.archive_blob(media_blob, content_type, key)
                     archived_urls[url] = archived_url
 
             yield ScraperResult(
@@ -56,7 +56,7 @@ class BitchuteScraper(Scraper):
                 channel=channel.id,
                 platform_id=post['id'],
                 date=datetime.fromtimestamp(post['timestamp']),
-                date_archived=datetime.now(),
+                date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post),
                 archived_urls=archived_urls)
 
