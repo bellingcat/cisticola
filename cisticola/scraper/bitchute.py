@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 from cisticola.base import Channel, ScraperResult
 from cisticola.scraper.base import Scraper
+
 class BitchuteScraper(Scraper):
     """An implementation of a Scraper for Bitchute, using classes from the 4cat
     library"""
@@ -21,7 +22,7 @@ class BitchuteScraper(Scraper):
 
         return username
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
 
         session = requests.Session()
         session.headers.update(self.headers)
@@ -42,11 +43,12 @@ class BitchuteScraper(Scraper):
 
             archived_urls = {}
 
-            if 'video_url' in post:
-                url = post['video_url']
-                media_blob, content_type, key = self.url_to_blob(url)
-                archived_url = self.archive_media(media_blob, content_type, key)
-                archived_urls[url] = archived_url
+            if media:
+                if 'video_url' in post:
+                    url = post['video_url']
+                    media_blob, content_type, key = self.url_to_blob(url)
+                    archived_url = self.archive_media(media_blob, content_type, key)
+                    archived_urls[url] = archived_url
 
             yield ScraperResult(
                 scraper=self.__version__,

@@ -9,6 +9,7 @@ from cisticola.scraper import (
     OdyseeScraper,
     RumbleScraper,
     TelegramSnscrapeScraper,
+    TelegramTelethonScraper,
     TwitterScraper)
 
 test_channels = [
@@ -117,11 +118,12 @@ scrapers = [
     OdyseeScraper(),
     RumbleScraper(),
     TelegramSnscrapeScraper(),
-    TwitterScraper()]
+    TwitterScraper()
+    TelegramTelethonScraper()]
 
 controller.register_scrapers(scrapers)
 
 engine = create_engine('sqlite:///test3.db')
 controller.connect_to_db(engine)
 
-controller.scrape_channels(test_channels)
+controller.scrape_channels(test_channels, media = True)

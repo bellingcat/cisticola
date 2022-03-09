@@ -4,7 +4,6 @@ from io import BytesIO
 from urllib.parse import urlparse
 import tempfile
 
-import requests
 import boto3
 from loguru import logger
 import ffmpeg
@@ -84,7 +83,7 @@ class Scraper:
     def can_handle(self, channel: Channel) -> bool:
         raise NotImplementedError
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
         raise NotImplementedError
 
 
@@ -102,8 +101,9 @@ class ScraperController:
 
     def register_scrapers(self, scraper: List[Scraper]):
         self.scrapers.extend(scraper)
-
-    def scrape_channels(self, channels: List[Channel]):
+    
+    @logger.catch
+    def scrape_channels(self, channels: List[Channel], media: bool = True):
         if self.session is None:
             logger.error("No DB session")
             return
@@ -128,7 +128,7 @@ class ScraperController:
                     else:
                         since = None
 
-                    posts = scraper.get_posts(channel, since=since)
+                    posts = scraper.get_posts(channel, since=since, media=media)
 
                     for post in posts:
                         session.add(post)

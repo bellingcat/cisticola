@@ -17,6 +17,7 @@ ffmpeg-python = "*"
 polyphemus = {git = "https://github.com/bellingcat/polyphemus.git"}
 garc = "*"
 youtube-dl = "*" 
+telethon = "*"
 
 [dev-packages]
 pytest = "*"

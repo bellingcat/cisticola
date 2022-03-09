@@ -19,7 +19,7 @@ class OdyseeScraper(Scraper):
 
         return username
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
 
         username = OdyseeScraper.get_username_from_url(channel.url)
         odysee_channel = OdyseeChannel(channel_name = username)
@@ -31,17 +31,19 @@ class OdyseeScraper(Scraper):
                 break
 
             archived_urls = {}
-            url = video.info['streaming_url']
 
-            # Check if file is a video file or an m3u8 file
-            r = requests.head(url)
-            if r.headers['Content-Type'] == 'text/html; charset=utf-8':
-                media_blob, content_type, key = self.m3u8_url_to_blob(url)
-            else:
-                media_blob, content_type, key = self.url_to_blob(url)
+            if media:
+                url = video.info['streaming_url']
 
-            archived_url = self.archive_media(media_blob, content_type, key)
-            archived_urls[url] = archived_url
+                # Check if file is a video file or an m3u8 file
+                r = requests.head(url)
+                if r.headers['Content-Type'] == 'text/html; charset=utf-8':
+                    media_blob, content_type, key = self.m3u8_url_to_blob(url)
+                else:
+                    media_blob, content_type, key = self.url_to_blob(url)
+
+                archived_url = self.archive_media(media_blob, content_type, key)
+                archived_urls[url] = archived_url
 
             all_comments = video.get_all_comments()
 

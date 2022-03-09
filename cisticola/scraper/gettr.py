@@ -7,6 +7,7 @@ from gogettr import PublicClient
 
 from cisticola.base import Channel, ScraperResult
 from cisticola.scraper.base import Scraper
+
 class GettrScraper(Scraper):
     """An implementation of a Scraper for Gettr, using gogettr library"""
     __version__ = "GettrScraper 0.0.1"
@@ -18,7 +19,7 @@ class GettrScraper(Scraper):
 
         return username
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
         client = PublicClient()
         username = GettrScraper.get_username_from_url(channel.url)
         scraper = client.user_activity(username=username, type="posts")
@@ -29,24 +30,26 @@ class GettrScraper(Scraper):
 
             archived_urls = {}
 
-            if 'imgs' in post:
-                for img in post['imgs']:
-                    url = "https://media.gettr.com/" + img
+            if media:
+
+                if 'imgs' in post:
+                    for img in post['imgs']:
+                        url = "https://media.gettr.com/" + img
+                        media_blob, content_type, key = self.url_to_blob(url)
+                        archived_url = self.archive_media(media_blob, content_type, key)
+                        archived_urls[img] = archived_url
+
+                if 'main' in post:
+                    url = "https://media.gettr.com/" + post['main']
                     media_blob, content_type, key = self.url_to_blob(url)
                     archived_url = self.archive_media(media_blob, content_type, key)
-                    archived_urls[img] = archived_url
+                    archived_urls[post['main']] = archived_url
 
-            if 'main' in post:
-                url = "https://media.gettr.com/" + post['main']
-                media_blob, content_type, key = self.url_to_blob(url)
-                archived_url = self.archive_media(media_blob, content_type, key)
-                archived_urls[post['main']] = archived_url
-
-            if 'vid' in post:
-                url = "https://media.gettr.com/" + post['vid']
-                media_blob, content_type, key = self.m3u8_url_to_blob(url)
-                archived_url = self.archive_media(media_blob, content_type, key)
-                archived_urls[post['vid']] = archived_url
+                if 'vid' in post:
+                    url = "https://media.gettr.com/" + post['vid']
+                    media_blob, content_type, key = self.m3u8_url_to_blob(url)
+                    archived_url = self.archive_media(media_blob, content_type, key)
+                    archived_urls[post['vid']] = archived_url
 
             yield ScraperResult(
                 scraper=self.__version__,

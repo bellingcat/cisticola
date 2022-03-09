@@ -10,7 +10,7 @@ from cisticola.scraper import (
 
 logger.remove()
 logger.add(sys.stderr, level="INFO")
-logger.add("../russian_telegram_ingest.log", level = "INFO")
+logger.add("../russian_telegram_ingest.log")
 
 test_channels = [
     # Channel(

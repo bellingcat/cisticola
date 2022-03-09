@@ -6,6 +6,7 @@ from garc import Garc
 
 from cisticola.base import Channel, ScraperResult
 from cisticola.scraper.base import Scraper
+
 class GabScraper(Scraper):
     """An implementation of a Scraper for Gab, using GARC library"""
     __version__ = "GabScraper 0.0.1"
@@ -15,7 +16,7 @@ class GabScraper(Scraper):
 
         return username
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
         client = Garc(profile = 'main')
         username = GabScraper.get_username_from_url(channel.url)
 
@@ -28,15 +29,17 @@ class GabScraper(Scraper):
             media_urls = []
             archived_urls = {}
 
-            media_urls.extend([p['url'] for p in post['media_attachments']])
+            if media:
 
-            if post.get('repost') is not None:
-                media_urls.extend([p['url'] for p in post['repost']['media_attachments']])
+                media_urls.extend([p['url'] for p in post['media_attachments']])
 
-            for url in media_urls:
-                media_blob, content_type, key = self.url_to_blob(url)
-                archived_url = self.archive_media(media_blob, content_type, key)
-                archived_urls[url] = archived_url
+                if post.get('repost') is not None:
+                    media_urls.extend([p['url'] for p in post['repost']['media_attachments']])
+
+                for url in media_urls:
+                    media_blob, content_type, key = self.url_to_blob(url)
+                    archived_url = self.archive_media(media_blob, content_type, key)
+                    archived_urls[url] = archived_url
 
             yield ScraperResult(
                 scraper=self.__version__,

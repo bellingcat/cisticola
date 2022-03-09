@@ -6,4 +6,5 @@ from .gettr import GettrScraper
 from .odysee import OdyseeScraper
 from .rumble import RumbleScraper
 from .telegram_snscrape import TelegramSnscrapeScraper
+from .telegram_telethon import TelegramTelethonScraper
 from .twitter import TwitterScraper

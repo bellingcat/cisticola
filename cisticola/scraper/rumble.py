@@ -22,7 +22,7 @@ class RumbleScraper(Scraper):
 
         return username
 
-    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, media: bool = True) -> Generator[ScraperResult, None, None]:
 
         username = RumbleScraper.get_username_from_url(channel.url)
         scraper = get_channel_videos(username)
@@ -33,11 +33,13 @@ class RumbleScraper(Scraper):
 
             archived_urls = {}
 
-            url = post['media_url']
+            if media:
 
-            media_blob, content_type, key = self.url_to_blob(url)
-            archived_url = self.archive_media(media_blob, content_type, key)
-            archived_urls[post['media_url']] = archived_url
+                url = post['media_url']
+
+                media_blob, content_type, key = self.url_to_blob(url)
+                archived_url = self.archive_media(media_blob, content_type, key)
+                archived_urls[post['media_url']] = archived_url
 
             yield ScraperResult(
                 scraper=self.__version__,

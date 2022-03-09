@@ -81,7 +81,7 @@ RUMBLE_CHANNEL_KWARGS = {
     'chat': False,
     'notes': ''}
 
-TELEGRAM_SNSCRAPE_CHANNEL_KWARGS = {
+TELEGRAM_CHANNEL_KWARGS = {
     'id': 5,
     'name': 'South West Ohio Proud Boys (test)',
     'platform_id': -1001276612436,
@@ -141,7 +141,7 @@ def channel_kwargs():
         'gettr' : GETTR_CHANNEL_KWARGS,
         'odysee' : ODYSEE_CHANNEL_KWARGS,
         'rumble' : RUMBLE_CHANNEL_KWARGS,
-        'telegram_snscrape' : TELEGRAM_SNSCRAPE_CHANNEL_KWARGS,
+        'telegram' : TELEGRAM_CHANNEL_KWARGS,
         'twitter' : TWITTER_CHANNEL_KWARGS}
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
