@@ -10,7 +10,7 @@ import ffmpeg
 from sqlalchemy.orm import sessionmaker
 
 from cisticola.base import Channel, ScraperResult, mapper_registry
-from cisticola.scraper import make_request
+from cisticola.utils import make_request
 
 class Scraper:
     __version__ = "Scraper 0.0.0"
@@ -94,7 +94,6 @@ class ScraperController:
     def __init__(self):
         self.scrapers = []
         self.session = None
-        self.mapper_registry = None
 
     def register_scraper(self, scraper: Scraper):
         self.scrapers.append(scraper)
@@ -149,9 +148,3 @@ class ScraperController:
         self.session = sessionmaker()
         self.session.configure(bind=engine)
 
-
-class ETLController:
-    """This class will transform the raw_data tables into a format more conducive to analysis."""
-
-    def __init__(self):
-        pass

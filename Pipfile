@@ -18,6 +18,8 @@ polyphemus = {git = "https://github.com/bellingcat/polyphemus.git"}
 garc = "*"
 youtube-dl = "*" 
 telethon = "*"
+pytesseract = "*"
+pyexiftool = {git = "https://github.com/smarnach/pyexiftool.git"}
 
 [dev-packages]
 pytest = "*"
