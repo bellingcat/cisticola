@@ -236,8 +236,8 @@ def append_details(video, detail):
         video["video_url"] = soup.select_one("video#player source").get("src")
         video["thumbnail_image"] = soup.select_one("video#player").get("poster")
         video["subject"] = soup.select_one("h1#video-title").text
-        video["author"] = soup.select_one("div.channel-banner p.name a").text
-        video["author_id"] = soup.select_one("div.channel-banner p.name a").get("href").split("/")[2]
+        video["author_id"] = soup.select_one("p.owner a").get("href").split("/")[2]
+        video["author"] = soup.select_one("div.channel-banner p.name a").get("href").split("/")[2]
         video["body"] = soup.select_one("div#video-description").encode_contents().decode("utf-8").strip()
 
         # we need *two more requests* to get the comment count and like/dislike counts
