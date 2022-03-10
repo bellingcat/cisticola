@@ -146,5 +146,12 @@ class ScraperController:
         mapper_registry.metadata.create_all(bind=engine)
 
         self.session = sessionmaker()
-        self.session.configure(bind=engine)
+        self.engine = engine
+        self.session.configure(bind=self.engine)
+
+    def reset_db(self):
+
+        mapper_registry.metadata.drop_all(bind=self.engine)
+        self.connect_to_db(self.engine)
+
 

@@ -113,7 +113,7 @@ TWITTER_CHANNEL_KWARGS = {
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='package')
 def controller(tmpdir_factory):
 
     """Initialize ScraperController and SQLite database file to be used for all 
