@@ -51,7 +51,7 @@ class VkontakteScraper(Scraper):
 
                 if post.video:
                     url = post.video.url
-                    media_blob, content_type, key = self.youtubedl_url_to_blob(url)
+                    media_blob, content_type, key = self.ytdlp_url_to_blob(url)
                     archived_url = self.archive_blob(media_blob, content_type, key)
                     archived_urls[url] = archived_url
 

@@ -9,3 +9,4 @@ from .telegram_snscrape import TelegramSnscrapeScraper
 from .telegram_telethon import TelegramTelethonScraper
 from .twitter import TwitterScraper
 from .vkontakte import VkontakteScraper
+from .youtube import YoutubeScraper

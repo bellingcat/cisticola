@@ -8,7 +8,7 @@ import boto3
 from loguru import logger
 import ffmpeg
 from sqlalchemy.orm import sessionmaker
-import youtube_dl
+import yt_dlp
 
 from cisticola.base import Channel, ScraperResult, mapper_registry
 from cisticola.utils import make_request
@@ -70,7 +70,7 @@ class Scraper:
 
         return blob, content_type, key
 
-    def youtubedl_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
+    def ytdlp_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
         
         content_type = 'video/mp4'
 
@@ -82,13 +82,13 @@ class Scraper:
                 "noplaylist": True,
                 'quiet': True,
                 "verbose": False,}
-            ydl = youtube_dl.YoutubeDL(ydl_opts)
+            ydl = yt_dlp.YoutubeDL(ydl_opts)
 
             try:
                 meta = ydl.extract_info(
                     url,
                     download=True,)
-            except youtube_dl.utils.DownloadError as e:
+            except yt_dlp.utils.DownloadError as e:
                 raise e
             else:
                 video_id = meta["id"]

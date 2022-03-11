@@ -34,7 +34,7 @@ class RumbleScraper(Scraper):
 
                 url = post['media_url']
 
-                media_blob, content_type, key = self.youtubedl_url_to_blob(url)
+                media_blob, content_type, key = self.ytdlp_url_to_blob(url)
                 archived_url = self.archive_blob(media_blob, content_type, key)
                 archived_urls[post['media_url']] = archived_url
 

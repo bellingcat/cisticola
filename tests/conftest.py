@@ -126,6 +126,21 @@ VKONTAKTE_CHANNEL_KWARGS = {
     'chat': False,
     'notes': ''}
 
+YOUTUBE_CHANNEL_KWARGS = {
+    'id': 7,
+    'name': 'AnEs87 (test)',
+    'platform_id': 'UCP6exBqGoxGLv_pM9Dxk2pA',
+    'category': 'test',
+    'followers': None,
+    'platform': 'Youtube',
+    'url': 'https://www.youtube.com/channel/UCP6exBqGoxGLv_pM9Dxk2pA',
+    'screenname': 'AnEs87',
+    'country': 'SV',
+    'influencer': None,
+    'public': True,
+    'chat': False,
+    'notes': ''}
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
 @pytest.fixture(scope='package')
@@ -158,6 +173,7 @@ def channel_kwargs():
         'rumble' : RUMBLE_CHANNEL_KWARGS,
         'telegram' : TELEGRAM_CHANNEL_KWARGS,
         'twitter' : TWITTER_CHANNEL_KWARGS,
-        'vkontakte' : VKONTAKTE_CHANNEL_KWARGS}
+        'vkontakte' : VKONTAKTE_CHANNEL_KWARGS,
+        'youtube' : YOUTUBE_CHANNEL_KWARGS}
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
