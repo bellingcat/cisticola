@@ -38,7 +38,7 @@ class ETLController:
         self.session = sessionmaker()
         self.session.configure(bind=engine)
 
-    @logger.catch
+    @logger.catch(reraise = True)
     def transform_results(self, results: List[ScraperResult], hydrate: bool = True):
         if self.session is None:
             logger.error("No DB session")
@@ -76,7 +76,7 @@ class ETLController:
                 if handled == False:
                     logger.warning(f"No Transformer could handle {result}")
 
-    @logger.catch
+    @logger.catch(reraise = True)
     def transform_all_untransformed(self, hydrate: bool = True):
         if self.session is None:
             logger.error("No DB session")

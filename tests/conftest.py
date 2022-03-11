@@ -111,6 +111,21 @@ TWITTER_CHANNEL_KWARGS = {
     'chat': False,
     'notes': ''}
 
+VKONTAKTE_CHANNEL_KWARGS = {
+    'id': 6,
+    'name': 'Wwg1wgA (test)',
+    'platform_id': 'club201278078',
+    'category': 'test',
+    'followers': None,
+    'platform': 'Vkontakte',
+    'url': 'https://vk.com/club201278078',
+    'screenname': 'Wwg1wgA',
+    'country': 'FR',
+    'influencer': None,
+    'public': True,
+    'chat': False,
+    'notes': ''}
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
 @pytest.fixture(scope='package')
@@ -142,6 +157,7 @@ def channel_kwargs():
         'odysee' : ODYSEE_CHANNEL_KWARGS,
         'rumble' : RUMBLE_CHANNEL_KWARGS,
         'telegram' : TELEGRAM_CHANNEL_KWARGS,
-        'twitter' : TWITTER_CHANNEL_KWARGS}
+        'twitter' : TWITTER_CHANNEL_KWARGS,
+        'vkontakte' : VKONTAKTE_CHANNEL_KWARGS}
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#

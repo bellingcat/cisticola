@@ -8,3 +8,4 @@ from .rumble import RumbleScraper
 from .telegram_snscrape import TelegramSnscrapeScraper
 from .telegram_telethon import TelegramTelethonScraper
 from .twitter import TwitterScraper
+from .vkontakte import VkontakteScraper
