@@ -9,6 +9,8 @@ def test_scrape_twitter_channel_no_media(controller, channel_kwargs):
 
 def test_scrape_twitter_channel(controller, channel_kwargs):
 
+    controller.reset_db()
+    
     channels = [Channel(**channel_kwargs['twitter'])]
     controller.register_scraper(scraper = TwitterScraper())
     controller.scrape_channels(channels = channels, archive_media = True)

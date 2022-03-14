@@ -1,9 +1,16 @@
 from typing import List
 from dataclasses import dataclass
 from datetime import datetime
-
 from sqlalchemy.orm import registry
 from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey
+import pytesseract
+import PIL
+import io
+import exiftool
+import json
+import os
+
+from .utils import make_request
 
 @dataclass
 class ScraperResult:
@@ -96,7 +103,7 @@ class TransformedResult:
     platform: str
 
     #: User-specified integer that uniquely identifies a channel, e.g. ``15``.
-    channel: str
+    channel: int
 
     #: Datetime (relative to UTC) that the scraped post was created at.
     date: datetime
@@ -107,14 +114,15 @@ class TransformedResult:
     #: URL of the original post
     url: str
 
-    #: Text of the original post
-    content: str
-
     #: String that uniquely identifies the channel on the given platform, e.g. ``"-1001101170442"``.
     author_id: str
 
     #: Username of author who made post.
     author_username: str
+
+    #: Text of the original post
+    content: str
+
 
 mapper_registry = registry()
 
@@ -139,13 +147,78 @@ analysis_table = Table('analysis', mapper_registry.metadata,
                        Column('scraper', String),
                        Column('transformer', String),
                        Column('platform', String),
-                       Column('channel', String),
+                       Column('channel', Integer),
                        Column('date', DateTime),
                        Column('date_archived', DateTime),
                        Column('url', String),
-                       Column('content', String),
                        Column('author_id', String),
-                       Column('author_username', String)
+                       Column('author_username', String),
+                       Column('content', String)
                        )
 
 mapper_registry.map_imperatively(TransformedResult, analysis_table)
+
+@dataclass
+class Media:
+    raw_id: int
+    post: int
+    url: str
+    original_url: str
+
+    exif: str = None
+
+    def get_blob(self):
+        blob = make_request(self.url)
+        return blob.content
+
+    def hydrate(self, blob = None):
+        if blob is None:
+            blob = self.get_blob()
+
+        self.hydrate_exif(blob)
+
+    def hydrate_exif(self, blob):
+        f = open('tmp', 'wb')
+        f.write(blob)
+        f.close()
+
+        with exiftool.ExifTool() as et:
+            exif = et.get_metadata('tmp')
+            self.exif = json.dumps(exif)
+
+        os.remove('tmp')
+
+@dataclass
+class Image(Media):
+    ocr: str = None
+
+    def hydrate(self, blob=None):
+        if blob is None:
+            blob = self.get_blob()
+
+        super().hydrate(blob)
+        self.hydrate_ocr(blob)
+
+    def hydrate_ocr(self, blob):
+        image = PIL.Image.open(io.BytesIO(blob))
+        self.ocr = pytesseract.image_to_string(image)
+
+@dataclass
+class Video(Media):
+    pass
+
+media_table = Table('media', mapper_registry.metadata,
+                       Column('id', Integer, primary_key=True,
+                              autoincrement=True),
+                        Column('type', String),
+                       Column('raw_id', Integer, ForeignKey('raw_data.id')),
+                       Column('post', Integer, ForeignKey('analysis.id')),
+                       Column('url', String),
+                       Column('original_url', String),
+                       Column('exif', String),
+                       Column('ocr', String)
+                       )
+
+mapper_registry.map_imperatively(Media, media_table, polymorphic_on='type', polymorphic_identity='media')
+mapper_registry.map_imperatively(Image, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='image')
+mapper_registry.map_imperatively(Video, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='video')

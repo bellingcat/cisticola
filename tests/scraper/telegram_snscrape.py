@@ -9,6 +9,8 @@ def test_scrape_telegram_snscrape_channel_no_media(controller, channel_kwargs):
 
 def test_scrape_telegram_snscrape_channel(controller, channel_kwargs):
 
+    controller.reset_db()
+
     channels = [Channel(**channel_kwargs['telegram'])]
     controller.register_scraper(scraper = TelegramSnscrapeScraper())
     controller.scrape_channels(channels = channels, archive_media = True)
