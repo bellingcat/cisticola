@@ -5,7 +5,7 @@ Welcome to Cisticola's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules
+   cisticola
 
 
 

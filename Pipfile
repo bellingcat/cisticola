@@ -10,7 +10,6 @@ gogettr = "*"
 requests = "*"
 bs4 = "*"
 dateparser = "*"
-sphinx = "*"
 boto3 = "*"
 snscrape = {git = "https://github.com/bellingcat/snscrape.git"}
 ffmpeg-python = "*"
@@ -24,6 +23,8 @@ pytest = "*"
 pytest-cov = "*"
 pytest-html = "*"
 pytest-metadata = "*"
+sphinx = "*"
+sphinx_rtd_theme = "*"
 
 [requires]
 python_version = "3.9"

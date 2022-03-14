@@ -1,37 +1,25 @@
 cisticola.scraper package
 =========================
 
-Submodules
-----------
-
-cisticola.scraper.bitchute module
----------------------------------
-
-.. automodule:: cisticola.scraper.bitchute
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cisticola.scraper.gettr module
-------------------------------
-
-.. automodule:: cisticola.scraper.gettr
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cisticola.scraper.twitter module
---------------------------------
-
-.. automodule:: cisticola.scraper.twitter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
 .. automodule:: cisticola.scraper
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   cisticola.scraper.base
+   cisticola.scraper.bitchute
+   cisticola.scraper.gab
+   cisticola.scraper.gettr
+   cisticola.scraper.odysee
+   cisticola.scraper.rumble
+   cisticola.scraper.telegram_snscrape
+   cisticola.scraper.telegram_telethon
+   cisticola.scraper.twitter
+   cisticola.scraper.utils

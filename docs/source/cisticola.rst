@@ -1,6 +1,12 @@
 cisticola package
 =================
 
+.. automodule:: cisticola
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
 Subpackages
 -----------
 
@@ -13,18 +19,7 @@ Subpackages
 Submodules
 ----------
 
-cisticola.base module
----------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: cisticola.base
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: cisticola
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   cisticola.base
