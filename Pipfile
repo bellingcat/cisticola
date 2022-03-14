@@ -20,6 +20,7 @@ yt-dlp = "*"
 telethon = "*"
 pytesseract = "*"
 pyexiftool = {git = "https://github.com/smarnach/pyexiftool.git"}
+instaloader = "*"
 
 [dev-packages]
 pytest = "*"

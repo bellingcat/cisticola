@@ -51,8 +51,23 @@ GETTR_CHANNEL_KWARGS = {
     'chat': False,
     'notes': ''}
 
-ODYSEE_CHANNEL_KWARGS = {
+INSTAGRAM_CHANNEL_KWARGS = {
     'id': 3,
+    'name': 'borland.88 (test)',
+    'platform_id': 'borland.88',
+    'category': 'test',
+    'followers': None,
+    'platform': 'Instagram',
+    'url': 'https://www.instagram.com/borland.88/',
+    'screenname': 'borland.88',
+    'country': 'UA',
+    'influencer': None,
+    'public': True,
+    'chat': False,
+    'notes': ''}
+
+ODYSEE_CHANNEL_KWARGS = {
+    'id': 4,
     'name': "Mak1n' Bacon (test)",
     'platform_id': 'Mak1nBacon',
     'category': 'test',
@@ -67,7 +82,7 @@ ODYSEE_CHANNEL_KWARGS = {
     'notes': ''}
 
 RUMBLE_CHANNEL_KWARGS = {
-    'id': 4,
+    'id': 5,
     'name': 'we are uploading videos wow products',
     'platform_id': 'c-916305',
     'category': 'test',
@@ -82,7 +97,7 @@ RUMBLE_CHANNEL_KWARGS = {
     'notes': ''}
 
 TELEGRAM_CHANNEL_KWARGS = {
-    'id': 5,
+    'id': 6,
     'name': 'South West Ohio Proud Boys (test)',
     'platform_id': -1001276612436,
     'category': 'test',
@@ -97,7 +112,7 @@ TELEGRAM_CHANNEL_KWARGS = {
     'notes': ''}
 
 TWITTER_CHANNEL_KWARGS = {
-    'id': 5,
+    'id': 6,
     'name': 'Logan Williams (test)',
     'platform_id': 891729132,
     'category': 'test',
@@ -112,7 +127,7 @@ TWITTER_CHANNEL_KWARGS = {
     'notes': ''}
 
 VKONTAKTE_CHANNEL_KWARGS = {
-    'id': 6,
+    'id': 8,
     'name': 'Wwg1wgA (test)',
     'platform_id': 'club201278078',
     'category': 'test',
@@ -127,7 +142,7 @@ VKONTAKTE_CHANNEL_KWARGS = {
     'notes': ''}
 
 YOUTUBE_CHANNEL_KWARGS = {
-    'id': 7,
+    'id': 9,
     'name': 'AnEs87 (test)',
     'platform_id': 'UCP6exBqGoxGLv_pM9Dxk2pA',
     'category': 'test',
@@ -169,6 +184,7 @@ def channel_kwargs():
         'bitchute' : BITCHUTE_CHANNEL_KWARGS,
         'gab' : GAB_CHANNEL_KWARGS,
         'gettr' : GETTR_CHANNEL_KWARGS,
+        'instagram' : INSTAGRAM_CHANNEL_KWARGS,
         'odysee' : ODYSEE_CHANNEL_KWARGS,
         'rumble' : RUMBLE_CHANNEL_KWARGS,
         'telegram' : TELEGRAM_CHANNEL_KWARGS,
