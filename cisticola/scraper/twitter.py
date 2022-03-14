@@ -67,9 +67,13 @@ class TwitterScraper(Scraper):
         parsed_url = urlparse(url)
         queries = parse_qs(parsed_url.query)
 
+        ext = ''
+
         # TODO might require additional statements for other media formats
         if 'jpg' in queries.get('format', []):
             ext = '.jpg'
+        elif 'png' in queries.get('format', []):
+            ext = '.png'
         elif parsed_url.path.endswith('.mp4'):
             ext = ''
 

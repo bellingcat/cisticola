@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from loguru import logger
 
-from cisticola.base import Channel
+from cisticola.base import Channel, TransformedResult, ScraperResult
 from cisticola.scraper import (
     ScraperController,
     BitchuteScraper,
@@ -12,104 +12,26 @@ from cisticola.scraper import (
     TelegramSnscrapeScraper,
     TelegramTelethonScraper,
     TwitterScraper)
+from cisticola.transformer import ETLController
+from cisticola.transformer.twitter import TwitterTransformer
+from sqlalchemy.orm import sessionmaker
 
 logger.add("../test.log")
 
 test_channels = [
     Channel(
         id=0, 
-        name="Logan Williams (test)", 
-        platform_id=891729132,
+        name="L Weber (test)", 
+        platform_id=1424979017749442595,
         category="test", 
         followers=None, 
         platform="Twitter",
-        url="https://twitter.com/obtusatum", 
-        screenname="obtusatum", 
+        url="https://twitter.com/LWeber33662141", 
+        screenname="LWeber33662141", 
         country="US",
         influencer=None, 
         public=True, 
         chat=False,
-        notes=""),
-    Channel(
-        id=1, 
-        name="South West Ohio Proud Boys (test)", 
-        platform_id=-1001276612436,
-        category="test", 
-        followers=None, 
-        platform="Telegram",
-        url="https://t.me/SouthwestOhioPB", 
-        screenname="SouthwestOhioPB", 
-        country="US",
-        influencer=None, 
-        public=True, 
-        chat=False, 
-        notes=""),
-    Channel(
-        id=2, 
-        name="LizardRepublic (test)", 
-        platform_id='lizardrepublic',
-        category="test", 
-        followers=None, 
-        platform="Gettr",
-        url="https://www.gettr.com/user/lizardrepublic", 
-        screenname="lizardrepublic", 
-        country="US",
-        influencer=None, 
-        public=True, 
-        chat=False, 
-        notes=""),
-    Channel(
-        id=4, 
-        name="bestonlinejewelrystoresusa@gmail.com (test)", platform_id='bestonlinejewelrystoresusagmailcom',
-        category="test", 
-        followers=None, 
-        platform="Bitchute",
-        url="https://www.bitchute.com/channel/bestonlinejewelrystoresusagmailcom/", screenname=None, 
-        country="US",
-        influencer=None, 
-        public=True, 
-        chat=False, 
-        notes=""),
-    Channel(
-        id=5, 
-        name="Mak1n' Bacon (test)", 
-        platform_id='Mak1nBacon',
-        category="test", 
-        followers=None, 
-        platform="Odysee",
-        url="https://odysee.com/@Mak1nBacon", 
-        screenname='Mak1nBacon', 
-        country="US",
-        influencer=None, 
-        public=True, 
-        chat=False, 
-        notes=""),
-    Channel(
-        id=6, 
-        name="Capt. Marc Simon (test)", 
-        platform_id='marc_capt',
-        category="test", 
-        followers=None, 
-        platform="Gab",
-        url="https://gab.com/marc_capt", 
-        screenname='marc_capt', 
-        country="CA",
-        influencer=None, 
-        public=True, 
-        chat=False, 
-        notes=""),
-    Channel(
-        id=7, 
-        name="we are uploading videos wow products and problem solving products.please share like and subscribe our channelwe are uploading videos wow products and problem solving products.please share like and subscribe our channel", platform_id='c-916305',
-        category="test", 
-        followers=None, 
-        platform="Rumble",
-        url="https://rumble.com/c/c-916305", 
-        screenname='we are uploading', 
-        country="CA",
-        influencer=None, 
-        public=True, 
-        chat=False, 
         notes="")]
 
 controller = ScraperController()
@@ -126,7 +48,14 @@ scrapers = [
 
 controller.register_scrapers(scrapers)
 
-engine = create_engine('sqlite:///test3.db')
+engine = create_engine('sqlite:///test.db')
 controller.connect_to_db(engine)
 
-controller.scrape_channels(test_channels, archive_media = False)
+controller.scrape_channels(test_channels, archive_media = True)
+
+transformer = TwitterTransformer()
+
+etl_controller = ETLController()
+etl_controller.register_transformer(transformer)
+etl_controller.connect_to_db(engine)
+etl_controller.transform_all_untransformed()

@@ -1,5 +1,6 @@
 import requests
 from loguru import logger
+import time
 
 def make_request(url, headers = None, max_retries = 5, break_codes = None):
 
@@ -64,6 +65,9 @@ def request_until_200(url, headers = None, max_retries = 5, break_codes = None):
     while r.status_code not in break_codes and n_retries < 5:
         logger.warning(f"Request for url: {url} returned status: {r.status_code} on attempt: {n_retries}/{max_retries}")
         n_retries += 1
+
+        # back off subsequent requests
+        time.sleep(n_retries)
         r = requests.get(url, headers = headers)
 
     if r.status_code not in break_codes:

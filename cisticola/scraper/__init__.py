@@ -1,4 +1,4 @@
-from .utils import make_request
+from cisticola.utils import make_request
 from .base import Scraper, ScraperController
 from .bitchute import BitchuteScraper
 from .gab import GabScraper 
