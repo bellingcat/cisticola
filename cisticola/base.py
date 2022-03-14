@@ -157,5 +157,5 @@ media_table = Table('media', mapper_registry.metadata,
                        )
 
 mapper_registry.map_imperatively(Media, media_table, polymorphic_on='type', polymorphic_identity='media')
-mapper_registry.map_imperatively(Image, media_table, polymorphic_on='type', polymorphic_identity='image')
-mapper_registry.map_imperatively(Video, media_table, polymorphic_on='type', polymorphic_identity='video')
+mapper_registry.map_imperatively(Image, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='image')
+mapper_registry.map_imperatively(Video, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='video')

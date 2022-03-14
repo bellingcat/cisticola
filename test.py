@@ -12,7 +12,7 @@ from cisticola.scraper import (
     TelegramSnscrapeScraper,
     TelegramTelethonScraper,
     TwitterScraper)
-from cisticola.transformer.base import ETLController
+from cisticola.transformer import ETLController
 from cisticola.transformer.twitter import TwitterTransformer
 from sqlalchemy.orm import sessionmaker
 
@@ -21,13 +21,13 @@ logger.add("../test.log")
 test_channels = [
     Channel(
         id=0, 
-        name="Logan Williams (test)", 
-        platform_id=891729132,
+        name="L Weber (test)", 
+        platform_id=1424979017749442595,
         category="test", 
         followers=None, 
         platform="Twitter",
-        url="https://twitter.com/obtusatum", 
-        screenname="obtusatum", 
+        url="https://twitter.com/LWeber33662141", 
+        screenname="LWeber33662141", 
         country="US",
         influencer=None, 
         public=True, 
