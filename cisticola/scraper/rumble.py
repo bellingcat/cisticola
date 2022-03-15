@@ -1,12 +1,9 @@
 from datetime import datetime, timezone
 import json
-from typing import Generator, Tuple
-import tempfile
+from typing import Generator
 from urllib.parse import urlparse
 
-import requests
 from bs4 import BeautifulSoup
-import youtube_dl
 
 from cisticola.base import Channel, ScraperResult
 from cisticola.scraper import Scraper, make_request
@@ -37,7 +34,7 @@ class RumbleScraper(Scraper):
 
                 url = post['media_url']
 
-                media_blob, content_type, key = self.url_to_blob(url)
+                media_blob, content_type, key = self.ytdlp_url_to_blob(url)
                 archived_url = self.archive_blob(media_blob, content_type, key)
                 archived_urls[post['media_url']] = archived_url
 
@@ -51,42 +48,14 @@ class RumbleScraper(Scraper):
                 raw_data=json.dumps(post),
                 archived_urls=archived_urls)
 
+    def url_to_key(self, url: str, content_type: str) -> str:
+        ext = '.' + content_type.split('/')[-1]
+        key = urlparse(url).path.split('/')[-2] + ext
+        return key 
+
     def can_handle(self, channel):
         if channel.platform == "Rumble" and RumbleScraper.get_username_from_url(channel.url) is not None:
             return True
-
-    def url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
-        
-        content_type = 'video/mp4'
-        ext = '.' + content_type.split('/')[-1]
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            ydl_opts = {
-                "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-                "merge_output_format": "mp4",
-                "outtmpl": f"{temp_dir}/%(id)s.%(ext)s",
-                "noplaylist": True,
-                'quiet': True,
-                "verbose": False,}
-            ydl = youtube_dl.YoutubeDL(ydl_opts)
-
-            try:
-                meta = ydl.extract_info(
-                    url,
-                    download=True,)
-            except youtube_dl.utils.DownloadError as e:
-                raise e
-            else:
-                video_id = meta["id"]
-                video_ext = meta["ext"]
-                
-                with open(f"{temp_dir}/{video_id}.{video_ext}", "rb") as f:
-                    blob = f.read()
-
-        if key is None:
-            key = urlparse(url).path.split('/')[-2] + ext
-
-        return blob, content_type, key
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 

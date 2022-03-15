@@ -16,10 +16,11 @@ snscrape = {git = "https://github.com/bellingcat/snscrape.git"}
 ffmpeg-python = "*"
 polyphemus = {git = "https://github.com/bellingcat/polyphemus.git"}
 garc = "*"
-youtube-dl = "*" 
+yt-dlp = "*" 
 telethon = "*"
 pytesseract = "*"
 pyexiftool = {git = "https://github.com/smarnach/pyexiftool.git"}
+instaloader = "*"
 
 [dev-packages]
 pytest = "*"

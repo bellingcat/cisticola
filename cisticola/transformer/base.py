@@ -101,7 +101,7 @@ class ETLController:
         self.session = sessionmaker()
         self.session.configure(bind=engine)
 
-    @logger.catch
+    @logger.catch(reraise = True)
     def transform_results(self, results: List[ScraperResult], hydrate: bool = True):
         """Transforms raw ScraperResults objects into TransformedResult objects and
         Media objects. Then, adds them to the database.
@@ -149,7 +149,7 @@ class ETLController:
                 if handled == False:
                     logger.warning(f"No Transformer could handle {result}")
 
-    @logger.catch
+    @logger.catch(reraise = True)
     def transform_all_untransformed(self, hydrate: bool = True):
         """Transform all ScraperResult objects in the database that do not have an
         equivalent TransformedResult object stored.

@@ -8,6 +8,7 @@ import boto3
 from loguru import logger
 import ffmpeg
 from sqlalchemy.orm import sessionmaker
+import yt_dlp
 
 from cisticola.base import Channel, ScraperResult, mapper_registry
 from cisticola.utils import make_request
@@ -69,6 +70,38 @@ class Scraper:
 
         return blob, content_type, key
 
+    def ytdlp_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
+        
+        content_type = 'video/mp4'
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            ydl_opts = {
+                "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+                "merge_output_format": "mp4",
+                "outtmpl": f"{temp_dir}/%(id)s.%(ext)s",
+                "noplaylist": True,
+                'quiet': True,
+                "verbose": False,}
+            ydl = yt_dlp.YoutubeDL(ydl_opts)
+
+            try:
+                meta = ydl.extract_info(
+                    url,
+                    download=True,)
+            except yt_dlp.utils.DownloadError as e:
+                raise e
+            else:
+                video_id = meta["id"]
+                video_ext = meta["ext"]
+                
+                with open(f"{temp_dir}/{video_id}.{video_ext}", "rb") as f:
+                    blob = f.read()
+
+        if key is None:
+            key = self.url_to_key(url = url, content_type = content_type)
+
+        return blob, content_type, key
+
     def archive_blob(self, blob: bytes, content_type: str, key: str) -> str:
 
         filename = self.__version__.replace(' ', '_') + '/' + key
@@ -101,7 +134,7 @@ class ScraperController:
     def register_scrapers(self, scraper: List[Scraper]):
         self.scrapers.extend(scraper)
     
-    @logger.catch
+    @logger.catch(reraise = True)
     def scrape_channels(self, channels: List[Channel], archive_media: bool = True):
         if self.session is None:
             logger.error("No DB session")
