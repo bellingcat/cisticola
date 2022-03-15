@@ -23,3 +23,4 @@ Submodules
    :maxdepth: 4
 
    cisticola.base
+   cisticola.utils

@@ -17,9 +17,11 @@ Submodules
    cisticola.scraper.bitchute
    cisticola.scraper.gab
    cisticola.scraper.gettr
+   cisticola.scraper.instagram
    cisticola.scraper.odysee
    cisticola.scraper.rumble
    cisticola.scraper.telegram_snscrape
    cisticola.scraper.telegram_telethon
    cisticola.scraper.twitter
-   cisticola.scraper.utils
+   cisticola.scraper.vkontakte
+   cisticola.scraper.youtube

@@ -2,16 +2,7 @@ Welcome to Cisticola's documentation!
 =====================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+  :maxdepth: 1
 
-   cisticola
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+  quickstart
+  cisticola

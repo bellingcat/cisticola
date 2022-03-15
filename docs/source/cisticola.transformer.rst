@@ -14,4 +14,5 @@ Submodules
    :maxdepth: 4
 
    cisticola.transformer.base
+   cisticola.transformer.bitchute
    cisticola.transformer.twitter

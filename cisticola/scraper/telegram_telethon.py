@@ -14,6 +14,7 @@ from cisticola.scraper.base import Scraper
 MEDIA_TYPES = ['photo', 'video', 'document', 'webpage']
 
 class TelegramTelethonScraper(Scraper):
+    """An implementation of a Scraper for Telegram, using Telethon library"""
     __version__ = "TelegramTelethonScraper 0.0.1"
 
     def get_username_from_url(self, url):
@@ -30,9 +31,9 @@ class TelegramTelethonScraper(Scraper):
 
         username = self.get_username_from_url(channel.url)
 
-        api_id = os.environ['TELEGRAM_API_ID_1']
-        api_hash = os.environ['TELEGRAM_API_HASH_1']
-        phone = os.environ['TELEGRAM_PHONE_1']
+        api_id = os.environ['TELEGRAM_API_ID']
+        api_hash = os.environ['TELEGRAM_API_HASH']
+        phone = os.environ['TELEGRAM_PHONE']
 
         with TelegramClient(phone, api_id, api_hash) as client:
 

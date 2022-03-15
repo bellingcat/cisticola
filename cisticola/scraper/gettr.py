@@ -12,7 +12,7 @@ class GettrScraper(Scraper):
     """An implementation of a Scraper for Gettr, using gogettr library"""
     __version__ = "GettrScraper 0.0.1"
 
-    def get_username_from_url(url):
+    def get_username_from_url(self, url):
         username = url.split("gettr.com/user/")[1]
         if len(username.split("/")) > 1:
             return None
@@ -21,7 +21,7 @@ class GettrScraper(Scraper):
 
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         client = PublicClient()
-        username = GettrScraper.get_username_from_url(channel.url)
+        username = self.get_username_from_url(channel.url)
         scraper = client.user_activity(username=username, type="posts")
 
         for post in scraper:
@@ -62,7 +62,7 @@ class GettrScraper(Scraper):
                 archived_urls=archived_urls)
 
     def can_handle(self, channel):
-        if channel.platform == "Gettr" and GettrScraper.get_username_from_url(channel.url) is not None:
+        if channel.platform == "Gettr" and self.get_username_from_url(channel.url) is not None:
             return True
 
     def url_to_key(self, url: str, content_type: str) -> str:

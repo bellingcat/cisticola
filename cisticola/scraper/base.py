@@ -38,6 +38,24 @@ class Scraper:
     def __str__(self):
         return self.__version__
 
+    def get_username_from_url(self, url: str) -> str:
+        """Extract a channel's username from its URL. 
+
+        Parameters
+        ----------
+        url: str
+            URL of the channel on a given platform
+            e.g. ``"https://twitter.com/EliotHiggins"``
+        
+        Returns
+        -------
+        username: str
+            Extracted username of the channel.
+            e.g. ``"EliotHiggins"``
+        """
+        
+        raise NotImplementedError
+
     def url_to_key(self, url: str, content_type: str) -> str:
         """Generate a unique identifier for media from a specified post.
 
@@ -61,13 +79,13 @@ class Scraper:
         return key 
 
     def url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
-        """Download media file from a specified post URL.
+        """Download media file from a specified media file URL.
 
         Parameters
         ---------
         url: str
-            URL of original post. 
-            e.g. ``"https://twitter.com/bellingcat/status/1503397267675533313"``
+            URL of media file from original post. 
+            e.g. ``"https://pbs.twimg.com/media/FN0j0dYWUAcQxfK?format=png&name=medium"``
         key: str or None
             Pre-defined unique identifier for the media file.
 
@@ -93,14 +111,14 @@ class Scraper:
         return blob, content_type, key
 
     def m3u8_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
-        """Download media file from a specified post URL, where the media file 
+        """Download media file from a specified media URL, where the media file 
         is formatted as an m3u8 playlist, which is then decoded to an mp4 file.
 
         Parameters
         ---------
         url: str
-            URL of original post. 
-            e.g. ``"https://twitter.com/bellingcat/status/1503397267675533313"``
+            URL of m3u8 playlist file from original post. 
+            e.g. ``"https://media.gettr.com/group47/origin/2022/03/15/01/cbc436c1-1a1a-4b97-671d-c42109f3ec9b/out.m3u8"``
         key: str or None
             Pre-defined unique identifier for the media file.
 
@@ -136,7 +154,28 @@ class Scraper:
         return blob, content_type, key
 
     def ytdlp_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
-        
+        """Download media file from a specified media URL, using a fork of 
+        youtube-dl that enables faster downloading.
+
+        Parameters
+        ---------
+        url: str
+            URL of media file from original post. 
+            e.g. ``"https://rumble.com/embed/vgt7gh/"``
+        key: str or None
+            Pre-defined unique identifier for the media file.
+
+        Returns
+        -------
+        blob: bytes
+            Raw bytes of the downloaded media file. 
+        content_type: str
+            Content-Type of media. 
+            e.g. ``"video/mp4"``.
+        key: str
+            Unique identifier for the media file.
+        """
+
         content_type = 'video/mp4'
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -225,6 +264,11 @@ class Scraper:
         archive_media: bool
             If ``True``, any media files (images, video, etc.) from posts are archived. 
             If ``False``, media files are not archived. 
+
+        Yields
+        ------
+        ScraperResult
+            Scraper result from a single post/comment from the specified Channel.
         """
         
         raise NotImplementedError
@@ -311,7 +355,7 @@ class ScraperController:
         self.session.configure(bind=self.engine)
 
     def reset_db(self):
-        """Drop all data from the SQLAlchemy database.
+        """Drop all data from the connected SQLAlchemy database.
         """
 
         mapper_registry.metadata.drop_all(bind=self.engine)

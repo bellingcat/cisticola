@@ -13,7 +13,7 @@ class OdyseeScraper(Scraper):
     """An implementation of a Scraper for Odysee, using polyphemus library"""
     __version__ = "OdyseeScraper 0.0.1"
 
-    def get_username_from_url(url):
+    def get_username_from_url(self, url):
 
         username = url.split('odysee.com/')[-1].strip('@').split(':')[0]
 
@@ -21,7 +21,7 @@ class OdyseeScraper(Scraper):
 
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
-        username = OdyseeScraper.get_username_from_url(channel.url)
+        username = self.get_username_from_url(channel.url)
         odysee_channel = OdyseeChannel(channel_name = username)
         
         all_videos = odysee_channel.get_all_videos()
@@ -70,7 +70,7 @@ class OdyseeScraper(Scraper):
                     archived_urls={})
 
     def can_handle(self, channel):
-        if channel.platform == "Odysee" and OdyseeScraper.get_username_from_url(channel.url) is not None:
+        if channel.platform == "Odysee" and self.get_username_from_url(channel.url) is not None:
             return True
 
     def url_to_key(self, url: str, content_type: str) -> str:
