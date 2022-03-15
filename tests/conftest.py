@@ -52,8 +52,23 @@ GETTR_CHANNEL_KWARGS = {
     'chat': False,
     'notes': ''}
 
-ODYSEE_CHANNEL_KWARGS = {
+INSTAGRAM_CHANNEL_KWARGS = {
     'id': 3,
+    'name': 'borland.88 (test)',
+    'platform_id': 'borland.88',
+    'category': 'test',
+    'followers': None,
+    'platform': 'Instagram',
+    'url': 'https://www.instagram.com/borland.88/',
+    'screenname': 'borland.88',
+    'country': 'UA',
+    'influencer': None,
+    'public': True,
+    'chat': False,
+    'notes': ''}
+
+ODYSEE_CHANNEL_KWARGS = {
+    'id': 4,
     'name': "Mak1n' Bacon (test)",
     'platform_id': 'Mak1nBacon',
     'category': 'test',
@@ -68,7 +83,7 @@ ODYSEE_CHANNEL_KWARGS = {
     'notes': ''}
 
 RUMBLE_CHANNEL_KWARGS = {
-    'id': 4,
+    'id': 5,
     'name': 'we are uploading videos wow products',
     'platform_id': 'c-916305',
     'category': 'test',
@@ -83,7 +98,7 @@ RUMBLE_CHANNEL_KWARGS = {
     'notes': ''}
 
 TELEGRAM_CHANNEL_KWARGS = {
-    'id': 5,
+    'id': 6,
     'name': 'South West Ohio Proud Boys (test)',
     'platform_id': -1001276612436,
     'category': 'test',
@@ -98,7 +113,7 @@ TELEGRAM_CHANNEL_KWARGS = {
     'notes': ''}
 
 TWITTER_CHANNEL_KWARGS = {
-    'id': 5,
+    'id': 7,
     'name': 'L Weber (test)',
     'platform_id': 1424979017749442595,
     'category': 'test',
@@ -107,6 +122,36 @@ TWITTER_CHANNEL_KWARGS = {
     'url': 'https://twitter.com/LWeber33662141',
     'screenname': 'LWeber33662141',
     'country': 'US',
+    'influencer': None,
+    'public': True,
+    'chat': False,
+    'notes': ''}
+
+VKONTAKTE_CHANNEL_KWARGS = {
+    'id': 8,
+    'name': 'Wwg1wgA (test)',
+    'platform_id': 'club201278078',
+    'category': 'test',
+    'followers': None,
+    'platform': 'Vkontakte',
+    'url': 'https://vk.com/club201278078',
+    'screenname': 'Wwg1wgA',
+    'country': 'FR',
+    'influencer': None,
+    'public': True,
+    'chat': False,
+    'notes': ''}
+
+YOUTUBE_CHANNEL_KWARGS = {
+    'id': 9,
+    'name': 'AnEs87 (test)',
+    'platform_id': 'UCP6exBqGoxGLv_pM9Dxk2pA',
+    'category': 'test',
+    'followers': None,
+    'platform': 'Youtube',
+    'url': 'https://www.youtube.com/channel/UCP6exBqGoxGLv_pM9Dxk2pA',
+    'screenname': 'AnEs87',
+    'country': 'SV',
     'influencer': None,
     'public': True,
     'chat': False,
@@ -151,12 +196,15 @@ def channel_kwargs():
     """
 
     return {
-        'bitchute': BITCHUTE_CHANNEL_KWARGS,
-        'gab': GAB_CHANNEL_KWARGS,
-        'gettr': GETTR_CHANNEL_KWARGS,
-        'odysee': ODYSEE_CHANNEL_KWARGS,
-        'rumble': RUMBLE_CHANNEL_KWARGS,
-        'telegram': TELEGRAM_CHANNEL_KWARGS,
-        'twitter': TWITTER_CHANNEL_KWARGS}
+        'bitchute' : BITCHUTE_CHANNEL_KWARGS,
+        'gab' : GAB_CHANNEL_KWARGS,
+        'gettr' : GETTR_CHANNEL_KWARGS,
+        'instagram' : INSTAGRAM_CHANNEL_KWARGS,
+        'odysee' : ODYSEE_CHANNEL_KWARGS,
+        'rumble' : RUMBLE_CHANNEL_KWARGS,
+        'telegram' : TELEGRAM_CHANNEL_KWARGS,
+        'twitter' : TWITTER_CHANNEL_KWARGS,
+        'vkontakte' : VKONTAKTE_CHANNEL_KWARGS,
+        'youtube' : YOUTUBE_CHANNEL_KWARGS}
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
