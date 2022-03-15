@@ -1,14 +1,15 @@
 from typing import List
 from dataclasses import dataclass
 from datetime import datetime
+import tempfile 
+import json
+import io
+
 from sqlalchemy.orm import registry
 from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey
 import pytesseract
 import PIL
-import io
 import exiftool
-import json
-import os
 
 from .utils import make_request
 
@@ -123,6 +124,85 @@ class TransformedResult:
     #: Text of the original post
     content: str
 
+@dataclass
+class Media:
+    """Base class for organizing information about a media file.
+    """
+
+    #: ID number of the media's corresponding scraped post in the ``raw_data`` table.
+    raw_id: int
+
+    #: ID number of the media's corresponging scraped post in the ``analysis`` table.
+    post: int
+
+    #: URL of the original post.
+    url: str
+
+    #: Original URL of the media from the the original post.
+    original_url: str
+
+    #: JSON dump of the dict containing metadata information for the media file.
+    exif: str = None
+
+    def get_blob(self):
+        """Download media file as bytes blob.
+        """
+
+        blob = make_request(self.url)
+        return blob.content
+
+    def hydrate(self, blob = None):
+        """Download media file as bytes blob and extract data from content.
+        """
+
+        if blob is None:
+            blob = self.get_blob()
+
+        self.hydrate_exif(blob)
+
+    def hydrate_exif(self, blob):
+        """Extract Exif metadata from bytes blob.
+        """
+
+        with tempfile.NamedTemporaryFile() as temp_file:
+            temp_file.write(blob)
+
+            with exiftool.ExifTool() as et:
+                exif = et.get_metadata(temp_file.name)
+                self.exif = json.dumps(exif)
+
+@dataclass
+class Image(Media):
+    """Class for organizing information about an image file. 
+    """
+
+    #: Extracted OCR content from image
+    ocr: str = None
+
+    def hydrate(self, blob=None):
+        """Download image file as bytes blob and extract Exif and OCR content 
+        from the image.
+        """
+
+        if blob is None:
+            blob = self.get_blob()
+
+        super().hydrate(blob)
+        self.hydrate_ocr(blob)
+
+    def hydrate_ocr(self, blob):
+        """Extract OCR (optical character recognition) data from image bytes blob.
+        """
+
+        image = PIL.Image.open(io.BytesIO(blob))
+        self.ocr = pytesseract.image_to_string(image)
+
+@dataclass
+class Video(Media):
+    """Class for organizing information about an image file. 
+    """
+    
+    pass
 
 mapper_registry = registry()
 
@@ -138,7 +218,6 @@ raw_data_table = Table('raw_data', mapper_registry.metadata,
                        Column('date_archived', DateTime),
                        Column('archived_urls', JSON))
 
-mapper_registry.map_imperatively(ScraperResult, raw_data_table)
 
 analysis_table = Table('analysis', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
@@ -153,72 +232,21 @@ analysis_table = Table('analysis', mapper_registry.metadata,
                        Column('url', String),
                        Column('author_id', String),
                        Column('author_username', String),
-                       Column('content', String)
-                       )
-
-mapper_registry.map_imperatively(TransformedResult, analysis_table)
-
-@dataclass
-class Media:
-    raw_id: int
-    post: int
-    url: str
-    original_url: str
-
-    exif: str = None
-
-    def get_blob(self):
-        blob = make_request(self.url)
-        return blob.content
-
-    def hydrate(self, blob = None):
-        if blob is None:
-            blob = self.get_blob()
-
-        self.hydrate_exif(blob)
-
-    def hydrate_exif(self, blob):
-        f = open('tmp', 'wb')
-        f.write(blob)
-        f.close()
-
-        with exiftool.ExifTool() as et:
-            exif = et.get_metadata('tmp')
-            self.exif = json.dumps(exif)
-
-        os.remove('tmp')
-
-@dataclass
-class Image(Media):
-    ocr: str = None
-
-    def hydrate(self, blob=None):
-        if blob is None:
-            blob = self.get_blob()
-
-        super().hydrate(blob)
-        self.hydrate_ocr(blob)
-
-    def hydrate_ocr(self, blob):
-        image = PIL.Image.open(io.BytesIO(blob))
-        self.ocr = pytesseract.image_to_string(image)
-
-@dataclass
-class Video(Media):
-    pass
+                       Column('content', String))
 
 media_table = Table('media', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
                               autoincrement=True),
-                        Column('type', String),
+                       Column('type', String),
                        Column('raw_id', Integer, ForeignKey('raw_data.id')),
                        Column('post', Integer, ForeignKey('analysis.id')),
                        Column('url', String),
                        Column('original_url', String),
                        Column('exif', String),
-                       Column('ocr', String)
-                       )
+                       Column('ocr', String))
 
+mapper_registry.map_imperatively(TransformedResult, analysis_table)
+mapper_registry.map_imperatively(ScraperResult, raw_data_table)
 mapper_registry.map_imperatively(Media, media_table, polymorphic_on='type', polymorphic_identity='media')
 mapper_registry.map_imperatively(Image, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='image')
 mapper_registry.map_imperatively(Video, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='video')

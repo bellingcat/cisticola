@@ -278,8 +278,8 @@ class ScraperController:
         self.session.configure(bind=self.engine)
 
     def reset_db(self):
+        """Drop all data from the SQLAlchemy database.
+        """
 
         mapper_registry.metadata.drop_all(bind=self.engine)
         self.connect_to_db(self.engine)
-
-
