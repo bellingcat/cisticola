@@ -17,7 +17,7 @@ class BitchuteScraper(Scraper):
     library"""
     __version__ = "BitchuteScraper 0.0.1"
 
-    def get_username_from_url(url):
+    def get_username_from_url(self, url):
         username = url.split('bitchute.com/channel/')[-1].strip('/')
 
         return username
@@ -33,7 +33,7 @@ class BitchuteScraper(Scraper):
 
         detail = 'comments'
 
-        username = BitchuteScraper.get_username_from_url(channel.url)
+        username = self.get_username_from_url(channel.url)
         scraper = get_videos_user(session, username, csrftoken, detail)
 
         for post in scraper:
@@ -61,7 +61,7 @@ class BitchuteScraper(Scraper):
                 archived_urls=archived_urls)
 
     def can_handle(self, channel):
-        if channel.platform == "Bitchute" and BitchuteScraper.get_username_from_url(channel.url) is not None:
+        if channel.platform == "Bitchute" and self.get_username_from_url(channel.url) is not None:
             return True
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#

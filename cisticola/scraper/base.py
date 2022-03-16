@@ -14,29 +14,91 @@ from cisticola.base import Channel, ScraperResult, mapper_registry
 from cisticola.utils import make_request
 
 class Scraper:
+    """Base class for defining platform-specific scrapers for scraping all posts 
+    from a given channel on that specific platform. 
+    """
+
     __version__ = "Scraper 0.0.0"
 
     def __init__(self):
-        self.s3_client = boto3.client('s3',
-                                      region_name=os.environ['DO_SPACES_REGION'],
-                                      endpoint_url='https://{}.digitaloceanspaces.com'.format(
-                                          os.environ['DO_SPACES_REGION']),
-                                      aws_access_key_id=os.environ['DO_SPACES_KEY'],
-                                      aws_secret_access_key=os.environ['DO_SPACES_SECRET'])
 
+        # Initialize client to transfer files to the storage archive
+        self.s3_client = boto3.client(
+            service_name='s3',
+            region_name=os.environ['DO_SPACES_REGION'],
+            endpoint_url=f'https://{os.environ["DO_SPACES_REGION"]}.digitaloceanspaces.com',
+            aws_access_key_id=os.environ['DO_SPACES_KEY'],
+            aws_secret_access_key=os.environ['DO_SPACES_SECRET'])
+        
+        # Define request headers (necessary to bypass scraping protection 
+        # for several platform scrapers)
         self.headers = {
             'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'}
-
-        pass
 
     def __str__(self):
         return self.__version__
 
+    def get_username_from_url(self, url: str) -> str:
+        """Extract a channel's username from its URL. 
+
+        Parameters
+        ----------
+        url: str
+            URL of the channel on a given platform
+            e.g. ``"https://twitter.com/EliotHiggins"``
+        
+        Returns
+        -------
+        username: str
+            Extracted username of the channel.
+            e.g. ``"EliotHiggins"``
+        """
+        
+        raise NotImplementedError
+
     def url_to_key(self, url: str, content_type: str) -> str:
+        """Generate a unique identifier for media from a specified post.
+
+        Parameters
+        ---------
+        url: str
+            URL of original post. 
+            e.g. ``"https://twitter.com/bellingcat/status/1503397267675533313"``
+        content_type: str
+            Content-Type of media. 
+            e.g. ``"image/jpeg"``
+
+        Returns
+        -------
+        key: str
+            Unique identifier for the media file from a specified post based on 
+            the original post URL and the media's Content-Type. 
+        """
+
         key = urlparse(url).path.split('/')[-1]
         return key 
 
     def url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
+        """Download media file from a specified media file URL.
+
+        Parameters
+        ---------
+        url: str
+            URL of media file from original post. 
+            e.g. ``"https://pbs.twimg.com/media/FN0j0dYWUAcQxfK?format=png&name=medium"``
+        key: str or None
+            Pre-defined unique identifier for the media file.
+
+        Returns
+        -------
+        blob: bytes
+            Raw bytes of the downloaded media file. 
+        content_type: str
+            Content-Type of media. 
+            e.g. ``"image/jpeg"``.
+        key: str
+            Unique identifier for the media file.
+        """
 
         r = make_request(url, headers = self.headers)
 
@@ -49,6 +111,27 @@ class Scraper:
         return blob, content_type, key
 
     def m3u8_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
+        """Download media file from a specified media URL, where the media file 
+        is formatted as an m3u8 playlist, which is then decoded to an mp4 file.
+
+        Parameters
+        ---------
+        url: str
+            URL of m3u8 playlist file from original post. 
+            e.g. ``"https://media.gettr.com/group47/origin/2022/03/15/01/cbc436c1-1a1a-4b97-671d-c42109f3ec9b/out.m3u8"``
+        key: str or None
+            Pre-defined unique identifier for the media file.
+
+        Returns
+        -------
+        blob: bytes
+            Raw bytes of the downloaded media file. 
+        content_type: str
+            Content-Type of media. 
+            e.g. ``"video/mp4"``.
+        key: str
+            Unique identifier for the media file.
+        """
         
         content_type = 'video/mp4'
         ext = '.' + content_type.split('/')[-1]
@@ -71,7 +154,28 @@ class Scraper:
         return blob, content_type, key
 
     def ytdlp_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
-        
+        """Download media file from a specified media URL, using a fork of 
+        youtube-dl that enables faster downloading.
+
+        Parameters
+        ---------
+        url: str
+            URL of media file from original post. 
+            e.g. ``"https://rumble.com/embed/vgt7gh/"``
+        key: str or None
+            Pre-defined unique identifier for the media file.
+
+        Returns
+        -------
+        blob: bytes
+            Raw bytes of the downloaded media file. 
+        content_type: str
+            Content-Type of media. 
+            e.g. ``"video/mp4"``.
+        key: str
+            Unique identifier for the media file.
+        """
+
         content_type = 'video/mp4'
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -103,6 +207,23 @@ class Scraper:
         return blob, content_type, key
 
     def archive_blob(self, blob: bytes, content_type: str, key: str) -> str:
+        """Upload raw bytes of a media file to the storage archive. 
+
+        Parameters
+        ----------
+        blob: bytes
+            Raw bytes of the media file to be archived.
+        content_type: str
+            Content-Type of media. 
+            e.g. ``"video/mp4"``.
+        key: str
+            Unique identifier for the media file.
+
+        Returns
+        -------
+        archived_url: str
+            URL specifying the file on the storage archive.
+        """
 
         filename = self.__version__.replace(' ', '_') + '/' + key
 
@@ -114,9 +235,42 @@ class Scraper:
         return archived_url
 
     def can_handle(self, channel: Channel) -> bool:
+        """Whether or not the scraper can scrape the specified channel.
+
+        Parameters
+        ----------
+        channel: Channel
+            Channel to be scraped. 
+        
+        Returns
+        -------
+        bool
+            ``True`` if the scraper is capable of scraping ``channel``,
+            ``False`` if not. 
+        """
+
         raise NotImplementedError
 
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+        """Scrape all posts from the specified Channel.
+
+        Parameters
+        ----------
+        channel: Channel
+            Channel to be scraped.
+        since: ScraperResult or None
+            Most recently scraped ScraperResult from a previous scrape, or 
+            ``None`` if scraper has not run before.
+        archive_media: bool
+            If ``True``, any media files (images, video, etc.) from posts are archived. 
+            If ``False``, media files are not archived. 
+
+        Yields
+        ------
+        ScraperResult
+            Scraper result from a single post/comment from the specified Channel.
+        """
+        
         raise NotImplementedError
 
 
@@ -129,13 +283,28 @@ class ScraperController:
         self.session = None
 
     def register_scraper(self, scraper: Scraper):
+        """Register a single Scraper instance to the controller.
+        """
         self.scrapers.append(scraper)
 
     def register_scrapers(self, scraper: List[Scraper]):
+        """Register a list of Scraper instances to the controller.
+        """
         self.scrapers.extend(scraper)
     
     @logger.catch(reraise = True)
     def scrape_channels(self, channels: List[Channel], archive_media: bool = True):
+        """Scrape all posts for all specified channels. 
+
+        Parameters
+        ----------
+        channels: list<Channel>
+            List of Channel instances to be scraped
+        archive_media: bool
+            If ``True``, any media files (images, video, etc.) from posts are archived. 
+            If ``False``, media files are not archived. 
+        """
+
         if self.session is None:
             logger.error("No DB session")
             return
@@ -175,6 +344,9 @@ class ScraperController:
                 logger.warning(f"No handler found for Channel {channel}")
 
     def connect_to_db(self, engine):
+        """Connect the specified SQLAlchemy engine to the controller.
+        """
+        
         # create tables
         mapper_registry.metadata.create_all(bind=engine)
 
@@ -183,8 +355,8 @@ class ScraperController:
         self.session.configure(bind=self.engine)
 
     def reset_db(self):
+        """Drop all data from the connected SQLAlchemy database.
+        """
 
         mapper_registry.metadata.drop_all(bind=self.engine)
         self.connect_to_db(self.engine)
-
-

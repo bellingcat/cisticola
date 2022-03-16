@@ -10,6 +10,12 @@ if "%SPHINXBUILD%" == "" (
 set SOURCEDIR=source
 set BUILDDIR=build
 
+set SPHINXAPIDOC=sphinx-apidoc
+set APIDOCFLAGS=--separate --private --module-first
+set MODULEPATH=../cisticola
+set SOURCEFILES=cisticola.*
+set MODULEFILE=modules.rst
+
 if "%1" == "" goto help
 
 %SPHINXBUILD% >NUL 2>NUL
@@ -27,6 +33,11 @@ if errorlevel 9009 (
 
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
 goto end
+
+:apidoc
+	del %SOURCEDIR%\%SOURCEFILES%
+	%SPHINXAPIDOC% %APIDOCFLAGS% -o %SOURCEDIR% %MODULEPATH%
+	del %SOURCEDIR%\%MODULEFILE%
 
 :help
 %SPHINXBUILD% -M help %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%

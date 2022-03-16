@@ -11,14 +11,14 @@ class GabScraper(Scraper):
     """An implementation of a Scraper for Gab, using GARC library"""
     __version__ = "GabScraper 0.0.1"
 
-    def get_username_from_url(url):
+    def get_username_from_url(self, url):
         username = url.split('https://gab.com/')[-1]
 
         return username
 
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         client = Garc(profile = 'main')
-        username = GabScraper.get_username_from_url(channel.url)
+        username = self.get_username_from_url(channel.url)
 
         scraper = client.userposts(username)
 
@@ -52,5 +52,5 @@ class GabScraper(Scraper):
                 archived_urls=archived_urls)
 
     def can_handle(self, channel):
-        if channel.platform == "Gab" and GabScraper.get_username_from_url(channel.url) is not None:
+        if channel.platform == "Gab" and self.get_username_from_url(channel.url) is not None:
             return True
