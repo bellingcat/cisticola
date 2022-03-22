@@ -1,7 +1,10 @@
 from sqlalchemy import create_engine
 from loguru import logger
+import gspread
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-from cisticola.base import Channel, TransformedResult, ScraperResult
+from cisticola.base import Channel, TransformedResult, ScraperResult, mapper_registry
 from cisticola.scraper import (
     ScraperController,
     BitchuteScraper,
@@ -14,25 +17,8 @@ from cisticola.scraper import (
     TwitterScraper)
 from cisticola.transformer import ETLController
 from cisticola.transformer.twitter import TwitterTransformer
-from sqlalchemy.orm import sessionmaker
 
 logger.add("../test.log")
-
-test_channels = [
-    Channel(
-        id=0, 
-        name="L Weber (test)", 
-        platform_id=1424979017749442595,
-        category="test", 
-        followers=None, 
-        platform="Twitter",
-        url="https://twitter.com/LWeber33662141", 
-        screenname="LWeber33662141", 
-        country="US",
-        influencer=None, 
-        public=True, 
-        chat=False,
-        notes="")]
 
 controller = ScraperController()
 
@@ -49,9 +35,35 @@ scrapers = [
 controller.register_scrapers(scrapers)
 
 engine = create_engine('sqlite:///test.db')
-controller.connect_to_db(engine)
+mapper_registry.metadata.create_all(bind=engine)
+session_generator = sessionmaker()
+session_generator.configure(bind=engine)
+session = session_generator()
 
-controller.scrape_channels(test_channels, archive_media = True)
+gc = gspread.service_account(filename='service_account.json')
+
+# Open a sheet from a spreadsheet in one go
+wks = gc.open_by_url("https://docs.google.com/spreadsheets/d/1yxd6-2Mp0jZ8r9XJklb39WE-iIMrKRyA2kymJcIfGis/edit#gid=0")
+channels = wks.worksheet("channels").get_all_records()
+
+for c in channels:
+    del c['followers']
+
+    for k in c.keys():
+        if c[k] == 'TRUE': c[k] = True
+        if c[k] == 'FALSE': c[k] = False
+
+    # check to see if this already exists, 
+    channel = session.query(Channel).filter_by(platform_id=c['platform_id'], platform=c['platform']).first()
+    
+    if not channel:
+        channel = Channel(**c, source='researcher')
+        session.add(channel)
+
+session.commit()
+
+controller.connect_to_db(engine)
+controller.scrape_all_channels(archive_media = True)
 
 transformer = TwitterTransformer()
 

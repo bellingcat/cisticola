@@ -21,12 +21,17 @@ telethon = "*"
 pytesseract = "*"
 pyexiftool = {git = "https://github.com/smarnach/pyexiftool.git"}
 instaloader = "*"
+gspread = "*"
 
 [dev-packages]
 pytest = "*"
 pytest-cov = "*"
 pytest-html = "*"
 pytest-metadata = "*"
+black = "*"
 
 [requires]
 python_version = "3.9"
+
+[pipenv]
+allow_prereleases = true
