@@ -5,7 +5,7 @@ from typing import Generator
 from bs4 import BeautifulSoup 
 
 from cisticola.transformer.base import Transformer 
-from cisticola.base import ScraperResult, TransformedResult, Image, Video, Media
+from cisticola.base import ScraperResult, Post, Image, Video, Media
 
 class BitchuteTransformer(Transformer):
     """A Bitchute specific ScraperResult, with a method ETL/transforming"""
@@ -19,7 +19,7 @@ class BitchuteTransformer(Transformer):
 
         return False        
 
-    def transform_media(self, data: ScraperResult, transformed: TransformedResult) -> Generator[Media, None, None]:
+    def transform_media(self, data: ScraperResult, transformed: Post) -> Generator[Media, None, None]:
         raw = json.loads(data.raw_data)
 
         orig = raw['video_url']
@@ -29,13 +29,13 @@ class BitchuteTransformer(Transformer):
 
         yield m
 
-    def transform(self, data: ScraperResult) -> TransformedResult:
+    def transform(self, data: ScraperResult) -> Post:
         raw = json.loads(data.raw_data)
 
         soup = BeautifulSoup(raw['body'], features = 'html.parser')
         content = soup.find_all('p')[-1].text
 
-        transformed = TransformedResult(
+        transformed = Post(
             raw_id=data.id,
             scraper=data.scraper,
             transformer=self.__version__,

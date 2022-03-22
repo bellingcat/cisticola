@@ -4,7 +4,7 @@ from typing import Generator, Union, Callable
 import dateutil.parser
 
 from cisticola.transformer.base import Transformer 
-from cisticola.base import ScraperResult, TransformedResult, Image, Video, Media, Channel
+from cisticola.base import ScraperResult, Post, Image, Video, Media, Channel
 
 class TwitterTransformer(Transformer):
     """A Twitter specific ScraperResult, with a method ETL/transforming"""
@@ -46,10 +46,10 @@ class TwitterTransformer(Transformer):
                     yield m
 
 
-    def transform(self, data: ScraperResult, insert: Callable) -> Generator[Union[TransformedResult, Channel, Media], None, None]:
+    def transform(self, data: ScraperResult, insert: Callable) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
-        transformed = TransformedResult(
+        transformed = Post(
             raw_id=data.id,
             platform_id=raw['id'],
             scraper=data.scraper,
@@ -76,7 +76,7 @@ class TwitterTransformer(Transformer):
 
             channel = insert(channel)
 
-            original = TransformedResult(
+            original = Post(
                 raw_id=data.id,
                 platform_id=tweet['id'],
                 scraper=data.scraper,

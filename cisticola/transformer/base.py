@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, make_transient
 from sqlalchemy.engine.base import Engine
 from collections import defaultdict
 
-from cisticola.base import ScraperResult, TransformedResult, Media, Channel, mapper_registry
+from cisticola.base import ScraperResult, Post, Media, Channel, mapper_registry
 
 
 class Transformer:
@@ -32,7 +32,7 @@ class Transformer:
 
         pass
 
-    def transform(data: ScraperResult, insert: Callable) -> Generator[Union[TransformedResult, Channel, Media], None, None]:
+    def transform(data: ScraperResult, insert: Callable) -> Generator[Union[Post, Channel, Media], None, None]:
         """Transform a ScraperResult into objects with additional parameters for analysis. This function can
         yield multiple objects, as it will find references to quoted/replied posts, media objects, and Channel
         objects and provide all of these to be inserted into the database.
@@ -92,8 +92,8 @@ class ETLController:
         if type(obj) == Channel:
             instance = session.query(Channel).filter_by(url=obj.url, platform_id=obj.platform_id, platform=obj.platform).first()
             
-        elif type(obj) == TransformedResult:
-            instance = session.query(TransformedResult).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
+        elif type(obj) == Post:
+            instance = session.query(Post).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
 
         elif issubclass(type(obj), Media):
             instance = session.query(type(obj)).filter_by(original_url=obj.original_url, post=obj.post).first()
@@ -132,7 +132,7 @@ class ETLController:
 
     @logger.catch(reraise=True)
     def transform_results(self, results: List[ScraperResult], hydrate: bool = True):
-        """Transforms raw ScraperResults objects into TransformedResult objects and
+        """Transforms raw ScraperResults objects into Post objects and
         Media objects. Then, adds them to the database.
 
         Parameters
@@ -165,7 +165,7 @@ class ETLController:
     @logger.catch(reraise=True)
     def transform_all_untransformed(self, hydrate: bool = True):
         """Transform all ScraperResult objects in the database that do not have an
-        equivalent TransformedResult object stored.
+        equivalent Post object stored.
 
         Parameters
         ----------
@@ -180,8 +180,8 @@ class ETLController:
         session = self.session()
         untransformed = (
             session.query(ScraperResult)
-            .join(TransformedResult, isouter=True)
-            .where(TransformedResult.raw_id == None)
+            .join(Post, isouter=True)
+            .where(Post.raw_id == None)
             .all()
         )
         logger.info(f"Found {len(untransformed)} items to ETL")

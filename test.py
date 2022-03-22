@@ -4,7 +4,7 @@ import gspread
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from cisticola.base import Channel, TransformedResult, ScraperResult, mapper_registry
+from cisticola.base import Channel, Post, ScraperResult, mapper_registry
 from cisticola.scraper import (
     ScraperController,
     BitchuteScraper,

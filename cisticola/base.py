@@ -80,7 +80,7 @@ channel_table = Table('channels', mapper_registry.metadata,
 mapper_registry.map_imperatively(Channel, channel_table)
 
 @dataclass
-class TransformedResult:
+class Post:
     """An object with fields for columns in the analysis table"""
     raw_id: int
     platform_id: str
@@ -102,7 +102,7 @@ class TransformedResult:
 
 
 
-analysis_table = Table('analysis', mapper_registry.metadata,
+post_table = Table('posts', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
                               autoincrement=True),
                        Column('raw_id', Integer, ForeignKey('raw_data.id')),
@@ -118,10 +118,10 @@ analysis_table = Table('analysis', mapper_registry.metadata,
                        Column('author_username', String),
                        Column('content', String),
                        Column('forwarded_from', Integer, ForeignKey('channels.id')),
-                       Column('reply_to', Integer, ForeignKey('analysis.id'))
+                       Column('reply_to', Integer, ForeignKey('posts.id'))
                        )
 
-mapper_registry.map_imperatively(TransformedResult, analysis_table)
+mapper_registry.map_imperatively(Post, post_table)
 
 @dataclass
 class Media:
@@ -177,7 +177,7 @@ media_table = Table('media', mapper_registry.metadata,
                               autoincrement=True),
                         Column('type', String),
                        Column('raw_id', Integer, ForeignKey('raw_data.id')),
-                       Column('post', Integer, ForeignKey('analysis.id')),
+                       Column('post', Integer, ForeignKey('posts.id')),
                        Column('url', String),
                        Column('original_url', String),
                        Column('exif', String),
