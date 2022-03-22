@@ -2,7 +2,7 @@ from typing import List
 from dataclasses import dataclass
 from datetime import datetime
 from sqlalchemy.orm import registry
-from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey, Boolean
 import pytesseract
 import PIL
 import io
@@ -20,7 +20,7 @@ class ScraperResult:
 
     scraper: str
     platform: str
-    channel: int #TODO there is probably a way of making this a Channel object foreign key
+    channel: int
     platform_id: str
     date: datetime
     raw_data: str
@@ -33,7 +33,7 @@ raw_data_table = Table('raw_data', mapper_registry.metadata,
                               autoincrement=True),
                        Column('scraper', String),
                        Column('platform', String),
-                       Column('channel', Integer),
+                       Column('channel', Integer, ForeignKey('channels.id')),
                        Column('platform_id', String),
                        Column('date', DateTime),
                        Column('raw_data', String),
@@ -45,25 +45,45 @@ mapper_registry.map_imperatively(ScraperResult, raw_data_table)
 
 @dataclass
 class Channel:
-    id: int
     name: str
     platform_id: str
     category: str
-    followers: int
     platform: str
     url: str
     screenname: str
-    country: str
-    influencer: str
-    public: bool
-    chat: bool
-    notes: str
+    country: str = None
+    influencer: str = None
+    public: bool = None
+    chat: bool = None
+    notes: str = ""
+    source: str = None
 
+    def hydrate(self):
+        pass
+
+channel_table = Table('channels', mapper_registry.metadata,
+                    Column('id', Integer, primary_key=True, autoincrement=True),
+                    Column('name', String),
+                    Column('platform_id', Integer),
+                    Column('category', String),
+                    Column('platform', String),
+                    Column('url', String),
+                    Column('screenname', String),
+                    Column('country', String),
+                    Column('influencer', String),
+                    Column('public', Boolean),
+                    Column('chat', Boolean),
+                    Column('notes', String),
+                    Column('source', String)
+                    )
+
+mapper_registry.map_imperatively(Channel, channel_table)
 
 @dataclass
 class TransformedResult:
     """An object with fields for columns in the analysis table"""
     raw_id: int
+    platform_id: str
     scraper: str
     transformer: str
     platform: str
@@ -74,6 +94,11 @@ class TransformedResult:
     author_id: str
     author_username: str
     content: str
+    forwarded_from: int = None
+    reply_to: int = None
+
+    def hydrate(self):
+        pass
 
 
 
@@ -81,16 +106,19 @@ analysis_table = Table('analysis', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
                               autoincrement=True),
                        Column('raw_id', Integer, ForeignKey('raw_data.id')),
+                       Column('platform_id', Integer),
                        Column('scraper', String),
                        Column('transformer', String),
                        Column('platform', String),
-                       Column('channel', Integer),
+                       Column('channel', Integer, ForeignKey('channels.id')),
                        Column('date', DateTime),
                        Column('date_archived', DateTime),
                        Column('url', String),
                        Column('author_id', String),
                        Column('author_username', String),
-                       Column('content', String)
+                       Column('content', String),
+                       Column('forwarded_from', Integer, ForeignKey('channels.id')),
+                       Column('reply_to', Integer, ForeignKey('analysis.id'))
                        )
 
 mapper_registry.map_imperatively(TransformedResult, analysis_table)
