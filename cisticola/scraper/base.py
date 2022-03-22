@@ -133,6 +133,17 @@ class ScraperController:
 
     def register_scrapers(self, scraper: List[Scraper]):
         self.scrapers.extend(scraper)
+
+    def scrape_all_channels(self, archive_media: bool = True):
+        if self.session is None:
+            logger.error("No DB session")
+            return
+
+        session = self.session()
+
+        channels = session.query(Channel).where(Channel.source=='researcher').all()
+
+        return self.scrape_channels(channels, archive_media=archive_media)
     
     @logger.catch(reraise = True)
     def scrape_channels(self, channels: List[Channel], archive_media: bool = True):
@@ -145,7 +156,6 @@ class ScraperController:
 
             for scraper in self.scrapers:
                 if scraper.can_handle(channel):
-                    session = self.session()
                     handled = True
                     added = 0
 

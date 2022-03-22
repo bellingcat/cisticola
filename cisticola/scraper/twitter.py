@@ -29,25 +29,33 @@ class TwitterScraper(Scraper):
             archived_urls = {}
 
             if archive_media:
-
+                media_list = []
                 if tweet.media:
-                    for media in tweet.media:
-                        if type(media) == Video:
-                            variant = max(
-                                [v for v in media.variants if v.bitrate], key=lambda v: v.bitrate)
-                            url = variant.url
-                        elif type(media) == Gif:
-                            url = media.variants[0].url
-                        elif type(media) == Photo:
-                            url = media.fullUrl
-                        else:
-                            logger.warning(f"Could not get media URL of {media}")
-                            url = None
+                    media_list += tweet.media
 
-                        if url is not None:
-                            media_blob, content_type, key = self.url_to_blob(url)
-                            archived_url = self.archive_blob(media_blob, content_type, key)
-                            archived_urls[url] = archived_url
+                if tweet.retweetedTweet and tweet.retweetedTweet.media:
+                    media_list += tweet.retweetedTweet.media
+
+                if tweet.quotedTweet and tweet.quotedTweet.media:
+                    media_list += tweet.quotedTweet.media
+
+                for media in media_list:
+                    if type(media) == Video:
+                        variant = max(
+                            [v for v in media.variants if v.bitrate], key=lambda v: v.bitrate)
+                        url = variant.url
+                    elif type(media) == Gif:
+                        url = media.variants[0].url
+                    elif type(media) == Photo:
+                        url = media.fullUrl
+                    else:
+                        logger.warning(f"Could not get media URL of {media}")
+                        url = None
+
+                    if url is not None and url not in archived_urls:
+                        media_blob, content_type, key = self.url_to_blob(url)
+                        archived_url = self.archive_blob(media_blob, content_type, key)
+                        archived_urls[url] = archived_url
 
             yield ScraperResult(
                 scraper=self.__version__,
