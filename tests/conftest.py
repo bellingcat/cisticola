@@ -8,11 +8,9 @@ from cisticola.transformer import ETLController
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
 BITCHUTE_CHANNEL_KWARGS = {
-    'id': 0,
     'name': 'bestonlinejewelrystoresusa@gmail.com (test)',
     'platform_id': 'bestonlinejewelrystoresusagmailcom',
     'category': 'test',
-    'followers': None,
     'platform': 'Bitchute',
     'url': 'https://www.bitchute.com/channel/bestonlinejewelrystoresusagmailcom/',
     'screenname': None,
@@ -23,11 +21,9 @@ BITCHUTE_CHANNEL_KWARGS = {
     'notes': ''}
 
 GAB_CHANNEL_KWARGS = {
-    'id': 1,
     'name': 'Capt. Marc Simon (test)',
     'platform_id': 'marc_capt',
     'category': 'test',
-    'followers': None,
     'platform': 'Gab',
     'url': 'https://gab.com/marc_capt',
     'screenname': 'marc_capt',
@@ -38,11 +34,9 @@ GAB_CHANNEL_KWARGS = {
     'notes': ''}
 
 GETTR_CHANNEL_KWARGS = {
-    'id': 2,
     'name': 'LizardRepublic (test)',
     'platform_id': 'lizardrepublic',
     'category': 'test',
-    'followers': None,
     'platform': 'Gettr',
     'url': 'https://www.gettr.com/user/lizardrepublic',
     'screenname': 'lizardrepublic',
@@ -53,11 +47,9 @@ GETTR_CHANNEL_KWARGS = {
     'notes': ''}
 
 INSTAGRAM_CHANNEL_KWARGS = {
-    'id': 3,
     'name': 'borland.88 (test)',
     'platform_id': 'borland.88',
     'category': 'test',
-    'followers': None,
     'platform': 'Instagram',
     'url': 'https://www.instagram.com/borland.88/',
     'screenname': 'borland.88',
@@ -68,11 +60,9 @@ INSTAGRAM_CHANNEL_KWARGS = {
     'notes': ''}
 
 ODYSEE_CHANNEL_KWARGS = {
-    'id': 4,
     'name': "Mak1n' Bacon (test)",
     'platform_id': 'Mak1nBacon',
     'category': 'test',
-    'followers': None,
     'platform': 'Odysee',
     'url': 'https://odysee.com/@Mak1nBacon',
     'screenname': 'Mak1nBacon',
@@ -83,11 +73,9 @@ ODYSEE_CHANNEL_KWARGS = {
     'notes': ''}
 
 RUMBLE_CHANNEL_KWARGS = {
-    'id': 5,
     'name': 'we are uploading videos wow products',
     'platform_id': 'c-916305',
     'category': 'test',
-    'followers': None,
     'platform': 'Rumble',
     'url': 'https://rumble.com/c/c-916305',
     'screenname': 'we are uploading',
@@ -98,11 +86,9 @@ RUMBLE_CHANNEL_KWARGS = {
     'notes': ''}
 
 TELEGRAM_CHANNEL_KWARGS = {
-    'id': 6,
     'name': 'South West Ohio Proud Boys (test)',
     'platform_id': -1001276612436,
     'category': 'test',
-    'followers': None,
     'platform': 'Telegram',
     'url': 'https://t.me/SouthwestOhioPB',
     'screenname': 'SouthwestOhioPB',
@@ -113,11 +99,9 @@ TELEGRAM_CHANNEL_KWARGS = {
     'notes': ''}
 
 TWITTER_CHANNEL_KWARGS = {
-    'id': 7,
     'name': 'L Weber (test)',
     'platform_id': 1424979017749442595,
     'category': 'test',
-    'followers': None,
     'platform': 'Twitter',
     'url': 'https://twitter.com/LWeber33662141',
     'screenname': 'LWeber33662141',
@@ -128,11 +112,9 @@ TWITTER_CHANNEL_KWARGS = {
     'notes': ''}
 
 VKONTAKTE_CHANNEL_KWARGS = {
-    'id': 8,
     'name': 'Wwg1wgA (test)',
     'platform_id': 'club201278078',
     'category': 'test',
-    'followers': None,
     'platform': 'Vkontakte',
     'url': 'https://vk.com/club201278078',
     'screenname': 'Wwg1wgA',
@@ -143,11 +125,9 @@ VKONTAKTE_CHANNEL_KWARGS = {
     'notes': ''}
 
 YOUTUBE_CHANNEL_KWARGS = {
-    'id': 9,
     'name': 'AnEs87 (test)',
     'platform_id': 'UCP6exBqGoxGLv_pM9Dxk2pA',
     'category': 'test',
-    'followers': None,
     'platform': 'Youtube',
     'url': 'https://www.youtube.com/channel/UCP6exBqGoxGLv_pM9Dxk2pA',
     'screenname': 'AnEs87',

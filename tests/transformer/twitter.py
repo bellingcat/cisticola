@@ -23,8 +23,8 @@ def test_scrape_etl_twitter(engine, controller, etl_controller, channel_kwargs):
     posts = session.query(TransformedResult).all()
     media = session.query(Media).all()
 
-    assert len(posts) == 3
-    assert len(media) == 2
+    assert len(posts) == 10
+    assert len(media) == 7
 
-    assert posts[-1].content == "This is a test. https://t.co/rzTFL9uFi6"
+    assert posts[-1].content == "BARN"
     assert json.loads(media[-1].exif)['Composite:ImageSize'] == "826 728"
