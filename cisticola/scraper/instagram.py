@@ -18,6 +18,7 @@ CONTENT_TYPES = {
     'mp4' : 'video/mp4'}
 
 class InstagramScraper(Scraper):
+    """An implementation of a Scraper for Instagram, using instaloader library"""
     __version__ = "InstagramScraper 0.0.1"
 
     def get_username_from_url(self, url):

@@ -8,6 +8,7 @@ from cisticola.base import Channel, ScraperResult
 from cisticola.scraper.base import Scraper
 
 class TelegramSnscrapeScraper(Scraper):
+    """An implementation of a Scraper for Telegram, using snscrape library"""
     __version__ = "TelegramSnscrapeScraper 0.0.1"
 
     def can_handle(self, channel):

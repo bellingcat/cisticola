@@ -14,14 +14,14 @@ class RumbleScraper(Scraper):
     """An implementation of a Scraper for Rumble, using custom functions"""
     __version__ = "RumbleScraper 0.0.1"
 
-    def get_username_from_url(url):
+    def get_username_from_url(self, url):
         username = url.split('https://rumble.com/c/')[1]
 
         return username
 
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
-        username = RumbleScraper.get_username_from_url(channel.url)
+        username = self.get_username_from_url(channel.url)
         scraper = get_channel_videos(username)
 
         for post in scraper:
@@ -54,7 +54,7 @@ class RumbleScraper(Scraper):
         return key 
 
     def can_handle(self, channel):
-        if channel.platform == "Rumble" and RumbleScraper.get_username_from_url(channel.url) is not None:
+        if channel.platform == "Rumble" and self.get_username_from_url(channel.url) is not None:
             return True
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
