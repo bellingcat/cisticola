@@ -9,6 +9,8 @@ docs/source/_*
 *.db
 .env
 *.session
+service_account.json
+.vscode/
 
 # Unit test / coverage reports
 reports

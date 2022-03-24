@@ -4,7 +4,7 @@ import json
 from cisticola.base import Channel
 from cisticola.scraper import TwitterScraper
 from cisticola.transformer import TwitterTransformer
-from cisticola.base import TransformedResult, Media
+from cisticola.base import Post, Media
 
 def test_scrape_etl_twitter(engine, controller, etl_controller, channel_kwargs):
     controller.reset_db()
@@ -20,11 +20,11 @@ def test_scrape_etl_twitter(engine, controller, etl_controller, channel_kwargs):
     sessionfactory.configure(bind=engine)
     session = sessionfactory()
 
-    posts = session.query(TransformedResult).all()
+    posts = session.query(Post).all()
     media = session.query(Media).all()
 
-    assert len(posts) == 3
-    assert len(media) == 2
+    assert len(posts) == 10
+    assert len(media) == 7
 
-    assert posts[-1].content == "This is a test. https://t.co/rzTFL9uFi6"
+    assert posts[-1].content == "BARN"
     assert json.loads(media[-1].exif)['Composite:ImageSize'] == "826 728"

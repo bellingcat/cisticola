@@ -20,14 +20,19 @@ telethon = "*"
 pytesseract = "*"
 pyexiftool = {git = "https://github.com/smarnach/pyexiftool.git"}
 instaloader = "*"
+gspread = "*"
 
 [dev-packages]
 pytest = "*"
 pytest-cov = "*"
 pytest-html = "*"
 pytest-metadata = "*"
+black = "*"
 sphinx = "*"
 sphinx_rtd_theme = "*"
 
 [requires]
 python_version = "3.9"
+
+[pipenv]
+allow_prereleases = true

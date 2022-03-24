@@ -6,7 +6,7 @@ import json
 import io
 
 from sqlalchemy.orm import registry
-from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey, Boolean
 import pytesseract
 import PIL
 import exiftool
@@ -24,8 +24,7 @@ class ScraperResult:
     #: Name of platform from which result was scraped, e.g. ``"Twitter"``.
     platform: str
 
-    #TODO there is probably a way of making this a Channel object foreign key
-    #: User-specified integer that uniquely identifies a channel, e.g. ``15``.
+    #: Foreign key of channel ID that this was scraped from
     channel: int
 
     #: String that uniquely identifies the scraped post on the given platform, e.g. ``"1503397267675533313"``
@@ -42,14 +41,23 @@ class ScraperResult:
 
     #: Dict in which the keys are the original media URLs from the post, and the corresponding values are the URLs of the archived media files. 
     archived_urls: dict
+      
+raw_data_table = Table('raw_data', mapper_registry.metadata,
+                       Column('id', Integer, primary_key=True,
+                              autoincrement=True),
+                       Column('scraper', String),
+                       Column('platform', String),
+                       Column('channel', Integer, ForeignKey('channels.id')),
+                       Column('platform_id', String),
+                       Column('date', DateTime),
+                       Column('raw_data', String),
+                       Column('date_archived', DateTime),
+                       Column('archived_urls', JSON))
 
 @dataclass
 class Channel:
     """Information about a specific channel to be scraped.
     """
-
-    #: User-specified integer that uniquely identifies a channel, e.g. ``15``.
-    id: int
 
     #: Name of channel (different from username because it can be non-unique and contain emojis), e.g. ``T🕊Редакция Президент Гордон🕊"``.
     name: str
@@ -57,11 +65,8 @@ class Channel:
     #: String that uniquely identifies the channel on the given platform, e.g. ``"-1001101170442"``.
     platform_id: str
 
-    #: User-specified category for the channel, e.g. ``"qanon-adjacent"``.
+    #: User-specified category for the channel, e.g. ``"explicit_qanon"``.
     category: str
-
-    #: Number of followers the channel has on the given platform, e.e. ``"1465"``.
-    followers: int
 
     #: Name of platform the given channel is on, e.g. ``"Telegram"``.
     platform: str
@@ -71,28 +76,55 @@ class Channel:
 
     #: Screen name/username of channel.
     screenname: str
-
+      
     #: 2 digit country code for the country of origin for the channel, e.g. ``"RU"``.
-    country: str
-
-    #: Name of influencer, if channel belongs to an influencer that operates on multiple platforms.
-    influencer: str
-
+    country: str = None
+    
+    #: Name of influencer, if channel belongs to an influencer that operates on multiple platforms.    
+    influencer: str = None
+      
     #: Whether or not the channel is publicly-accessible. 
-    public: bool
-
+    public: bool = None
+      
     #: Whether or not the channel is a chat (i.e. allows users who are not the channel creator to post/message)
-    chat: bool
-
+    chat: bool = None
+      
     #: Any other additional notes about the channel.
-    notes: str
+    notes: str = ""
+      
+    #: Did the channel come from a researcher or a scraping process?
+    source: str = None
+
+    def hydrate(self):
+        pass
+
+channel_table = Table('channels', mapper_registry.metadata,
+                    Column('id', Integer, primary_key=True, autoincrement=True),
+                    Column('name', String),
+                    Column('platform_id', Integer),
+                    Column('category', String),
+                    Column('platform', String),
+                    Column('url', String),
+                    Column('screenname', String),
+                    Column('country', String),
+                    Column('influencer', String),
+                    Column('public', Boolean),
+                    Column('chat', Boolean),
+                    Column('notes', String),
+                    Column('source', String)
+                    )
+
+mapper_registry.map_imperatively(Channel, channel_table)
 
 @dataclass
-class TransformedResult:
+class Post:
     """An object with fields for columns in the analysis table"""
 
     #: ID number of the scraped post in the ``raw_data`` table
     raw_id: int
+      
+    #: Platform specific post ID
+    platform_id: str
 
     #: String specifying name and version of scraper used to generate result, e.g. ``"TwitterScraper 0.0.1"``.
     scraper: str
@@ -111,18 +143,48 @@ class TransformedResult:
 
     #: Datetime (relative to UTC) that the scraped post was archived at.
     date_archived: datetime
-
+    
     #: URL of the original post
     url: str
 
     #: String that uniquely identifies the channel on the given platform, e.g. ``"-1001101170442"``.
     author_id: str
-
+    
     #: Username of author who made post.
     author_username: str
-
+      
     #: Text of the original post
     content: str
+
+    #: The ID of the Channel that the post was forwarded or quoted from
+    forwarded_from: int = None
+      
+    #: The ID of the Post that this Post is a reply to or reblog of
+    reply_to: int = None
+
+    def hydrate(self):
+        pass
+
+post_table = Table('posts', mapper_registry.metadata,
+                       Column('id', Integer, primary_key=True,
+                              autoincrement=True),
+                       Column('raw_id', Integer, ForeignKey('raw_data.id')),
+                       Column('platform_id', Integer),
+                       Column('scraper', String),
+                       Column('transformer', String),
+                       Column('platform', String),
+                       Column('channel', Integer, ForeignKey('channels.id')),
+                       Column('date', DateTime),
+                       Column('date_archived', DateTime),
+                       Column('url', String),
+                       Column('author_id', String),
+                       Column('author_username', String),
+                       Column('content', String),
+                       Column('forwarded_from', Integer, ForeignKey('channels.id')),
+                       Column('reply_to', Integer, ForeignKey('posts.id'))
+                       )
+
+mapper_registry.map_imperatively(Post, post_table)
 
 @dataclass
 class Media:
@@ -239,7 +301,7 @@ media_table = Table('media', mapper_registry.metadata,
                               autoincrement=True),
                        Column('type', String),
                        Column('raw_id', Integer, ForeignKey('raw_data.id')),
-                       Column('post', Integer, ForeignKey('analysis.id')),
+                       Column('post', Integer, ForeignKey('posts.id')),
                        Column('url', String),
                        Column('original_url', String),
                        Column('exif', String),
