@@ -241,6 +241,7 @@ class Scraper:
                 archived_url = self.archive_blob(media_blob, content_type, key)
                 result.archived_urls[url] = archived_url
 
+        result.media_archived = True
         return result
 
 
@@ -371,7 +372,7 @@ class ScraperController:
 
         session = self.session()
 
-        posts = session.query(ScraperResult).filter(ScraperResult.archived_urls.like("%null%")).all()
+        posts = session.query(ScraperResult).where(ScraperResult.media_archived == False).all()
 
         logger.info(f"Found {len(posts)} posts without media. Archiving now")
 
@@ -384,8 +385,10 @@ class ScraperController:
                     logger.info(f"{scraper} is archiving media for {post}")
                     post = scraper.archive_files(post)
 
-                    session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls})
-                    session.commit()
+                    if post:
+                        session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': True})
+                        session.commit()
+
                     break
             
             if not handled:

@@ -30,19 +30,17 @@ class TelegramSnscrapeScraper(Scraper):
 
             archived_urls = {}
 
+            for image_url in post.images:
+                archived_urls[image_url] = None
+
+            if post.video:
+                archived_urls[post.video] = None
+
             if archive_media:
-
-                for image_url in post.images:
-                    logger.debug(f'Archiving image: {image_url}')
-                    media_blob, content_type, key = self.url_to_blob(image_url)
+                for url in archived_urls:
+                    media_blob, content_type, key = self.url_to_blob(url)
                     archived_url = self.archive_blob(media_blob, content_type, key)
-                    archived_urls[image_url] = archived_url
-
-                if post.video:
-                    logger.debug(f'Archiving video: {post.video}')
-                    media_blob, content_type, key = self.url_to_blob(post.video)
-                    archived_url = self.archive_blob(media_blob, content_type, key)
-                    archived_urls[post.video] = archived_url
+                    archived_urls[url] = archived_url
 
             yield ScraperResult(
                 scraper=self.__version__,
@@ -52,5 +50,6 @@ class TelegramSnscrapeScraper(Scraper):
                 date=post.date,
                 date_archived=datetime.now(timezone.utc),
                 raw_data=post.json(),
-                archived_urls=archived_urls
+                archived_urls=archived_urls,
+                media_archived=archive_media
             )
