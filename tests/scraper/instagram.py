@@ -1,3 +1,5 @@
+import pytest
+
 from cisticola.base import Channel
 from cisticola.scraper import InstagramScraper
 
@@ -14,3 +16,10 @@ def test_scrape_instagram_channel(controller, channel_kwargs):
     channels = [Channel(**channel_kwargs['instagram'])]
     controller.register_scraper(scraper = InstagramScraper())
     controller.scrape_channels(channels = channels, archive_media = True)
+
+@pytest.mark.profile
+def test_scrape_instagram_profile(channel_kwargs):
+
+    scraper = InstagramScraper()
+    channel = Channel(**channel_kwargs['instagram'])
+    scraper.get_profile(channel=channel)

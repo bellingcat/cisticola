@@ -138,7 +138,7 @@ class TelegramTelethonScraper(Scraper):
                     date_archived=datetime.now(timezone.utc),
                     raw_data=json.dumps(post.to_dict(), default=str),
                     archived_urls=archived_urls,
-                    media_archived=archive_media))
+                    media_archived=archive_media)
 
     def get_profile(self, channel: Channel) -> dict:
 

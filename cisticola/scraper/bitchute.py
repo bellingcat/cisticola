@@ -66,12 +66,13 @@ class BitchuteScraper(Scraper):
 
     def get_profile(self, channel: Channel) -> dict:
 
-        base_url = "https://www.bitchute.com/channel/%s/" % channel.url
+        base_url = channel.url
         
         session = requests.session()
         response = session.get(base_url)
         soup = BeautifulSoup(response.content, 'html.parser')
         
+        canonical_url = soup.find('link', {'id' : 'canonical'})['href']
         csrftoken = session.cookies['csrftoken']
         csrfmiddlewaretoken = soup.find('input', {'name' : 'csrfmiddlewaretoken'})['value']
 
@@ -84,7 +85,7 @@ class BitchuteScraper(Scraper):
             'csrftoken': csrftoken,
             'csrfmiddlewaretoken': csrfmiddlewaretoken}
 
-        response = session.post(base_url + 'counts/', data = data, headers = headers)
+        response = session.post(canonical_url + 'counts/', data = data, headers = headers)
         counts = json.loads(response.text)
 
         profile = {
@@ -93,9 +94,9 @@ class BitchuteScraper(Scraper):
             'created': re.sub(r'\s', ' ', info_list[0].text.split('Created')[1].strip('. ')),
             'videos' : int(info_list[1].text.split('videos')[0].strip()),
             'owner_url' : soup.find('p', {'class' : 'owner'}).find('a', href = True)['href'],
-            'owner_name' : soup.find('p', {'class' : 'owner'}).text,
+            'owner_name' : decode_cfemail(soup.find('p', {'class' : 'owner'}).find('span', {'class': "__cf_email__"})['data-cfemail']),
             'category' : info_list[-1].text.split('Category')[1].strip(),
-            'image' : about_soup.find('img', {'alt' : 'Channel Image'})['data-src'],
+            'image' : about_soup.find('img', {'alt' : 'Channel Image'}).get('data-src'),
             'subscribers': counts['subscriber_count'],
             'views': int(counts['about_view_count'].split(' ')[0])}
         
@@ -456,4 +457,20 @@ def get_videos_user(session, user, csrftoken, detail):
                 # these need to be yielded *after* the video because else the result file will have the comments
                 # before the video, which is weird
                 yield comment
+
 #-----------------------------------------------------------------------------#
+
+def decode_cfemail(cfemail):
+    
+    """https://stackoverflow.com/questions/36911296/scraping-of-protected-email
+    """
+    
+    email = ""
+    k = int(cfemail[:2], 16)
+
+    for i in range(2, len(cfemail)-1, 2):
+        email += chr(int(cfemail[i:i+2], 16)^k)
+
+    return email
+
+#---------------------------------------------------------------------------#

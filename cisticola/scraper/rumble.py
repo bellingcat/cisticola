@@ -125,14 +125,15 @@ def get_channel_profile(username):
     soup = BeautifulSoup(r.content, features = 'lxml')
 
     verified_svg = soup.find('h1').find('svg', {'class' : 'listing-header--verified'})
+    thumbnail_soup = soup.find('img', {'class' : 'listing-header--thumb'})
+    cover_soup = soup.find('img', {'class' : 'listing-header--backsplash-img'})
 
     profile = {
         'name': soup.find('h1').text,
         'verified': verified_svg is not None,
-        'thumbnail': soup.find('img', {'class' : 'listing-header--thumb'})['src'],
-        'cover':  soup.find('img', {'class' : 'listing-header--backsplash-img'})['src'],
-        'subscribers': soup.find('span', {'class' : 'subscribe-button-count'}).text}
-
+        'thumbnail': thumbnail_soup.get('src') if thumbnail_soup else None,
+        'cover':  cover_soup.get('src') if cover_soup else None,
+        'subscribers': int(soup.find('span', {'class' : 'subscribe-button-count'}).text)}
     return profile
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
