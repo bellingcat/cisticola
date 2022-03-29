@@ -336,6 +336,7 @@ class ScraperController:
 
             for scraper in self.scrapers:
                 if scraper.can_handle(channel):
+                    logger.debug(f"{scraper} is handling {channel}")
                     handled = True
                     added = 0
 
@@ -382,7 +383,7 @@ class ScraperController:
             for scraper in self.scrapers:
                 if scraper.__version__ == post.scraper:
                     handled = True
-                    logger.info(f"{scraper} is archiving media for {post}")
+                    logger.debug(f"{scraper} is archiving media for ID {post.id}")
                     post = scraper.archive_files(post)
 
                     if post:
