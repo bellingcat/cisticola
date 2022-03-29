@@ -41,19 +41,10 @@ class ScraperResult:
 
     #: Dict in which the keys are the original media URLs from the post, and the corresponding values are the URLs of the archived media files. 
     archived_urls: dict
-      
-raw_data_table = Table('raw_data', mapper_registry.metadata,
-                       Column('id', Integer, primary_key=True,
-                              autoincrement=True),
-                       Column('scraper', String),
-                       Column('platform', String),
-                       Column('channel', Integer, ForeignKey('channels.id')),
-                       Column('platform_id', String),
-                       Column('date', DateTime),
-                       Column('raw_data', String),
-                       Column('date_archived', DateTime),
-                       Column('archived_urls', JSON))
 
+    #: Has the media in this post been archived?
+    media_archived: bool
+      
 @dataclass
 class Channel:
     """Information about a specific channel to be scraped.
@@ -97,24 +88,6 @@ class Channel:
 
     def hydrate(self):
         pass
-
-channel_table = Table('channels', mapper_registry.metadata,
-                    Column('id', Integer, primary_key=True, autoincrement=True),
-                    Column('name', String),
-                    Column('platform_id', Integer),
-                    Column('category', String),
-                    Column('platform', String),
-                    Column('url', String),
-                    Column('screenname', String),
-                    Column('country', String),
-                    Column('influencer', String),
-                    Column('public', Boolean),
-                    Column('chat', Boolean),
-                    Column('notes', String),
-                    Column('source', String)
-                    )
-
-mapper_registry.map_imperatively(Channel, channel_table)
 
 @dataclass
 class Post:
@@ -165,26 +138,6 @@ class Post:
     def hydrate(self):
         pass
 
-post_table = Table('posts', mapper_registry.metadata,
-                       Column('id', Integer, primary_key=True,
-                              autoincrement=True),
-                       Column('raw_id', Integer, ForeignKey('raw_data.id')),
-                       Column('platform_id', Integer),
-                       Column('scraper', String),
-                       Column('transformer', String),
-                       Column('platform', String),
-                       Column('channel', Integer, ForeignKey('channels.id')),
-                       Column('date', DateTime),
-                       Column('date_archived', DateTime),
-                       Column('url', String),
-                       Column('author_id', String),
-                       Column('author_username', String),
-                       Column('content', String),
-                       Column('forwarded_from', Integer, ForeignKey('channels.id')),
-                       Column('reply_to', Integer, ForeignKey('posts.id'))
-                       )
-
-mapper_registry.map_imperatively(Post, post_table)
 
 @dataclass
 class Media:
@@ -273,28 +226,48 @@ raw_data_table = Table('raw_data', mapper_registry.metadata,
                               autoincrement=True),
                        Column('scraper', String),
                        Column('platform', String),
-                       Column('channel', Integer),
+                       Column('channel', Integer, ForeignKey('channels.id')),
                        Column('platform_id', String),
                        Column('date', DateTime),
                        Column('raw_data', String),
                        Column('date_archived', DateTime),
-                       Column('archived_urls', JSON))
+                       Column('archived_urls', JSON),
+                       Column('media_archived', Boolean))
 
+channel_table = Table('channels', mapper_registry.metadata,
+                    Column('id', Integer, primary_key=True, autoincrement=True),
+                    Column('name', String),
+                    Column('platform_id', Integer),
+                    Column('category', String),
+                    Column('platform', String),
+                    Column('url', String),
+                    Column('screenname', String),
+                    Column('country', String),
+                    Column('influencer', String),
+                    Column('public', Boolean),
+                    Column('chat', Boolean),
+                    Column('notes', String),
+                    Column('source', String)
+                    )
 
-analysis_table = Table('analysis', mapper_registry.metadata,
+post_table = Table('posts', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
                               autoincrement=True),
                        Column('raw_id', Integer, ForeignKey('raw_data.id')),
+                       Column('platform_id', Integer),
                        Column('scraper', String),
                        Column('transformer', String),
                        Column('platform', String),
-                       Column('channel', Integer),
+                       Column('channel', Integer, ForeignKey('channels.id')),
                        Column('date', DateTime),
                        Column('date_archived', DateTime),
                        Column('url', String),
                        Column('author_id', String),
                        Column('author_username', String),
-                       Column('content', String))
+                       Column('content', String),
+                       Column('forwarded_from', Integer, ForeignKey('channels.id')),
+                       Column('reply_to', Integer, ForeignKey('posts.id'))
+                       )
 
 media_table = Table('media', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
@@ -307,7 +280,8 @@ media_table = Table('media', mapper_registry.metadata,
                        Column('exif', String),
                        Column('ocr', String))
 
-mapper_registry.map_imperatively(TransformedResult, analysis_table)
+mapper_registry.map_imperatively(Post, post_table)
+mapper_registry.map_imperatively(Channel, channel_table)
 mapper_registry.map_imperatively(ScraperResult, raw_data_table)
 mapper_registry.map_imperatively(Media, media_table, polymorphic_on='type', polymorphic_identity='media')
 mapper_registry.map_imperatively(Image, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='image')
