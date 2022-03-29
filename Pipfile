@@ -21,6 +21,7 @@ pytesseract = "*"
 pyexiftool = {git = "https://github.com/smarnach/pyexiftool.git"}
 instaloader = "*"
 gspread = "*"
+cryptg = "*"
 
 [dev-packages]
 pytest = "*"

@@ -28,7 +28,6 @@ scrapers = [
     GettrScraper(),
     OdyseeScraper(),
     RumbleScraper(),
-    TelegramSnscrapeScraper(),
     TelegramTelethonScraper(),
     TwitterScraper()]
 
@@ -43,15 +42,15 @@ session = session_generator()
 gc = gspread.service_account(filename='service_account.json')
 
 # Open a sheet from a spreadsheet in one go
-wks = gc.open_by_url("https://docs.google.com/spreadsheets/d/1yxd6-2Mp0jZ8r9XJklb39WE-iIMrKRyA2kymJcIfGis/edit#gid=0")
+wks = gc.open_by_url("https://docs.google.com/spreadsheets/d/1k5VgqREoA3v1r7bkVq7TOTRDtdYqTMWkQnsZpRbntpw/edit#gid=0")
 channels = wks.worksheet("channels").get_all_records()
 
 for c in channels:
     del c['followers']
 
     for k in c.keys():
-        if c[k] == 'TRUE': c[k] = True
-        if c[k] == 'FALSE': c[k] = False
+        if c[k] == 'TRUE' or c[k] == 'yes': c[k] = True
+        if c[k] == 'FALSE' or c[k] == 'no': c[k] = False
 
     # check to see if this already exists, 
     channel = session.query(Channel).filter_by(platform_id=c['platform_id'], platform=c['platform']).first()
@@ -63,11 +62,13 @@ for c in channels:
 session.commit()
 
 controller.connect_to_db(engine)
-controller.scrape_all_channels(archive_media = True)
+controller.scrape_all_channels(archive_media = False)
 
-transformer = TwitterTransformer()
+controller.archive_unarchived_media()
 
-etl_controller = ETLController()
-etl_controller.register_transformer(transformer)
-etl_controller.connect_to_db(engine)
-etl_controller.transform_all_untransformed()
+# transformer = TwitterTransformer()
+
+# etl_controller = ETLController()
+# etl_controller.register_transformer(transformer)
+# etl_controller.connect_to_db(engine)
+# etl_controller.transform_all_untransformed()

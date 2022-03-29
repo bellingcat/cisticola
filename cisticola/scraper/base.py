@@ -234,6 +234,17 @@ class Scraper:
 
         return archived_url
 
+    def archive_files(self, result: ScraperResult) -> ScraperResult:
+        for url in result.archived_urls:
+            if result.archived_urls[url] is None:
+                media_blob, content_type, key = self.url_to_blob(url)
+                archived_url = self.archive_blob(media_blob, content_type, key)
+                result.archived_urls[url] = archived_url
+
+        result.media_archived = True
+        return result
+
+
     def can_handle(self, channel: Channel) -> bool:
         """Whether or not the scraper can scrape the specified channel.
 
@@ -352,6 +363,38 @@ class ScraperController:
 
             if not handled:
                 logger.warning(f"No handler found for Channel {channel}")
+
+    @logger.catch(reraise = True)
+    def archive_unarchived_media(self):
+        if self.session is None:
+            logger.error("No DB session")
+            return
+
+        session = self.session()
+
+        posts = session.query(ScraperResult).where(ScraperResult.media_archived == False).all()
+
+        logger.info(f"Found {len(posts)} posts without media. Archiving now")
+
+        for post in posts:
+            handled = False
+
+            for scraper in self.scrapers:
+                if scraper.__version__ == post.scraper:
+                    handled = True
+                    logger.info(f"{scraper} is archiving media for {post}")
+                    post = scraper.archive_files(post)
+
+                    if post:
+                        session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': True})
+                        session.commit()
+
+                    break
+            
+            if not handled:
+                logger.warning(f"No handler found for post scraped with {post.scraper}")
+
+        session.commit()
 
     def connect_to_db(self, engine):
         """Connect the specified SQLAlchemy engine to the controller.
