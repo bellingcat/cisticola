@@ -101,3 +101,26 @@ class InstagramScraper(Scraper):
     def can_handle(self, channel):
         if channel.platform == "Instagram" and self.get_username_from_url(channel.url) is not None:
             return True
+
+    def get_profile(self, channel: Channel) -> dict:
+
+        username = self.get_username_from_url(channel.url)
+
+        loader = instaloader.Instaloader(
+            quiet = True,
+            download_comments = False,
+            save_metadata = False)
+
+        loader.login(
+            user = os.environ['INSTAGRAM_USERNAME'], 
+            passwd = os.environ['INSTAGRAM_PASSWORD'])
+
+        user_profile = instaloader.Profile.from_username(
+            context = loader.context, 
+            username = username)
+        
+        profile = user_profile._asdict()
+        profile['followers'] = user_profile.followers
+        profile['followees'] = user_profile.followees
+
+        return profile

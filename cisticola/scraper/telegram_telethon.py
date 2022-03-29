@@ -7,6 +7,7 @@ from pathlib import Path
 
 from loguru import logger
 from telethon.sync import TelegramClient 
+from telethon.tl.functions.channels import GetFullChannelRequest
 
 from cisticola.base import Channel, ScraperResult
 from cisticola.scraper.base import Scraper
@@ -74,3 +75,17 @@ class TelegramTelethonScraper(Scraper):
                     date_archived=datetime.now(timezone.utc),
                     raw_data=json.dumps(post.to_dict(), default=str),
                     archived_urls=archived_urls)
+
+    def get_profile(self, channel: Channel) -> dict:
+
+        username = self.get_username_from_url(channel.url)
+
+        api_id = os.environ['TELEGRAM_API_ID']
+        api_hash = os.environ['TELEGRAM_API_HASH']
+        phone = os.environ['TELEGRAM_PHONE']
+
+        with TelegramClient(phone, api_id, api_hash) as client:
+            full_channel = client(GetFullChannelRequest(channel = username))
+        profile = full_channel.__dict__
+
+        return profile

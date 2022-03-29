@@ -77,3 +77,18 @@ class YoutubeScraper(Scraper):
     def can_handle(self, channel):
         if channel.platform == "Youtube" and channel.url:
             return True
+
+    def get_profile(self, channel: Channel) -> dict:
+
+        ydl_opts = {}
+        ydl = yt_dlp.YoutubeDL(ydl_opts)
+
+        meta = None
+        try:
+            meta = ydl.extract_info(
+                channel.url,
+                process=False)
+        except yt_dlp.utils.DownloadError as e:
+            raise e
+
+        return meta

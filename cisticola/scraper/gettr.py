@@ -69,3 +69,10 @@ class GettrScraper(Scraper):
         ext = '.' + content_type.split('/')[-1]
         key = urlparse(url).path.split('/')[-2] + ext
         return key 
+
+    def get_profile(self, channel: Channel) -> dict:
+        client = client = PublicClient()
+        username = self.get_username_from_url(channel.url)
+        profile = client.user_info(username)
+
+        return profile

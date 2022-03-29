@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import Generator
 from urllib.parse import urlparse, parse_qs
 
-from snscrape.modules.twitter import TwitterProfileScraper, Video, Gif, Photo
+from snscrape.modules.twitter import TwitterProfileScraper, TwitterUserScraper, Video, Gif, Photo
 from loguru import logger
 
 from cisticola.base import Channel, ScraperResult
@@ -87,3 +87,10 @@ class TwitterScraper(Scraper):
 
         key = parsed_url.path.split('/')[-1] + ext
         return key 
+
+    def get_profile(self, channel: Channel) -> dict:
+
+        scraper = TwitterUserScraper(channel.platform_id)
+
+        profile = scraper._get_entity().__dict__
+        return profile

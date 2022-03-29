@@ -78,3 +78,11 @@ class OdyseeScraper(Scraper):
         ext = content_type.split('/')[-1]
 
         return f'{key}.{ext}'
+
+    def get_profile(self, channel: Channel) -> dict:
+
+        username = self.get_username_from_url(channel.url)
+        odysee_channel = OdyseeChannel(channel_name = username)
+        profile = odysee_channel.info
+
+        return profile

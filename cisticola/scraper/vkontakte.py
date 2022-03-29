@@ -78,3 +78,11 @@ class VkontakteScraper(Scraper):
             key = path.split('/')[-1] + ext
             
         return key
+
+    def get_profile(self, channel: Channel) -> dict:
+
+        username = self.get_username_from_url(channel.url)
+        scraper = VKontakteUserScraper(username)
+        
+        profile = scraper._get_entity().__dict__
+        return profile

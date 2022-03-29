@@ -51,6 +51,13 @@ class GabScraper(Scraper):
                 raw_data=json.dumps(post),
                 archived_urls=archived_urls)
 
-    def can_handle(self, channel):
+    def can_handle(self, channel: Channel) -> bool:
         if channel.platform == "Gab" and self.get_username_from_url(channel.url) is not None:
             return True
+
+    def get_profile(self, channel: Channel) -> dict:
+        client = Garc(profile = 'main')
+        username = self.get_username_from_url(channel.url)
+        profile = list(client.user(username))[0]
+
+        return profile

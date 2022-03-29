@@ -57,6 +57,13 @@ class RumbleScraper(Scraper):
         if channel.platform == "Rumble" and self.get_username_from_url(channel.url) is not None:
             return True
 
+    def get_profile(self, channel: Channel) -> dict:
+
+        username = self.get_username_from_url(channel.url)
+        profile = get_channel_profile(username = username)
+
+        return profile
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
 def get_media_url(url):
@@ -90,10 +97,10 @@ def process_video(video):
     
     return info
 
-def get_channel_videos(channel):
+def get_channel_videos(username):
     
     page = 1
-    channel_url = f'{BASE_URL}/c/{channel}?page='
+    channel_url = f'{BASE_URL}/c/{username}?page='
 
     while True:
         url = channel_url + str(page)
@@ -110,5 +117,22 @@ def get_channel_videos(channel):
             yield process_video(video)
 
         page += 1
+
+def get_channel_profile(username):
+
+    channel_url = f'{BASE_URL}/c/{username}'
+    r = make_request(url = channel_url)
+    soup = BeautifulSoup(r.content, features = 'lxml')
+
+    verified_svg = soup.find('h1').find('svg', {'class' : 'listing-header--verified'})
+
+    profile = {
+        'name': soup.find('h1').text,
+        'verified': verified_svg is not None,
+        'thumbnail': soup.find('img', {'class' : 'listing-header--thumb'})['src'],
+        'cover':  soup.find('img', {'class' : 'listing-header--backsplash-img'})['src'],
+        'subscribers': soup.find('span', {'class' : 'subscribe-button-count'}).text}
+
+    return profile
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
