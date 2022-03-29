@@ -58,7 +58,8 @@ class BitchuteScraper(Scraper):
                 date=datetime.fromtimestamp(post['timestamp']),
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post),
-                archived_urls=archived_urls)
+                archived_urls=archived_urls,
+                media_archived=archive_media)
 
     def can_handle(self, channel):
         if channel.platform == "Bitchute" and self.get_username_from_url(channel.url) is not None:
@@ -88,14 +89,19 @@ class BitchuteScraper(Scraper):
         response = session.post(canonical_url + 'counts/', data = data, headers = headers)
         counts = json.loads(response.text)
 
+        owner_soup = soup.find('p', {'class' : 'owner'})
+        if owner_soup.text == '[email\xa0protected]':
+            owner_name = decode_cfemail(owner_soup.find('span', {'class': "__cf_email__"})['data-cfemail'])
+        else:
+            owner_name = owner_soup.text
+            
         profile = {
             'description' : description_soup.text.strip(),
             'description_links' : [a['href'] for a in description_soup.find_all('a', href = True)],
             'created': re.sub(r'\s', ' ', info_list[0].text.split('Created')[1].strip('. ')),
             'videos' : int(info_list[1].text.split('videos')[0].strip()),
             'owner_url' : soup.find('p', {'class' : 'owner'}).find('a', href = True)['href'],
-            'owner_name' : decode_cfemail(soup.find('p', {'class' : 'owner'}).find('span', {'class': "__cf_email__"})['data-cfemail']),
-            'category' : info_list[-1].text.split('Category')[1].strip(),
+            'owner_name' : owner_name,
             'image' : about_soup.find('img', {'alt' : 'Channel Image'}).get('data-src'),
             'subscribers': counts['subscriber_count'],
             'views': int(counts['about_view_count'].split(' ')[0])}

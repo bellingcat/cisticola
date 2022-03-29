@@ -72,7 +72,8 @@ class YoutubeScraper(Scraper):
                         date=datetime.strptime(video['upload_date'], '%Y%m%d').replace(tzinfo=timezone.utc),
                         date_archived=datetime.now(timezone.utc),
                         raw_data=json.dumps(video, default = str),
-                        archived_urls=archived_urls)
+                        archived_urls=archived_urls,
+                        media_archived=archive_media)
                         
     def can_handle(self, channel):
         if channel.platform == "Youtube" and channel.url:

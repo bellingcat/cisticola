@@ -3,15 +3,21 @@ import json
 from typing import Generator
 from urllib.parse import urlparse
 
-from polyphemus.base import OdyseeChannel
 import requests
+from loguru import logger
 
+from polyphemus.base import OdyseeChannel
+from polyphemus.api import get_auth_token
 from cisticola.base import Channel, ScraperResult
 from cisticola.scraper.base import Scraper
 
 class OdyseeScraper(Scraper):
     """An implementation of a Scraper for Odysee, using polyphemus library"""
     __version__ = "OdyseeScraper 0.0.1"
+
+    def __init__(self):
+        super().__init__()
+        self.auth_token = get_auth_token()
 
     def get_username_from_url(self, url):
 
@@ -22,12 +28,12 @@ class OdyseeScraper(Scraper):
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
         username = self.get_username_from_url(channel.url)
-        odysee_channel = OdyseeChannel(channel_name = username)
+        odysee_channel = OdyseeChannel(channel_name = username, auth_token = self.auth_token)
         
         all_videos = odysee_channel.get_all_videos()
 
         for video in all_videos:
-            if since is not None and datetime.fromtimestamp(video['created']) <= since.date:
+            if since is not None and datetime.fromtimestamp(video.info['created']) <= since.date:
                 break
 
             archived_urls = {}
@@ -55,7 +61,8 @@ class OdyseeScraper(Scraper):
                 date=datetime.fromtimestamp(video.info['created']),
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(video.info),
-                archived_urls=archived_urls)
+                archived_urls=archived_urls,
+                media_archived=archive_media)
 
             for comment in all_comments:
 
@@ -67,7 +74,8 @@ class OdyseeScraper(Scraper):
                     date=datetime.fromtimestamp(comment.info['created']),
                     date_archived=datetime.now(),
                     raw_data=json.dumps(comment.info),
-                    archived_urls={})
+                    archived_urls={},
+                    media_archived=True)
 
     def can_handle(self, channel):
         if channel.platform == "Odysee" and self.get_username_from_url(channel.url) is not None:
@@ -82,7 +90,7 @@ class OdyseeScraper(Scraper):
     def get_profile(self, channel: Channel) -> dict:
 
         username = self.get_username_from_url(channel.url)
-        odysee_channel = OdyseeChannel(channel_name = username)
+        odysee_channel = OdyseeChannel(channel_name = username, auth_token = self.auth_token)
         profile = odysee_channel.info
 
         return profile

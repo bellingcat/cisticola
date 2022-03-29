@@ -59,7 +59,8 @@ class GettrScraper(Scraper):
                 date=datetime.fromtimestamp(post['cdate']/1000.),
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post),
-                archived_urls=archived_urls)
+                archived_urls=archived_urls,
+                media_archived=archive_media)
 
     def can_handle(self, channel):
         if channel.platform == "Gettr" and self.get_username_from_url(channel.url) is not None:

@@ -14,18 +14,12 @@ class RumbleScraper(Scraper):
     """An implementation of a Scraper for Rumble, using custom functions"""
     __version__ = "RumbleScraper 0.0.1"
 
-    def get_username_from_url(self, url):
-        username = url.split('https://rumble.com/c/')[1]
-
-        return username
-
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
-        username = self.get_username_from_url(channel.url)
-        scraper = get_channel_videos(username)
+        scraper = get_channel_videos(channel.url)
 
         for post in scraper:
-            if since is not None and datetime.fromtimestamp(post['cdate']*0.001) <= since.date:
+            if since is not None and post['datetime'].replace(tzinfo=timezone.utc) <= since.date_archived.replace(tzinfo=timezone.utc):
                 break
 
             archived_urls = {}
@@ -43,10 +37,11 @@ class RumbleScraper(Scraper):
                 platform="Rumble",
                 channel=channel.id,
                 platform_id=post['media_url'].split('/')[-2],
-                date=datetime.fromisoformat(post['datetime']).replace(tzinfo=timezone.utc),
+                date=post['datetime'].replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_data=json.dumps(post),
-                archived_urls=archived_urls)
+                raw_data=json.dumps(post, default = str),
+                archived_urls=archived_urls,
+                media_archived=archive_media)
 
     def url_to_key(self, url: str, content_type: str) -> str:
         ext = '.' + content_type.split('/')[-1]
@@ -54,13 +49,12 @@ class RumbleScraper(Scraper):
         return key 
 
     def can_handle(self, channel):
-        if channel.platform == "Rumble" and self.get_username_from_url(channel.url) is not None:
+        if channel.platform == "Rumble" and channel.url is not None:
             return True
 
     def get_profile(self, channel: Channel) -> dict:
 
-        username = self.get_username_from_url(channel.url)
-        profile = get_channel_profile(username = username)
+        profile = get_channel_profile(url = channel.url)
 
         return profile
 
@@ -69,7 +63,7 @@ class RumbleScraper(Scraper):
 def get_media_url(url):
     
     r = make_request(url = url)
-    soup = BeautifulSoup(r.content, features = 'lxml')
+    soup = BeautifulSoup(r.content, features = 'html.parser')
     
     script = json.loads(''.join(soup.find('script', {'type':'application/ld+json'}).text))
     media_url = script[0]['embedUrl']
@@ -91,16 +85,16 @@ def process_video(video):
         'views' : video.find('span', {'class' : 'video-item--views'})['data-value'],
         'rumbles' : rumbles,
         'duration' : video.find('span', {'class' : 'video-item--duration'})['data-value'],
-        'datetime' : video.find('time')['datetime']}
+        'datetime' : datetime.fromisoformat(video.find('time')['datetime'])}
     
     info['media_url'] = get_media_url(info['link'])
     
     return info
 
-def get_channel_videos(username):
+def get_channel_videos(url):
     
     page = 1
-    channel_url = f'{BASE_URL}/c/{username}?page='
+    channel_url = f'{url}?page='
 
     while True:
         url = channel_url + str(page)
@@ -118,9 +112,9 @@ def get_channel_videos(username):
 
         page += 1
 
-def get_channel_profile(username):
+def get_channel_profile(url):
 
-    channel_url = f'{BASE_URL}/c/{username}'
+    channel_url = f'{url}'
     r = make_request(url = channel_url)
     soup = BeautifulSoup(r.content, features = 'lxml')
 
@@ -133,7 +127,7 @@ def get_channel_profile(username):
         'verified': verified_svg is not None,
         'thumbnail': thumbnail_soup.get('src') if thumbnail_soup else None,
         'cover':  cover_soup.get('src') if cover_soup else None,
-        'subscribers': int(soup.find('span', {'class' : 'subscribe-button-count'}).text)}
+        'subscribers': soup.find('span', {'class' : 'subscribe-button-count'}).text}
     return profile
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#

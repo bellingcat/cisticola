@@ -49,7 +49,8 @@ class GabScraper(Scraper):
                 date=datetime.fromisoformat(post['created_at'].replace("Z", "+00:00")).replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post),
-                archived_urls=archived_urls)
+                archived_urls=archived_urls,
+                media_archived=archive_media)
 
     def can_handle(self, channel: Channel) -> bool:
         if channel.platform == "Gab" and self.get_username_from_url(channel.url) is not None:
