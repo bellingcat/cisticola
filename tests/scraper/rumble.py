@@ -9,6 +9,7 @@ def test_scrape_rumble_channel_no_media(controller, channel_kwargs):
     controller.register_scraper(scraper = RumbleScraper())
     controller.scrape_channels(channels = channels, archive_media = False)
 
+@pytest.mark.media
 def test_scrape_rumble_channel(controller, channel_kwargs):
 
     controller.reset_db()

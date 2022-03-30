@@ -9,6 +9,7 @@ def test_scrape_vkontakte_channel_no_media(controller, channel_kwargs):
     controller.register_scraper(scraper = VkontakteScraper())
     controller.scrape_channels(channels = channels, archive_media = False)
 
+@pytest.mark.media
 def test_scrape_vkontakte_channel(controller, channel_kwargs):
 
     controller.reset_db()

@@ -1,11 +1,14 @@
 from sqlalchemy.orm import sessionmaker, with_polymorphic
 import json
 
+import pytest
+
 from cisticola.base import Channel
 from cisticola.scraper import TwitterScraper
 from cisticola.transformer import TwitterTransformer
 from cisticola.base import Post, Media
 
+@pytest.mark.media
 def test_scrape_etl_twitter(engine, controller, etl_controller, channel_kwargs):
     controller.reset_db()
     

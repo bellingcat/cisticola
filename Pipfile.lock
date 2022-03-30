@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3fb247a6b9b76ed811db7636b02ad848365d38dadb0da6a27c090e559e5540ec"
+            "sha256": "b712e767d64e54e83e8c2d8a27a68203583ed7ad31d4ea3b4b6076a72a2150fd"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,14 +16,6 @@
         ]
     },
     "default": {
-        "attrs": {
-            "hashes": [
-                "sha256:2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4",
-                "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"
-            ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
-            "version": "==21.4.0"
-        },
         "beautifulsoup4": {
             "hashes": [
                 "sha256:9a315ce70049920ea4572a4055bc4bd700c940521d36fc858205ad4fcde149bf",
@@ -280,12 +272,9 @@
             "markers": "python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==0.18.2"
         },
-        "garc": {
-            "hashes": [
-                "sha256:6f1da8ccdb30b165b8d9247314b73d1002f60381480e61fdbf108dc9abf3c216"
-            ],
-            "index": "pypi",
-            "version": "==2.1"
+        "gabber": {
+            "git": "https://github.com/stanfordio/gabber.git",
+            "ref": "d80c44c488ad4e087ba4c8f033802fe2071843bd"
         },
         "gogettr": {
             "hashes": [
@@ -387,13 +376,6 @@
             "markers": "python_version >= '3'",
             "version": "==3.3"
         },
-        "iniconfig": {
-            "hashes": [
-                "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3",
-                "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"
-            ],
-            "version": "==1.1.1"
-        },
         "instaloader": {
             "hashes": [
                 "sha256:7fa6147810eedcc1dedcdec8cfa1f220c9379ab8faeab6a336a7c181d944e2e4"
@@ -411,11 +393,11 @@
         },
         "loguru": {
             "hashes": [
-                "sha256:066bd06758d0a513e9836fd9c6b5a75bfb3fd36841f4b996bc60b547a309d41c",
-                "sha256:4e2414d534a2ab57573365b3e6d0234dfb1d84b68b7f3b948e6fb743860a77c3"
+                "sha256:b28e72ac7a98be3d28ad28570299a393dfcd32e5e3f6a353dec94675767b6319",
+                "sha256:f8087ac396b5ee5f67c963b495d615ebbceac2796379599820e324419d53667c"
             ],
             "index": "pypi",
-            "version": "==0.6.0"
+            "version": "==0.5.3"
         },
         "lxml": {
             "hashes": [
@@ -602,25 +584,9 @@
             "markers": "python_version >= '3.7'",
             "version": "==9.0.1"
         },
-        "pluggy": {
-            "hashes": [
-                "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159",
-                "sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3"
-            ],
-            "markers": "python_version >= '3.6'",
-            "version": "==1.0.0"
-        },
         "polyphemus": {
             "git": "https://github.com/bellingcat/polyphemus.git",
             "ref": "00a5123a3768a55ffe29f2c803a4181895f17890"
-        },
-        "py": {
-            "hashes": [
-                "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719",
-                "sha256:607c53218732647dff4acdfcd50cb62615cedf612e72d1724fb1a0cc6405b378"
-            ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
-            "version": "==1.11.0"
         },
         "pyaes": {
             "hashes": [
@@ -732,14 +698,6 @@
             "index": "pypi",
             "version": "==0.3.9"
         },
-        "pytest": {
-            "hashes": [
-                "sha256:841132caef6b1ad17a9afde46dc4f6cfa59a05f9555aae5151f73bdf2820ca63",
-                "sha256:92f723789a8fdd7180b6b06483874feca4c48a5c76968e03bb3e7f806a1869ea"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==7.1.1"
-        },
         "python-dateutil": {
             "hashes": [
                 "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86",
@@ -762,6 +720,12 @@
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'",
             "version": "==0.1.0.post0"
+        },
+        "ratelimit": {
+            "hashes": [
+                "sha256:af8a9b64b821529aca09ebaf6d8d279100d766f19e90b5059ac6a718ca6dee42"
+            ],
+            "version": "==2.2.1"
         },
         "regex": {
             "hashes": [
@@ -944,13 +908,13 @@
             "index": "pypi",
             "version": "==1.24.0"
         },
-        "tomli": {
+        "tqdm": {
             "hashes": [
-                "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc",
-                "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"
+                "sha256:4230a49119a416c88cc47d0d2d32d5d90f1a282d5e497d49801950704e49863d",
+                "sha256:6461b009d6792008d0000e1b0c7ca50195ec78c0e808a3a6b668a56a3236c3a5"
             ],
-            "markers": "python_version >= '3.7'",
-            "version": "==2.0.1"
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+            "version": "==4.63.1"
         },
         "tzdata": {
             "hashes": [
@@ -1325,7 +1289,7 @@
                 "sha256:841132caef6b1ad17a9afde46dc4f6cfa59a05f9555aae5151f73bdf2820ca63",
                 "sha256:92f723789a8fdd7180b6b06483874feca4c48a5c76968e03bb3e7f806a1869ea"
             ],
-            "markers": "python_version >= '3.7'",
+            "index": "pypi",
             "version": "==7.1.1"
         },
         "pytest-cov": {
@@ -1443,7 +1407,7 @@
                 "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc",
                 "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"
             ],
-            "markers": "python_version >= '3.7'",
+            "markers": "python_full_version < '3.11.0'",
             "version": "==2.0.1"
         },
         "typing-extensions": {

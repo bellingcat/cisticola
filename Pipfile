@@ -14,7 +14,6 @@ boto3 = "*"
 snscrape = {git = "https://github.com/bellingcat/snscrape.git"}
 ffmpeg-python = "*"
 polyphemus = {git = "https://github.com/bellingcat/polyphemus.git"}
-garc = "*"
 yt-dlp = "*" 
 telethon = "*"
 pytesseract = "*"
@@ -22,6 +21,7 @@ pyexiftool = {git = "https://github.com/smarnach/pyexiftool.git"}
 instaloader = "*"
 gspread = "*"
 cryptg = "*"
+gabber = {git = "https://github.com/stanfordio/gabber.git"}
 
 [dev-packages]
 pytest = "*"

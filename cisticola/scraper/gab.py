@@ -1,15 +1,16 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 import json
 from typing import Generator
+import os 
 
-from garc import Garc
+from gabber.client import Client, GAB_API_BASE_URL
 
 from cisticola.base import Channel, ScraperResult
 from cisticola.scraper.base import Scraper
 
 class GabScraper(Scraper):
-    """An implementation of a Scraper for Gab, using GARC library"""
-    __version__ = "GabScraper 0.0.1"
+    """An implementation of a Scraper for Gab, using gabber library"""
+    __version__ = "GabScraper 0.0.2"
 
     def get_username_from_url(self, url):
         username = url.split('https://gab.com/')[-1]
@@ -17,13 +18,23 @@ class GabScraper(Scraper):
         return username
 
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
-        client = Garc(profile = 'main')
+        client = Client(
+            username = os.environ['GAB_USER'],
+            password = os.environ['GAB_PASS'],
+            threads = 25)
+
         username = self.get_username_from_url(channel.url)
 
-        scraper = client.userposts(username)
+        result = client._get(GAB_API_BASE_URL + f"/account_by_username/{username}").json()
+        user_id = int(result['id'])
+
+        scraper = client.pull_statuses(
+            id = user_id,
+            created_after = date.min,
+            replies = False)
 
         for post in scraper:
-            if since is not None and datetime.fromisoformat(post['created_at'].replace("Z", "+00:00")) <= since.date:
+            if since is not None and datetime.fromisoformat(post['created_at'].replace("Z", "+00:00")).replace(tzinfo=timezone.utc) <= since.date.replace(tzinfo=timezone.utc):
                 break
 
             media_urls = []
@@ -31,10 +42,18 @@ class GabScraper(Scraper):
 
             if archive_media:
 
-                media_urls.extend([p['url'] for p in post['media_attachments']])
-
-                if post.get('repost') is not None:
-                    media_urls.extend([p['url'] for p in post['repost']['media_attachments']])
+                for attachment in post.get('media_attachments'):
+                    if attachment.get('type') == 'video':
+                        media_urls.append(attachment['source_mp4'])
+                    else:
+                        media_urls.append(attachment['url'])
+                        
+                if post.get('reblog') is not None:
+                    for attachment in post['reblog'].get('media_attachments'):
+                        if attachment.get('type') == 'video':
+                            media_urls.append(attachment['source_mp4'])
+                        else:
+                            media_urls.append(attachment['url'])
 
                 for url in media_urls:
                     media_blob, content_type, key = self.url_to_blob(url)
@@ -57,8 +76,14 @@ class GabScraper(Scraper):
             return True
 
     def get_profile(self, channel: Channel) -> dict:
-        client = Garc(profile = 'main')
+
+        client = Client(
+            username = os.environ['GAB_USER'],
+            password = os.environ['GAB_PASS'],
+            threads = 25)
+
         username = self.get_username_from_url(channel.url)
-        profile = list(client.user(username))[0]
+
+        profile = client._get(GAB_API_BASE_URL + f"/account_by_username/{username}").json()
 
         return profile
