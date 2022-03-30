@@ -33,6 +33,19 @@ GAB_CHANNEL_KWARGS = {
     'chat': False,
     'notes': ''}
 
+GAB_GROUP_KWARGS = {
+    'name': 'iran group (test)',
+    'platform_id': 10001,
+    'category': 'test',
+    'platform': 'Gab',
+    'url': 'https://gab.com/groups/10001',
+    'screenname': 'iran group',
+    'country': 'IR',
+    'influencer': None,
+    'public': True,
+    'chat': True,
+    'notes': ''}
+
 GETTR_CHANNEL_KWARGS = {
     'name': 'LizardRepublic (test)',
     'platform_id': 'lizardrepublic',
@@ -178,6 +191,7 @@ def channel_kwargs():
     return {
         'bitchute' : BITCHUTE_CHANNEL_KWARGS,
         'gab' : GAB_CHANNEL_KWARGS,
+        'gab_group' : GAB_GROUP_KWARGS,
         'gettr' : GETTR_CHANNEL_KWARGS,
         'instagram' : INSTAGRAM_CHANNEL_KWARGS,
         'odysee' : ODYSEE_CHANNEL_KWARGS,

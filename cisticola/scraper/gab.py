@@ -17,21 +17,34 @@ class GabScraper(Scraper):
 
         return username
 
+    def get_group_id_from_url(self, url):
+        group_id = int(url.split('/')[-1])
+
+        return group_id
+
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         client = Client(
             username = os.environ['GAB_USER'],
             password = os.environ['GAB_PASS'],
             threads = 25)
 
-        username = self.get_username_from_url(channel.url)
+        if channel.url.split('/')[-2] == 'groups':
 
-        result = client._get(GAB_API_BASE_URL + f"/account_by_username/{username}").json()
-        user_id = int(result['id'])
+            group_id = self.get_group_id_from_url(url = channel.url)
+            scraper = client.pull_group_posts(
+                id = group_id,
+                depth = float('inf')) 
+        else:
 
-        scraper = client.pull_statuses(
-            id = user_id,
-            created_after = date.min,
-            replies = False)
+            username = self.get_username_from_url(channel.url)
+
+            result = client._get(GAB_API_BASE_URL + f"/account_by_username/{username}").json()
+            user_id = int(result['id'])
+
+            scraper = client.pull_statuses(
+                id = user_id,
+                created_after = date.min,
+                replies = False)
 
         for post in scraper:
             if since is not None and datetime.fromisoformat(post['created_at'].replace("Z", "+00:00")).replace(tzinfo=timezone.utc) <= since.date.replace(tzinfo=timezone.utc):
@@ -82,8 +95,15 @@ class GabScraper(Scraper):
             password = os.environ['GAB_PASS'],
             threads = 25)
 
-        username = self.get_username_from_url(channel.url)
+        if channel.url.split('/')[-2] == 'groups':
 
-        profile = client._get(GAB_API_BASE_URL + f"/account_by_username/{username}").json()
+            group_id = self.get_group_id_from_url(url = channel.url)
+            profile = client.pull_group(id = group_id)
+        
+        else:
+
+            username = self.get_username_from_url(channel.url)
+
+            profile = client._get(GAB_API_BASE_URL + f"/account_by_username/{username}").json()
 
         return profile
