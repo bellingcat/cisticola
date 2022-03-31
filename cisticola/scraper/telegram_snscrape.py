@@ -53,3 +53,11 @@ class TelegramSnscrapeScraper(Scraper):
                 archived_urls=archived_urls,
                 media_archived=archive_media
             )
+
+    def get_profile(self, channel: Channel) -> dict:
+
+        scr = snscrape.modules.telegram.TelegramChannelScraper(
+            channel.screenname)
+
+        profile = scr._get_entity().__dict__
+        return profile

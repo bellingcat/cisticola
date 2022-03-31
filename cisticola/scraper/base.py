@@ -413,3 +413,6 @@ class ScraperController:
 
         mapper_registry.metadata.drop_all(bind=self.engine)
         self.connect_to_db(self.engine)
+
+class ChannelDoesNotExistError(Exception):
+    """The specified channel does not exist or has been deleted."""

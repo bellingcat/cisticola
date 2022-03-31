@@ -58,11 +58,55 @@ class BitchuteScraper(Scraper):
                 date=datetime.fromtimestamp(post['timestamp']),
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post),
-                archived_urls=archived_urls)
+                archived_urls=archived_urls,
+                media_archived=archive_media)
 
     def can_handle(self, channel):
         if channel.platform == "Bitchute" and self.get_username_from_url(channel.url) is not None:
             return True
+
+    def get_profile(self, channel: Channel) -> dict:
+
+        base_url = channel.url
+        
+        session = requests.session()
+        response = session.get(base_url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        canonical_url = soup.find('link', {'id' : 'canonical'})['href']
+        csrftoken = session.cookies['csrftoken']
+        csrfmiddlewaretoken = soup.find('input', {'name' : 'csrfmiddlewaretoken'})['value']
+
+        about_soup = soup.find('div', {'id' : 'channel-about'})
+        info_list = about_soup.find('div', {'class' : 'channel-about-details'}).find_all('p')
+        description_soup = about_soup.find('div', {'id' : 'channel-description'})
+
+        headers = {'Referer': base_url}
+        data = {
+            'csrftoken': csrftoken,
+            'csrfmiddlewaretoken': csrfmiddlewaretoken}
+
+        response = session.post(canonical_url + 'counts/', data = data, headers = headers)
+        counts = json.loads(response.text)
+
+        owner_soup = soup.find('p', {'class' : 'owner'})
+        if owner_soup.text == '[email\xa0protected]':
+            owner_name = decode_cfemail(owner_soup.find('span', {'class': "__cf_email__"})['data-cfemail'])
+        else:
+            owner_name = owner_soup.text
+            
+        profile = {
+            'description' : description_soup.text.strip(),
+            'description_links' : [a['href'] for a in description_soup.find_all('a', href = True)],
+            'created': re.sub(r'\s', ' ', info_list[0].text.split('Created')[1].strip('. ')),
+            'videos' : int(info_list[1].text.split('videos')[0].strip()),
+            'owner_url' : soup.find('p', {'class' : 'owner'}).find('a', href = True)['href'],
+            'owner_name' : owner_name,
+            'image' : about_soup.find('img', {'alt' : 'Channel Image'}).get('data-src'),
+            'subscribers': counts['subscriber_count'],
+            'views': int(counts['about_view_count'].split(' ')[0])}
+        
+        return profile
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
@@ -419,30 +463,20 @@ def get_videos_user(session, user, csrftoken, detail):
                 # these need to be yielded *after* the video because else the result file will have the comments
                 # before the video, which is weird
                 yield comment
+
 #-----------------------------------------------------------------------------#
 
-def get_about(user):
-    """
-    Extract fields from channel's "About" tab
-    """
-    base_url = "https://www.bitchute.com/channel/%s/" % user
+def decode_cfemail(cfemail):
     
-    response = requests.get(base_url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    """https://stackoverflow.com/questions/36911296/scraping-of-protected-email
+    """
     
-    about_soup = soup.find('div', {'id' : 'channel-about'})
-    info_list = about_soup.find('div', {'class' : 'channel-about-details'}).find_all('p')
-    description_soup = about_soup.find('div', {'id' : 'channel-description'})
+    email = ""
+    k = int(cfemail[:2], 16)
 
-    about = {
-        'description' : description_soup.text,
-        'description_links' : [a['href'] for a in description_soup.find_all('a', href = True)],
-        'created': re.sub(r'\s', ' ', info_list[0].text.split('Created')[1].strip('. ')),
-        'videos' : int(info_list[1].text.split('videos')[0].strip()),
-        'owner_url' : soup.find('p', {'class' : 'owner'}).find('a', href = True)['href'],
-        'owner_name' : soup.find('p', {'class' : 'owner'}).text,
-        'category' : info_list[-1].text.split('Category')[1].strip(),
-        'image' : about_soup.find('img', {'alt' : 'Channel Image'})['data-src']
-    }
-    
-    return about
+    for i in range(2, len(cfemail)-1, 2):
+        email += chr(int(cfemail[i:i+2], 16)^k)
+
+    return email
+
+#---------------------------------------------------------------------------#

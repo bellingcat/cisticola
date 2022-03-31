@@ -25,7 +25,7 @@ class VkontakteScraper(Scraper):
         first = True
 
         for post in scraper.get_items():
-            if since is not None and post.date.replace(tzinfo=timezone.utc) <= since.date_archived.replace(tzinfo=timezone.utc):
+            if since is not None and datetime.fromordinal(post.date.toordinal()).replace(tzinfo=timezone.utc) <= since.date_archived.replace(tzinfo=timezone.utc):
                 # with VKontakteUserScraper, the first tweet could be an old pinned tweet
                 if first:
                     first = False
@@ -63,7 +63,8 @@ class VkontakteScraper(Scraper):
                 date=datetime.fromordinal(post.date.toordinal()).replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
                 raw_data=post.json(),
-                archived_urls=archived_urls)
+                archived_urls=archived_urls,
+                media_archived=archive_media)
 
     def can_handle(self, channel):
         if channel.platform == "Vkontakte" and channel.platform_id:
@@ -78,3 +79,11 @@ class VkontakteScraper(Scraper):
             key = path.split('/')[-1] + ext
             
         return key
+
+    def get_profile(self, channel: Channel) -> dict:
+
+        username = self.get_username_from_url(channel.url)
+        scraper = VKontakteUserScraper(username)
+        
+        profile = scraper._get_entity().__dict__
+        return profile

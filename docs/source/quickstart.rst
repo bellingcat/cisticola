@@ -75,11 +75,17 @@ For developers, if changes are made to the package structure or additional modul
 Testing
 -------
 
-The *cisticola* application uses pytest_ for unit testing. To run the test suite, run the following command from the package root directory:
+The *cisticola* application uses pytest_ for unit testing. To run the full test suite, run the following command from the package root directory:
 
 .. code-block::
 
     pipenv run pytest
+
+To run the test suite without archiving media (which can take a long time), run the following command from the package root directory:
+
+.. code-block::
+
+    pipenv run pytest -m "not media"
 
 Examples
 --------
