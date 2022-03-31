@@ -313,6 +313,17 @@ class ScraperController:
         channels = session.query(Channel).where(Channel.source=='researcher').all()
 
         return self.scrape_channels(channels, archive_media=archive_media)
+
+    def scrape_all_channel_info(self):
+        if self.session is None:
+            logger.error("No DB session")
+            return
+
+        session = self.session()
+
+        channels = session.query(Channel).where(Channel.source=='researcher').all()
+
+        return self.scrape_channel_info(channels)
     
     @logger.catch(reraise = True)
     def scrape_channels(self, channels: List[Channel], archive_media: bool = True):
@@ -396,6 +407,48 @@ class ScraperController:
                 logger.warning(f"No handler found for post scraped with {post.scraper}")
 
         session.commit()
+
+    @logger.catch(reraise = True)
+    def scrape_channel_info(self, channels: List[Channel]):
+        """Scrape channel info for specified channels. 
+
+        Parameters
+        ----------
+        channels: list<Channel>
+            List of Channel instances to be scraped
+        archive_media: bool
+            If ``True``, any media files (images, video, etc.) from posts are archived. 
+            If ``False``, media files are not archived. 
+        """
+
+        if self.session is None:
+            logger.error("No DB session")
+            return
+
+        for channel in channels:
+            handled = False
+
+            for scraper in self.scrapers:
+                if scraper.can_handle(channel):
+                    logger.debug(f"{scraper} is getting channel info for {channel}")
+                    handled = True
+
+                    # get most recent post
+                    session = self.session()
+
+                    try:
+                        info = scraper.get_profile(channel)
+                        session.add(info)
+
+                        session.commit()
+                        logger.info(
+                            f"{scraper} found {info}")
+                        break
+                    except ChannelDoesNotExistError:
+                        logger.warning(f"ChannelDoesNotExist {channel}")
+
+            if not handled:
+                logger.warning(f"No handler found for Channel {channel}")
 
     def connect_to_db(self, engine):
         """Connect the specified SQLAlchemy engine to the controller.

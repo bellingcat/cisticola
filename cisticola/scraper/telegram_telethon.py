@@ -106,7 +106,9 @@ class TelegramTelethonScraper(Scraper):
             return True
 
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
-        username = self.get_username_from_url(channel.url)
+        username = channel.screenname
+        if username is None:
+            username = self.get_username_from_url(channel.url)
 
         api_id = os.environ['TELEGRAM_API_ID']
         api_hash = os.environ['TELEGRAM_API_HASH']
@@ -146,8 +148,9 @@ class TelegramTelethonScraper(Scraper):
                     media_archived=archive_media)
 
     def get_profile(self, channel: Channel) -> RawChannelInfo:
-
-        username = self.get_username_from_url(channel.url)
+        username = channel.screenname
+        if username is None:
+            username = self.get_username_from_url(channel.url)
 
         api_id = os.environ['TELEGRAM_API_ID']
         api_hash = os.environ['TELEGRAM_API_HASH']
@@ -155,10 +158,10 @@ class TelegramTelethonScraper(Scraper):
 
         with TelegramClient(phone, api_id, api_hash) as client:
             full_channel = client(GetFullChannelRequest(channel = username))
-        profile = full_channel.__dict__
+        profile = full_channel.to_dict()
 
         return RawChannelInfo(scraper=self.__version__,
             platform=channel.platform,
             channel=channel.id,
-            raw_data=json.dumps(profile),
+            raw_data=json.dumps(profile, default=str),
             date_archived=datetime.now(timezone.utc))

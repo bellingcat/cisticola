@@ -31,37 +31,36 @@ def sync_channels(args):
     row = 2
 
     for c in channels:
-        logger.info(c)
-        del c['id']
-        del c['followers']
+        # only adding channels, so skip everything with an ID
+        if c['id'] == '':
+            del c['id']
+            del c['followers']
 
-        if c['public'] == '': c['public'] = False
-        if c['chat'] == '': c['chat'] = False
-        
-        for k in c.keys():
-            if c[k] == 'TRUE' or c[k] == 'yes': c[k] = True
-            if c[k] == 'FALSE' or c[k] == 'no': c[k] = False
-
-            if c[k] == '': c[k] = None
-
-
-        # check to see if this already exists, 
-        platform_id = None
-        if c['platform_id'] != '':
-            platform_id = c['platform_id']
-
-        channel = session.query(Channel).filter_by(platform_id=platform_id, platform=c['platform'], url=c['url']).first()
-        logger.info(channel)
-
-        if not channel:
-            channel = Channel(**c, source='researcher')
-            logger.debug(f"{channel} does not exist, adding")
-            session.add(channel)
-            session.flush()
-            session.commit()
+            if c['public'] == '': c['public'] = False
+            if c['chat'] == '': c['chat'] = False
             
-            wks.update_cell(row, 1, channel.id)
-            time.sleep(1)
+            for k in c.keys():
+                if c[k] == 'TRUE' or c[k] == 'yes': c[k] = True
+                if c[k] == 'FALSE' or c[k] == 'no': c[k] = False
+
+                if c[k] == '': c[k] = None
+
+            # check to see if this already exists, 
+            platform_id = None
+            if c['platform_id'] != '':
+                platform_id = c['platform_id']
+
+            channel = session.query(Channel).filter_by(platform_id=platform_id, platform=c['platform'], url=c['url']).first()
+
+            if not channel:
+                channel = Channel(**c, source='researcher')
+                logger.debug(f"{channel} does not exist, adding")
+                session.add(channel)
+                session.flush()
+                session.commit()
+                
+                wks.update_cell(row, 1, channel.id)
+                time.sleep(1)
 
         row += 1
 
@@ -83,7 +82,7 @@ def get_scraper_controller():
     controller.connect_to_db(engine)
 
     scrapers = [
-        TelegramTelethonScraper(),
+        # TelegramTelethonScraper(),
         TwitterScraper()]
 
     controller.register_scrapers(scrapers)
@@ -93,13 +92,19 @@ def get_scraper_controller():
 def scrape_channels(args):
     logger.info(f"Scraping channels, media: {args.media}")
 
-    controller = get_scraper_controller(args)
+    controller = get_scraper_controller()
     controller.scrape_all_channels(archive_media = args.media)
+
+def scrape_channel_info(args):
+    logger.info(f"Scraping channel info")
+
+    controller = get_scraper_controller()
+    controller.scrape_all_channel_info()
 
 def archive_media(args):
     logger.info(f"Archiving unarchived media")
 
-    controller = get_scraper_controller(args)
+    controller = get_scraper_controller()
     controller.archive_unarchived_media()
 
 def init_db():
@@ -124,5 +129,7 @@ if __name__ == '__main__':
         scrape_channels(args)
     elif args.command == 'archive-media':
         archive_media(args)
+    elif args.command == 'channel-info':
+        scrape_channel_info(args)
     else:
         logger.error(f"Unrecognized command {args.command}")

@@ -13,7 +13,12 @@ class TwitterScraper(Scraper):
     __version__ = "TwitterScraper 0.0.1"
 
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
-        scraper = TwitterProfileScraper(channel.platform_id)
+        if channel.platform_id:
+            identifier = channel.platform_id
+        else:
+            identifier = channel.screenname
+
+        scraper = TwitterProfileScraper(identifier)
 
         first = True
 
@@ -71,7 +76,7 @@ class TwitterScraper(Scraper):
                 media_archived=archive_media)
 
     def can_handle(self, channel):
-        if channel.platform == "Twitter" and channel.platform_id:
+        if channel.platform == "Twitter" and (channel.platform_id or channel.screenname):
             return True
 
     def url_to_key(self, url: str, content_type: str) -> str:
@@ -102,5 +107,5 @@ class TwitterScraper(Scraper):
             return RawChannelInfo(scraper=self.__version__,
             platform=channel.platform,
             channel=channel.id,
-            raw_data=json.dumps(emtity.__dict__),
+            raw_data=json.dumps(entity.__dict__, default=str),
             date_archived=datetime.now(timezone.utc))
