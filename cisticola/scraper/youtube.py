@@ -2,10 +2,9 @@ from datetime import datetime, timezone
 import json
 from typing import Generator
 import tempfile
-
 import yt_dlp
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper import Scraper
 
 class YoutubeScraper(Scraper):
@@ -71,7 +70,7 @@ class YoutubeScraper(Scraper):
                         platform_id=video_id,
                         date=datetime.strptime(video['upload_date'], '%Y%m%d').replace(tzinfo=timezone.utc),
                         date_archived=datetime.now(timezone.utc),
-                        raw_data=json.dumps(video, default = str),
+                        raw_posts=json.dumps(video, default = str),
                         archived_urls=archived_urls,
                         media_archived=archive_media)
                         
@@ -79,8 +78,7 @@ class YoutubeScraper(Scraper):
         if channel.platform == "Youtube" and channel.url:
             return True
 
-    def get_profile(self, channel: Channel) -> dict:
-
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
         ydl_opts = {}
         ydl = yt_dlp.YoutubeDL(ydl_opts)
 
@@ -89,7 +87,12 @@ class YoutubeScraper(Scraper):
             meta = ydl.extract_info(
                 channel.url,
                 process=False)
+
+            return RawChannelInfo(scraper=self.__version__,
+                    platform=channel.platform,
+                    channel=channel.id,
+                    raw_data=json.dumps(meta),
+                    date_archived=datetime.now(timezone.utc))
+
         except yt_dlp.utils.DownloadError as e:
             raise e
-
-        return meta

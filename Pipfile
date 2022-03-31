@@ -22,6 +22,9 @@ instaloader = "*"
 gspread = "*"
 cryptg = "*"
 gabber = {git = "https://github.com/stanfordio/gabber.git"}
+psycopg2-binary = "*"
+tqdm = "*"
+ratelimit = "*"
 
 [dev-packages]
 pytest = "*"
@@ -33,7 +36,7 @@ sphinx = "*"
 sphinx_rtd_theme = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.8"
 
 [pipenv]
 allow_prereleases = true

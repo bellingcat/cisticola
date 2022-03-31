@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 from typing import Generator
 from urllib.parse import urlparse, parse_qs
-
 from snscrape.modules.twitter import TwitterProfileScraper, TwitterUserScraper, Video, Gif, Photo
 from loguru import logger
+import json
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper, ChannelDoesNotExistError
 
 class TwitterScraper(Scraper):
@@ -13,7 +13,12 @@ class TwitterScraper(Scraper):
     __version__ = "TwitterScraper 0.0.1"
 
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
-        scraper = TwitterProfileScraper(channel.platform_id)
+        if channel.platform_id:
+            identifier = channel.platform_id
+        else:
+            identifier = channel.screenname
+
+        scraper = TwitterProfileScraper(identifier)
 
         first = True
 
@@ -32,10 +37,10 @@ class TwitterScraper(Scraper):
             if tweet.media:
                 media_list += tweet.media
 
-            if tweet.retweetedTweet and tweet.retweetedTweet.media:
+            if tweet.retweetedTweet and hasattr(tweet.retweetedTweet, 'media') and tweet.retweetedTweet.media:
                 media_list += tweet.retweetedTweet.media
 
-            if tweet.quotedTweet and tweet.quotedTweet.media:
+            if tweet.quotedTweet and hasattr(tweet.quotedTweet, 'media') and tweet.quotedTweet.media:
                 media_list += tweet.quotedTweet.media
 
             for media in media_list:
@@ -66,12 +71,12 @@ class TwitterScraper(Scraper):
                 platform_id=tweet.id,
                 date=tweet.date,
                 date_archived=datetime.now(timezone.utc),
-                raw_data=tweet.json(),
+                raw_posts=tweet.json(),
                 archived_urls=archived_urls,
                 media_archived=archive_media)
 
     def can_handle(self, channel):
-        if channel.platform == "Twitter" and channel.platform_id:
+        if channel.platform == "Twitter" and (channel.platform_id or channel.screenname):
             return True
 
     def url_to_key(self, url: str, content_type: str) -> str:
@@ -91,7 +96,7 @@ class TwitterScraper(Scraper):
         key = parsed_url.path.split('/')[-1] + ext
         return key 
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         scraper = TwitterUserScraper(channel.screenname)
         entity = scraper._get_entity()
@@ -99,4 +104,8 @@ class TwitterScraper(Scraper):
         if entity is None:
             raise ChannelDoesNotExistError(channel.url)
         else:   
-            return entity.__dict__
+            return RawChannelInfo(scraper=self.__version__,
+            platform=channel.platform,
+            channel=channel.id,
+            raw_data=json.dumps(entity.__dict__, default=str),
+            date_archived=datetime.now(timezone.utc))

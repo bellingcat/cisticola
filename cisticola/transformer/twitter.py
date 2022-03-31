@@ -47,7 +47,7 @@ class TwitterTransformer(Transformer):
 
 
     def transform(self, data: ScraperResult, insert: Callable) -> Generator[Union[Post, Channel, Media], None, None]:
-        raw = json.loads(data.raw_data)
+        raw = json.loads(data.raw_posts)
 
         transformed = Post(
             raw_id=data.id,

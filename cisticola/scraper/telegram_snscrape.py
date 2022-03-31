@@ -1,10 +1,10 @@
 from typing import Generator
 from datetime import datetime, timezone
-
+import json
 import snscrape.modules
 from loguru import logger
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
 
 class TelegramSnscrapeScraper(Scraper):
@@ -49,15 +49,20 @@ class TelegramSnscrapeScraper(Scraper):
                 platform_id=post.url,
                 date=post.date,
                 date_archived=datetime.now(timezone.utc),
-                raw_data=post.json(),
+                raw_posts=post.json(),
                 archived_urls=archived_urls,
                 media_archived=archive_media
             )
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         scr = snscrape.modules.telegram.TelegramChannelScraper(
             channel.screenname)
 
         profile = scr._get_entity().__dict__
-        return profile
+        
+        return RawChannelInfo(scraper=self.__version__,
+            platform=channel.platform,
+            channel=channel.id,
+            raw_data=json.dumps(profile),
+            date_archived=datetime.now(timezone.utc))

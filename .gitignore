@@ -11,10 +11,11 @@ docs/source/_*
 *.session
 service_account.json
 .vscode/
+*.log
 
 # Unit test / coverage reports
 reports
-.coverage
+.coverage*
 .cache
 .pytest_cache/
 cover/
