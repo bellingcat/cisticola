@@ -5,6 +5,8 @@ from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 import os
 import time
+import sys
+import telethon.errors.rpcerrorlist
 
 from cisticola.base import Channel, RawChannelInfo, mapper_registry
 from cisticola.scraper import (
@@ -112,6 +114,8 @@ def init_db():
     mapper_registry.metadata.create_all(bind=engine)
 
 if __name__ == '__main__':
+    logger.remove()
+    logger.add(sys.stdout, level="DEBUG", catch=True)
     logger.add("./test.log", level="TRACE")
 
     parser = argparse.ArgumentParser(description = 'Cisticola command line tools')
@@ -120,6 +124,7 @@ if __name__ == '__main__':
     parser.add_argument('--media', action='store_true', help='[scrape-channels] Add this flag to media')
 
     args = parser.parse_args()
+
 
     if args.command == 'init-db':
         init_db()

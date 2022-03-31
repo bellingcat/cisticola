@@ -8,6 +8,7 @@ from typing import Generator
 
 import requests
 from bs4 import BeautifulSoup
+from loguru import logger
 
 from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
@@ -22,6 +23,7 @@ class BitchuteScraper(Scraper):
 
         return username
 
+    @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
         session = requests.Session()

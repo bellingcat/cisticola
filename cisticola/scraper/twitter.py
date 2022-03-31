@@ -12,6 +12,7 @@ class TwitterScraper(Scraper):
     """An implementation of a Scraper for Twitter, using snscrape library"""
     __version__ = "TwitterScraper 0.0.1"
 
+    @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         if channel.platform_id:
             identifier = channel.platform_id

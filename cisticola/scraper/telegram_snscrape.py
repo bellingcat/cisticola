@@ -15,6 +15,7 @@ class TelegramSnscrapeScraper(Scraper):
         if channel.platform == "Telegram" and channel.public and not channel.chat:
             return True
 
+    @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         scr = snscrape.modules.telegram.TelegramChannelScraper(
             channel.screenname)

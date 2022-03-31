@@ -3,6 +3,7 @@ import json
 from typing import Generator
 import tempfile
 import yt_dlp
+from loguru import logger
 
 from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper import Scraper
@@ -11,6 +12,7 @@ class YoutubeScraper(Scraper):
     """An implementation of a Scraper for Youtube, using youtube-dl"""
     __version__ = "YoutubeScraper 0.0.1"
 
+    @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
         content_type = 'video/mp4'

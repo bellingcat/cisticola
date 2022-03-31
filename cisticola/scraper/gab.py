@@ -2,6 +2,7 @@ from datetime import datetime, timezone, date
 import json
 from typing import Generator
 import os 
+from loguru import logger
 
 from gabber.client import Client, GAB_API_BASE_URL
 
@@ -22,6 +23,7 @@ class GabScraper(Scraper):
 
         return group_id
 
+    @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         client = Client(
             username = os.environ['GAB_USER'],
