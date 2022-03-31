@@ -8,7 +8,7 @@ from pathlib import Path
 from loguru import logger
 import instaloader 
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
 
 BASE_URL = 'https://www.instagram.com/'
@@ -79,7 +79,7 @@ class InstagramScraper(Scraper):
                 platform_id=post.mediaid,
                 date=post.date_utc,
                 date_archived=datetime.now(timezone.utc),
-                raw_data=json.dumps(post._asdict(), default=str),
+                raw_posts=json.dumps(post._asdict(), default=str),
                 archived_urls=archived_urls,
                 media_archived=archive_media)
 
@@ -96,7 +96,7 @@ class InstagramScraper(Scraper):
                     platform_id=post.mediaid,
                     date=comment.created_at_utc,
                     date_archived=datetime.now(timezone.utc),
-                    raw_data=json.dumps(comment_dict, default=str),
+                    raw_posts=json.dumps(comment_dict, default=str),
                     archived_urls={},
                     media_archived=archive_media)
 
@@ -104,7 +104,7 @@ class InstagramScraper(Scraper):
         if channel.platform == "Instagram" and self.get_username_from_url(channel.url) is not None:
             return True
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         username = self.get_username_from_url(channel.url)
 
@@ -125,4 +125,8 @@ class InstagramScraper(Scraper):
         profile['followers'] = user_profile.followers
         profile['followees'] = user_profile.followees
 
-        return profile
+        return RawChannelInfo(scraper=self.__version__,
+                        platform=channel.platform,
+                        channel=channel.id,
+                        raw_data=json.dumps(profile),
+                        date_archived=datetime.now(timezone.utc))

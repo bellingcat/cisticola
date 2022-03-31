@@ -8,7 +8,7 @@ from loguru import logger
 
 from polyphemus.base import OdyseeChannel
 from polyphemus.api import get_auth_token
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
 
 class OdyseeScraper(Scraper):
@@ -60,7 +60,7 @@ class OdyseeScraper(Scraper):
                 platform_id=video.info['claim_id'],
                 date=datetime.fromtimestamp(video.info['created']),
                 date_archived=datetime.now(timezone.utc),
-                raw_data=json.dumps(video.info),
+                raw_posts=json.dumps(video.info),
                 archived_urls=archived_urls,
                 media_archived=archive_media)
 
@@ -73,7 +73,7 @@ class OdyseeScraper(Scraper):
                     platform_id=comment.info['claim_id'],
                     date=datetime.fromtimestamp(comment.info['created']),
                     date_archived=datetime.now(),
-                    raw_data=json.dumps(comment.info),
+                    raw_posts=json.dumps(comment.info),
                     archived_urls={},
                     media_archived=True)
 
@@ -87,10 +87,14 @@ class OdyseeScraper(Scraper):
 
         return f'{key}.{ext}'
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         username = self.get_username_from_url(channel.url)
         odysee_channel = OdyseeChannel(channel_name = username, auth_token = self.auth_token)
         profile = odysee_channel.info
 
-        return profile
+        return RawChannelInfo(scraper=self.__version__,
+                        platform=channel.platform,
+                        channel=channel.id,
+                        raw_data=json.dumps(profile),
+                        date_archived=datetime.now(timezone.utc))

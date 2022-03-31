@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 from typing import Generator
 from urllib.parse import urlparse, parse_qs
-
 from snscrape.modules.twitter import TwitterProfileScraper, TwitterUserScraper, Video, Gif, Photo
 from loguru import logger
+import json
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper, ChannelDoesNotExistError
 
 class TwitterScraper(Scraper):
@@ -66,7 +66,7 @@ class TwitterScraper(Scraper):
                 platform_id=tweet.id,
                 date=tweet.date,
                 date_archived=datetime.now(timezone.utc),
-                raw_data=tweet.json(),
+                raw_posts=tweet.json(),
                 archived_urls=archived_urls,
                 media_archived=archive_media)
 
@@ -91,7 +91,7 @@ class TwitterScraper(Scraper):
         key = parsed_url.path.split('/')[-1] + ext
         return key 
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         scraper = TwitterUserScraper(channel.screenname)
         entity = scraper._get_entity()
@@ -99,4 +99,8 @@ class TwitterScraper(Scraper):
         if entity is None:
             raise ChannelDoesNotExistError(channel.url)
         else:   
-            return entity.__dict__
+            return RawChannelInfo(scraper=self.__version__,
+            platform=channel.platform,
+            channel=channel.id,
+            raw_data=json.dumps(emtity.__dict__),
+            date_archived=datetime.now(timezone.utc))

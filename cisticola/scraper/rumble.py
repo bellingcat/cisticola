@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper import Scraper, make_request
 
 BASE_URL = 'https://rumble.com'
@@ -39,7 +39,7 @@ class RumbleScraper(Scraper):
                 platform_id=post['media_url'].split('/')[-2],
                 date=post['datetime'].replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_data=json.dumps(post, default = str),
+                raw_posts=json.dumps(post, default = str),
                 archived_urls=archived_urls,
                 media_archived=archive_media)
 
@@ -52,11 +52,15 @@ class RumbleScraper(Scraper):
         if channel.platform == "Rumble" and channel.url is not None:
             return True
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         profile = get_channel_profile(url = channel.url)
 
-        return profile
+        return RawChannelInfo(scraper=self.__version__,
+                        platform=channel.platform,
+                        channel=channel.id,
+                        raw_data=json.dumps(profile),
+                        date_archived=datetime.now(timezone.utc))
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
@@ -128,6 +132,7 @@ def get_channel_profile(url):
         'thumbnail': thumbnail_soup.get('src') if thumbnail_soup else None,
         'cover':  cover_soup.get('src') if cover_soup else None,
         'subscribers': soup.find('span', {'class' : 'subscribe-button-count'}).text}
+        
     return profile
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#

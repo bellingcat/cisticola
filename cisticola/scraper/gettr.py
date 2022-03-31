@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 from gogettr import PublicClient
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
 
 class GettrScraper(Scraper):
@@ -58,7 +58,7 @@ class GettrScraper(Scraper):
                 platform_id=post['_id'],
                 date=datetime.fromtimestamp(post['cdate']/1000.),
                 date_archived=datetime.now(timezone.utc),
-                raw_data=json.dumps(post),
+                raw_posts=json.dumps(post),
                 archived_urls=archived_urls,
                 media_archived=archive_media)
 
@@ -71,9 +71,13 @@ class GettrScraper(Scraper):
         key = urlparse(url).path.split('/')[-2] + ext
         return key 
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
         client = client = PublicClient()
         username = self.get_username_from_url(channel.url)
         profile = client.user_info(username)
 
-        return profile
+        return RawChannelInfo(scraper=self.__version__,
+            platform=channel.platform,
+            channel=channel.id,
+            raw_data=json.dumps(profile),
+            date_archived=datetime.now(timezone.utc))

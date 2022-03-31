@@ -3,6 +3,8 @@ from loguru import logger
 import gspread
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import os
+import time
 
 from cisticola.base import Channel, mapper_registry
 from cisticola.scraper import (
@@ -19,7 +21,7 @@ from cisticola.scraper import (
 def sync_channels(args):
     logger.info("Synchronizing channels")
 
-    session = get_db_session(args)
+    session = get_db_session()
 
     gc = gspread.service_account(filename='service_account.json')
 
@@ -29,6 +31,7 @@ def sync_channels(args):
     row = 2
 
     for c in channels:
+        logger.info(c)
         del c['id']
         del c['followers']
 
@@ -43,20 +46,29 @@ def sync_channels(args):
 
 
         # check to see if this already exists, 
-        channel = session.query(Channel).filter_by(platform_id=None if c['platform_id'] == '' else c['platform_id'], platform=c['platform'], url=c['url']).first()
-        
+        platform_id = None
+        if c['platform_id'] != '':
+            platform_id = c['platform_id']
+
+        channel = session.query(Channel).filter_by(platform_id=platform_id, platform=c['platform'], url=c['url']).first()
+        logger.info(channel)
+
         if not channel:
             channel = Channel(**c, source='researcher')
+            logger.debug(f"{channel} does not exist, adding")
             session.add(channel)
             session.flush()
+            session.commit()
+            
             wks.update_cell(row, 1, channel.id)
+            time.sleep(1)
 
         row += 1
 
     session.commit()
 
-def get_db_session(args):
-    engine = create_engine(args.db)
+def get_db_session():
+    engine = create_engine(os.environ['DB'])
     
     session_generator = sessionmaker()
     session_generator.configure(bind=engine)
@@ -64,8 +76,8 @@ def get_db_session(args):
 
     return session
 
-def get_scraper_controller(args):
-    engine = create_engine(args.db)
+def get_scraper_controller():
+    engine = create_engine(os.environ['DB'])
 
     controller = ScraperController()
     controller.connect_to_db(engine)
@@ -90,8 +102,8 @@ def archive_media(args):
     controller = get_scraper_controller(args)
     controller.archive_unarchived_media()
 
-def init_db(args):
-    engine = create_engine(args.db)
+def init_db():
+    engine = create_engine(os.environ['DB'])
     mapper_registry.metadata.create_all(bind=engine)
 
 if __name__ == '__main__':
@@ -99,14 +111,13 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description = 'Cisticola command line tools')
     parser.add_argument('command',  type=str, help='Command to run: "sync-channels", "scrape-channels", or "archive-media"')
-    parser.add_argument('--db', type=str, help='[*] Sqlalchemy database string, eg, "sqlite:///cisticola.db"')
     parser.add_argument('--gsheet', type=str, help='[sync-channels] URL of Google Sheet to synchronize')
     parser.add_argument('--media', action='store_true', help='[scrape-channels] Add this flag to media')
 
     args = parser.parse_args()
 
     if args.command == 'init-db':
-        init_db(args)
+        init_db()
     elif args.command == 'sync-channels':
         sync_channels(args)
     elif args.command == 'scrape-channels':

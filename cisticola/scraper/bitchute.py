@@ -9,7 +9,7 @@ from typing import Generator
 import requests
 from bs4 import BeautifulSoup
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
 
 class BitchuteScraper(Scraper):
@@ -57,7 +57,7 @@ class BitchuteScraper(Scraper):
                 platform_id=post['id'],
                 date=datetime.fromtimestamp(post['timestamp']),
                 date_archived=datetime.now(timezone.utc),
-                raw_data=json.dumps(post),
+                raw_posts=json.dumps(post),
                 archived_urls=archived_urls,
                 media_archived=archive_media)
 
@@ -65,7 +65,7 @@ class BitchuteScraper(Scraper):
         if channel.platform == "Bitchute" and self.get_username_from_url(channel.url) is not None:
             return True
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         base_url = channel.url
         
@@ -106,8 +106,12 @@ class BitchuteScraper(Scraper):
             'subscribers': counts['subscriber_count'],
             'views': int(counts['about_view_count'].split(' ')[0])}
         
-        return profile
-
+        
+        return RawChannelInfo(scraper=self.__version__,
+            platform=channel.platform,
+            channel=channel.id,
+            raw_data=json.dumps(profile),
+            date_archived=datetime.now(timezone.utc))
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
 def strip_tags(html, convert_newlines=True):

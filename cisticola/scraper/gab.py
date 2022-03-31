@@ -5,7 +5,7 @@ import os
 
 from gabber.client import Client, GAB_API_BASE_URL
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
 
 class GabScraper(Scraper):
@@ -80,7 +80,7 @@ class GabScraper(Scraper):
                 platform_id=post['id'],
                 date=datetime.fromisoformat(post['created_at'].replace("Z", "+00:00")).replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_data=json.dumps(post),
+                raw_posts=json.dumps(post),
                 archived_urls=archived_urls,
                 media_archived=archive_media)
 
@@ -88,7 +88,7 @@ class GabScraper(Scraper):
         if channel.platform == "Gab" and self.get_username_from_url(channel.url) is not None:
             return True
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         client = Client(
             username = os.environ['GAB_USER'],
@@ -106,4 +106,8 @@ class GabScraper(Scraper):
 
             profile = client._get(GAB_API_BASE_URL + f"/account_by_username/{username}").json()
 
-        return profile
+        return RawChannelInfo(scraper=self.__version__,
+            platform=channel.platform,
+            channel=channel.id,
+            raw_data=json.dumps(profile),
+            date_archived=datetime.now(timezone.utc))

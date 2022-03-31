@@ -34,7 +34,7 @@ class ScraperResult:
     date: datetime
 
     #: JSON dump of dict that contains all data scraped for the post.
-    raw_data: str
+    raw_posts: str
 
     #: Datetime (relative to UTC) that the scraped post was archived at.
     date_archived: datetime
@@ -44,7 +44,7 @@ class ScraperResult:
 
     #: Has the media in this post been archived?
     media_archived: bool
-      
+
 @dataclass
 class Channel:
     """Information about a specific channel to be scraped.
@@ -90,10 +90,30 @@ class Channel:
         pass
 
 @dataclass
+class RawChannelInfo:
+    """A minimally processed result from a scraper
+    """
+
+    #: String specifying name and version of scraper used to generate result, e.g. ``"TwitterScraper 0.0.1"``.
+    scraper: str
+
+    #: Name of platform from which result was scraped, e.g. ``"Twitter"``.
+    platform: str
+
+    #: Foreign key of channel ID that this was scraped from
+    channel: int
+
+    #: JSON dump of dict that contains all data scraped for the post.
+    raw_data: str
+
+    #: Datetime (relative to UTC) that the scraped post was archived at.
+    date_archived: datetime
+
+@dataclass
 class Post:
     """An object with fields for columns in the analysis table"""
 
-    #: ID number of the scraped post in the ``raw_data`` table
+    #: ID number of the scraped post in the ``raw_posts`` table
     raw_id: int
       
     #: Platform specific post ID
@@ -144,7 +164,7 @@ class Media:
     """Base class for organizing information about a media file.
     """
 
-    #: ID number of the media's corresponding scraped post in the ``raw_data`` table.
+    #: ID number of the media's corresponding scraped post in the ``raw_posts`` table.
     raw_id: int
 
     #: ID number of the media's corresponging scraped post in the ``analysis`` table.
@@ -221,7 +241,7 @@ class Video(Media):
 
 mapper_registry = registry()
 
-raw_data_table = Table('raw_data', mapper_registry.metadata,
+raw_posts_table = Table('raw_posts', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
                               autoincrement=True),
                        Column('scraper', String),
@@ -229,15 +249,23 @@ raw_data_table = Table('raw_data', mapper_registry.metadata,
                        Column('channel', Integer, ForeignKey('channels.id')),
                        Column('platform_id', String),
                        Column('date', DateTime),
-                       Column('raw_data', String),
+                       Column('raw_posts', String),
                        Column('date_archived', DateTime),
                        Column('archived_urls', JSON),
                        Column('media_archived', Boolean))
 
+raw_channel_info_table = Table('raw_channel_info', mapper_registry.metadata,
+                    Column('id', Integer, primary_key=True),
+                    Column('scraper', String),
+                    Column('platform', String),
+                    Column('channel', Integer, ForeignKey('channels.id')),
+                    Column('raw_data', String),
+                    Column('date_archived', DateTime))
+
 channel_table = Table('channels', mapper_registry.metadata,
                     Column('id', Integer, primary_key=True, autoincrement=True),
                     Column('name', String),
-                    Column('platform_id', Integer),
+                    Column('platform_id', String),
                     Column('category', String),
                     Column('platform', String),
                     Column('url', String),
@@ -253,7 +281,7 @@ channel_table = Table('channels', mapper_registry.metadata,
 post_table = Table('posts', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
                               autoincrement=True),
-                       Column('raw_id', Integer, ForeignKey('raw_data.id')),
+                       Column('raw_id', Integer, ForeignKey('raw_posts.id')),
                        Column('platform_id', Integer),
                        Column('scraper', String),
                        Column('transformer', String),
@@ -273,7 +301,7 @@ media_table = Table('media', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
                               autoincrement=True),
                        Column('type', String),
-                       Column('raw_id', Integer, ForeignKey('raw_data.id')),
+                       Column('raw_id', Integer, ForeignKey('raw_posts.id')),
                        Column('post', Integer, ForeignKey('posts.id')),
                        Column('url', String),
                        Column('original_url', String),
@@ -282,7 +310,8 @@ media_table = Table('media', mapper_registry.metadata,
 
 mapper_registry.map_imperatively(Post, post_table)
 mapper_registry.map_imperatively(Channel, channel_table)
-mapper_registry.map_imperatively(ScraperResult, raw_data_table)
+mapper_registry.map_imperatively(ScraperResult, raw_posts_table)
+mapper_registry.map_imperatively(RawChannelInfo, raw_channel_info_table)
 mapper_registry.map_imperatively(Media, media_table, polymorphic_on='type', polymorphic_identity='media')
 mapper_registry.map_imperatively(Image, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='image')
 mapper_registry.map_imperatively(Video, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='video')

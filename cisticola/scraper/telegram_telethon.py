@@ -11,7 +11,7 @@ from telethon.sync import TelegramClient
 from telethon.tl.functions.channels import GetFullChannelRequest
 from telethon.tl import types
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
 
 MEDIA_TYPES = ['photo', 'video', 'document', 'webpage']
@@ -44,7 +44,7 @@ class TelegramTelethonScraper(Scraper):
             key = list(result.archived_urls.keys())[0]
 
             if result.archived_urls[key] is None:
-                raw = json.loads(result.raw_data)
+                raw = json.loads(result.raw_posts)
                     
                 message = client.get_messages(raw['peer_id']['channel_id'], ids=[raw['id']])
 
@@ -141,11 +141,11 @@ class TelegramTelethonScraper(Scraper):
                     platform_id=post_url,
                     date=post.date.replace(tzinfo=timezone.utc),
                     date_archived=datetime.now(timezone.utc),
-                    raw_data=json.dumps(post.to_dict(), default=str),
+                    raw_posts=json.dumps(post.to_dict(), default=str),
                     archived_urls=archived_urls,
                     media_archived=archive_media)
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         username = self.get_username_from_url(channel.url)
 
@@ -157,4 +157,8 @@ class TelegramTelethonScraper(Scraper):
             full_channel = client(GetFullChannelRequest(channel = username))
         profile = full_channel.__dict__
 
-        return profile
+        return RawChannelInfo(scraper=self.__version__,
+            platform=channel.platform,
+            channel=channel.id,
+            raw_data=json.dumps(profile),
+            date_archived=datetime.now(timezone.utc))

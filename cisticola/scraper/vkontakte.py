@@ -1,11 +1,10 @@
 from datetime import datetime, timezone
 from typing import Generator
 from urllib.parse import urlparse
-
 from snscrape.modules.vkontakte import VKontakteUserScraper
 from loguru import logger
 
-from cisticola.base import Channel, ScraperResult
+from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
 
 class VkontakteScraper(Scraper):
@@ -62,7 +61,7 @@ class VkontakteScraper(Scraper):
                 platform_id=post.url.split('/')[-1],
                 date=datetime.fromordinal(post.date.toordinal()).replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_data=post.json(),
+                raw_posts=post.json(),
                 archived_urls=archived_urls,
                 media_archived=archive_media)
 
@@ -80,10 +79,15 @@ class VkontakteScraper(Scraper):
             
         return key
 
-    def get_profile(self, channel: Channel) -> dict:
+    def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         username = self.get_username_from_url(channel.url)
         scraper = VKontakteUserScraper(username)
         
         profile = scraper._get_entity().__dict__
-        return profile
+
+        return RawChannelInfo(scraper=self.__version__,
+                    platform=channel.platform,
+                    channel=channel.id,
+                    raw_data=json.dumps(profile),
+                    date_archived=datetime.now(timezone.utc))
