@@ -37,10 +37,12 @@ class TwitterScraper(Scraper):
             if tweet.media:
                 media_list += tweet.media
 
-            if tweet.retweetedTweet and tweet.retweetedTweet.media:
+            print(tweet.json())
+
+            if tweet.retweetedTweet and hasattr(tweet.retweetedTweet, 'media') and tweet.retweetedTweet.media:
                 media_list += tweet.retweetedTweet.media
 
-            if tweet.quotedTweet and tweet.quotedTweet.media:
+            if tweet.quotedTweet and hasattr(tweet.quotedTweet, 'media') and tweet.quotedTweet.media:
                 media_list += tweet.quotedTweet.media
 
             for media in media_list:
