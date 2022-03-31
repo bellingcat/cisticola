@@ -115,6 +115,12 @@ class TelegramTelethonScraper(Scraper):
         phone = os.environ['TELEGRAM_PHONE']
 
         with TelegramClient(phone, api_id, api_hash) as client:
+            try:
+                client.get_entity(channel.platform_id)
+                username = channel.platform_id
+            except:
+                logger.info(f"Channel {username} not encountered before")
+
             for post in client.iter_messages(username):
                 post_url = f'{channel.url}/{post.id}'
 

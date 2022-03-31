@@ -99,12 +99,12 @@ RUMBLE_CHANNEL_KWARGS = {
     'notes': ''}
 
 TELEGRAM_CHANNEL_KWARGS = {
-    'name': 'South West Ohio Proud Boys (test)',
-    'platform_id': -1001276612436,
+    'name': 'USA Freedom Convoy (test)',
+    'platform_id': -1001799578085,
     'category': 'test',
     'platform': 'Telegram',
-    'url': 'https://t.me/SouthwestOhioPB',
-    'screenname': 'SouthwestOhioPB',
+    'url': 'https://t.me/usafreedomconvoy2022',
+    'screenname': 'usafreedomconvoy2022',
     'country': 'US',
     'influencer': None,
     'public': True,
