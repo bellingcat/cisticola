@@ -4,7 +4,7 @@ import gspread
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from cisticola.base import Channel
+from cisticola.base import Channel, mapper_registry
 from cisticola.scraper import (
     ScraperController,
     BitchuteScraper,
@@ -32,15 +32,18 @@ def sync_channels(args):
         del c['id']
         del c['followers']
 
+        if c['public'] == '': c['public'] = False
+        if c['chat'] == '': c['chat'] = False
+        
         for k in c.keys():
             if c[k] == 'TRUE' or c[k] == 'yes': c[k] = True
             if c[k] == 'FALSE' or c[k] == 'no': c[k] = False
 
-        if c['public'] == '': c['public'] = False
-        if c['chat'] == '': c['chat'] = False
+            if c[k] == '': c[k] = None
+
 
         # check to see if this already exists, 
-        channel = session.query(Channel).filter_by(platform_id=c['platform_id'], platform=c['platform'], url=c['url']).first()
+        channel = session.query(Channel).filter_by(platform_id=None if c['platform_id'] == '' else c['platform_id'], platform=c['platform'], url=c['url']).first()
         
         if not channel:
             channel = Channel(**c, source='researcher')
@@ -87,18 +90,24 @@ def archive_media(args):
     controller = get_scraper_controller(args)
     controller.archive_unarchived_media()
 
+def init_db(args):
+    engine = create_engine(args.db)
+    mapper_registry.metadata.create_all(bind=engine)
+
 if __name__ == '__main__':
     logger.add("./test.log", level="TRACE")
 
     parser = argparse.ArgumentParser(description = 'Cisticola command line tools')
     parser.add_argument('command',  type=str, help='Command to run: "sync-channels", "scrape-channels", or "archive-media"')
-    parser.add_argument('--db', type=str, help='[sync-channels, scrape-channels, archive-media] Sqlalchemy database string, eg, "sqlite:///cisticola.db"')
+    parser.add_argument('--db', type=str, help='[*] Sqlalchemy database string, eg, "sqlite:///cisticola.db"')
     parser.add_argument('--gsheet', type=str, help='[sync-channels] URL of Google Sheet to synchronize')
-    parser.add_argument('--media', action='store_true', help='[scrape-channels] Scrapes media')
+    parser.add_argument('--media', action='store_true', help='[scrape-channels] Add this flag to media')
 
     args = parser.parse_args()
 
-    if args.command == 'sync-channels':
+    if args.command == 'init-db':
+        init_db(args)
+    elif args.command == 'sync-channels':
         sync_channels(args)
     elif args.command == 'scrape-channels':
         scrape_channels(args)

@@ -22,6 +22,7 @@ instaloader = "*"
 gspread = "*"
 cryptg = "*"
 gabber = {git = "https://github.com/stanfordio/gabber.git"}
+psycopg2-binary = "*"
 
 [dev-packages]
 pytest = "*"
