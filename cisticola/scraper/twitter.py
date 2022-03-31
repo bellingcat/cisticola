@@ -37,8 +37,6 @@ class TwitterScraper(Scraper):
             if tweet.media:
                 media_list += tweet.media
 
-            print(tweet.json())
-
             if tweet.retweetedTweet and hasattr(tweet.retweetedTweet, 'media') and tweet.retweetedTweet.media:
                 media_list += tweet.retweetedTweet.media
 

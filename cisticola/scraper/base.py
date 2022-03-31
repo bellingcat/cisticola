@@ -303,6 +303,9 @@ class ScraperController:
         """
         self.scrapers.extend(scraper)
 
+    def remove_all_scrapers(self):
+        self.scrapers = []
+
     def scrape_all_channels(self, archive_media: bool = True):
         if self.session is None:
             logger.error("No DB session")

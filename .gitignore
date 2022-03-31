@@ -15,7 +15,7 @@ service_account.json
 
 # Unit test / coverage reports
 reports
-.coverage
+.coverage*
 .cache
 .pytest_cache/
 cover/

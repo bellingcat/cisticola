@@ -1,12 +1,12 @@
 import argparse
 from loguru import logger
 import gspread
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 import os
 import time
 
-from cisticola.base import Channel, mapper_registry
+from cisticola.base import Channel, RawChannelInfo, mapper_registry
 from cisticola.scraper import (
     ScraperController,
     BitchuteScraper,
@@ -82,7 +82,7 @@ def get_scraper_controller():
     controller.connect_to_db(engine)
 
     scrapers = [
-        # TelegramTelethonScraper(),
+        TelegramTelethonScraper(),
         TwitterScraper()]
 
     controller.register_scrapers(scrapers)
