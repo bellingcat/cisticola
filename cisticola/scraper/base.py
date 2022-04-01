@@ -358,7 +358,23 @@ class ScraperController:
             logger.error("No DB session")
             return
 
+        session = self.session()
+
+        # If any channels are not already in the database, add them
         for channel in channels:
+
+            platform_id = None
+            if channel.platform_id not in (None, ''):
+                platform_id = channel.platform_id
+
+            channel_in_db = session.query(Channel).filter_by(platform_id=platform_id, platform=channel.platform, url=channel.url).first()
+
+            if not channel_in_db:
+                logger.debug(f"{channel} does not exist in database, adding")
+                session.add(channel)
+                session.flush()
+                session.commit()
+
             handled = False
 
             for scraper in self.scrapers:
@@ -368,7 +384,6 @@ class ScraperController:
                     added = 0
 
                     # get most recent post
-                    session = self.session()
                     rows = session.query(ScraperResult).where(
                         ScraperResult.channel == channel.id).order_by(
                         ScraperResult.date.desc()).limit(1).all()
@@ -376,10 +391,6 @@ class ScraperController:
                     if len(rows) == 1:
                         since = rows[0]
                     else:
-                        since = None
-
-                    # TODO currently, if channels haven't been added to the database, if channel.id is None, the `since` returns the most recently scraped ScraperResult with channel.id == None, which can be from a different platform and channel. Maybe add check in above query logic that channel.id isn't null.
-                    if channel.id is None:
                         since = None
 
                     posts = scraper.get_posts(channel, since=since, archive_media=archive_media)
