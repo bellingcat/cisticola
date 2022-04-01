@@ -275,6 +275,7 @@ class Scraper:
 
         raise NotImplementedError
 
+    @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         """Scrape all posts from the specified Channel.
 
@@ -341,7 +342,6 @@ class ScraperController:
 
         return self.scrape_channel_info(channels)
     
-    @logger.catch(reraise = True)
     def scrape_channels(self, channels: List[Channel], archive_media: bool = True):
         """Scrape all posts for all specified channels. 
 
@@ -387,6 +387,9 @@ class ScraperController:
                     for post in posts:
                         session.add(post)
                         added += 1
+
+                        if added > 100:
+                            break
 
                     session.commit()
                     logger.info(

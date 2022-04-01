@@ -25,6 +25,7 @@ gabber = {git = "https://github.com/stanfordio/gabber.git"}
 psycopg2-binary = "*"
 tqdm = "*"
 ratelimit = "*"
+pytz = "*"
 
 [dev-packages]
 pytest = "*"

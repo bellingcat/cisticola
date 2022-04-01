@@ -105,6 +105,7 @@ class TelegramTelethonScraper(Scraper):
         if channel.platform == "Telegram" and channel.public:
             return True
 
+    @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         username = channel.screenname
         if username is None:

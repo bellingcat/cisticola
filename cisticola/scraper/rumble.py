@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import json
 from typing import Generator
 from urllib.parse import urlparse
+from loguru import logger
 
 from bs4 import BeautifulSoup
 
@@ -14,6 +15,7 @@ class RumbleScraper(Scraper):
     """An implementation of a Scraper for Rumble, using custom functions"""
     __version__ = "RumbleScraper 0.0.1"
 
+    @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
         scraper = get_channel_videos(channel.url)

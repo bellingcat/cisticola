@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b9fc02f3ecaa2199480c4fcba30f02780860dfbc2e10c026889c78f639709fb4"
+            "sha256": "89ac092ac8c8321f199f199da0c0867803a44b080538a43e1a57ae7713683616"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -773,7 +773,7 @@
                 "sha256:1e760e2fe6a8163bc0b3d9a19c4f84342afa0a2affebfaa84b01b978a02ecaa7",
                 "sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c"
             ],
-            "markers": "python_version < '3.9'",
+            "index": "pypi",
             "version": "==2022.1"
         },
         "pytz-deprecation-shim": {
@@ -872,7 +872,9 @@
             "version": "==2022.3.2"
         },
         "requests": {
-            "extras": [],
+            "extras": [
+                "socks"
+            ],
             "hashes": [
                 "sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61",
                 "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"
@@ -1387,11 +1389,13 @@
                 "sha256:1e760e2fe6a8163bc0b3d9a19c4f84342afa0a2affebfaa84b01b978a02ecaa7",
                 "sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c"
             ],
-            "markers": "python_version < '3.9'",
+            "index": "pypi",
             "version": "==2022.1"
         },
         "requests": {
-            "extras": [],
+            "extras": [
+                "socks"
+            ],
             "hashes": [
                 "sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61",
                 "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"
@@ -1475,7 +1479,7 @@
                 "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc",
                 "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"
             ],
-            "markers": "python_version >= '3.7'",
+            "markers": "python_full_version < '3.11.0'",
             "version": "==2.0.1"
         },
         "typing-extensions": {
