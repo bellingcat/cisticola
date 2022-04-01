@@ -235,6 +235,20 @@ class Scraper:
         return archived_url
 
     def archive_files(self, result: ScraperResult) -> ScraperResult:
+        """Archive files corresponding to ``archived_url`` dict keys, if the 
+        files have not previously been archived.
+
+        Parameters
+        ----------
+        result: ScraperResult
+            Previously scraped ScraperResult run with ``archive_media=False``.
+
+        Returns
+        -------
+        ScraperResult
+            Same ScraperResult as ``result``, but with all URLs in ``archived_url`` dict archived.
+        """
+
         for url in result.archived_urls:
             if result.archived_urls[url] is None:
                 media_blob, content_type, key = self.url_to_blob(url)
@@ -243,7 +257,6 @@ class Scraper:
 
         result.media_archived = True
         return result
-
 
     def can_handle(self, channel: Channel) -> bool:
         """Whether or not the scraper can scrape the specified channel.
@@ -363,6 +376,10 @@ class ScraperController:
                     if len(rows) == 1:
                         since = rows[0]
                     else:
+                        since = None
+
+                    # TODO currently, if channels haven't been added to the database, if channel.id is None, the `since` returns the most recently scraped ScraperResult with channel.id == None, which can be from a different platform and channel. Maybe add check in above query logic that channel.id isn't null.
+                    if channel.id is None:
                         since = None
 
                     posts = scraper.get_posts(channel, since=since, archive_media=archive_media)

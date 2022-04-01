@@ -50,25 +50,24 @@ class GabScraper(Scraper):
             if since is not None and datetime.fromisoformat(post['created_at'].replace("Z", "+00:00")).replace(tzinfo=timezone.utc) <= since.date.replace(tzinfo=timezone.utc):
                 break
 
-            media_urls = []
             archived_urls = {}
 
-            if archive_media:
-
-                for attachment in post.get('media_attachments'):
+            for attachment in post.get('media_attachments'):
+                if attachment.get('type') == 'video':
+                    archived_urls[attachment['source_mp4']] = None
+                else:
+                    archived_urls[attachment['url']] = None
+                    
+            if post.get('reblog') is not None:
+                for attachment in post['reblog'].get('media_attachments'):
                     if attachment.get('type') == 'video':
-                        media_urls.append(attachment['source_mp4'])
+                        archived_urls[attachment['source_mp4']] = None
                     else:
-                        media_urls.append(attachment['url'])
-                        
-                if post.get('reblog') is not None:
-                    for attachment in post['reblog'].get('media_attachments'):
-                        if attachment.get('type') == 'video':
-                            media_urls.append(attachment['source_mp4'])
-                        else:
-                            media_urls.append(attachment['url'])
+                        archived_urls[attachment['url']] = None
 
-                for url in media_urls:
+            for url in archived_urls.keys():
+
+                if archive_media:
                     media_blob, content_type, key = self.url_to_blob(url)
                     archived_url = self.archive_blob(media_blob, content_type, key)
                     archived_urls[url] = archived_url

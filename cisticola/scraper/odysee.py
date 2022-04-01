@@ -36,10 +36,11 @@ class OdyseeScraper(Scraper):
             if since is not None and datetime.fromtimestamp(video.info['created']) <= since.date:
                 break
 
-            archived_urls = {}
+            url = video.info['streaming_url']
+
+            archived_urls = {url: None}
 
             if archive_media:
-                url = video.info['streaming_url']
 
                 # Check if file is a video file or an m3u8 file
                 r = requests.head(url)
@@ -77,6 +78,21 @@ class OdyseeScraper(Scraper):
                     archived_urls={},
                     media_archived=True)
 
+    def archive_files(self, result: ScraperResult) -> ScraperResult:
+        for url in result.archived_urls:
+            if result.archived_urls[url] is None:
+                r = requests.head(url)
+                if r.headers['Content-Type'] == 'text/html; charset=utf-8':
+                    media_blob, content_type, key = self.m3u8_url_to_blob(url)
+                else:
+                    media_blob, content_type, key = self.url_to_blob(url)
+
+                archived_url = self.archive_blob(media_blob, content_type, key)
+                result.archived_urls[url] = archived_url
+
+        result.media_archived = True
+        return result
+
     def can_handle(self, channel):
         if channel.platform == "Odysee" and self.get_username_from_url(channel.url) is not None:
             return True
@@ -94,7 +110,7 @@ class OdyseeScraper(Scraper):
         profile = odysee_channel.info
 
         return RawChannelInfo(scraper=self.__version__,
-                        platform=channel.platform,
-                        channel=channel.id,
-                        raw_data=json.dumps(profile),
-                        date_archived=datetime.now(timezone.utc))
+            platform=channel.platform,
+            channel=channel.id,
+            raw_data=json.dumps(profile),
+            date_archived=datetime.now(timezone.utc))

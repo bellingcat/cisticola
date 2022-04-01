@@ -19,18 +19,18 @@ class RumbleScraper(Scraper):
         scraper = get_channel_videos(channel.url)
 
         for post in scraper:
-            if since is not None and post['datetime'].replace(tzinfo=timezone.utc) <= since.date_archived.replace(tzinfo=timezone.utc):
+            if since is not None and post['datetime'].replace(tzinfo=timezone.utc) <= since.date.replace(tzinfo=timezone.utc):
                 break
 
-            archived_urls = {}
+            url = post['media_url']
+
+            archived_urls = {url: None}
 
             if archive_media:
 
-                url = post['media_url']
-
                 media_blob, content_type, key = self.ytdlp_url_to_blob(url)
                 archived_url = self.archive_blob(media_blob, content_type, key)
-                archived_urls[post['media_url']] = archived_url
+                archived_urls[url] = archived_url
 
             yield ScraperResult(
                 scraper=self.__version__,
@@ -48,6 +48,16 @@ class RumbleScraper(Scraper):
         key = urlparse(url).path.split('/')[-2] + ext
         return key 
 
+    def archive_files(self, result: ScraperResult) -> ScraperResult:
+        for url in result.archived_urls:
+            if result.archived_urls[url] is None:
+                media_blob, content_type, key = self.ytdlp_url_to_blob(url)
+                archived_url = self.archive_blob(media_blob, content_type, key)
+                result.archived_urls[url] = archived_url
+
+        result.media_archived = True
+        return result
+
     def can_handle(self, channel):
         if channel.platform == "Rumble" and channel.url is not None:
             return True
@@ -57,10 +67,10 @@ class RumbleScraper(Scraper):
         profile = get_channel_profile(url = channel.url)
 
         return RawChannelInfo(scraper=self.__version__,
-                        platform=channel.platform,
-                        channel=channel.id,
-                        raw_data=json.dumps(profile),
-                        date_archived=datetime.now(timezone.utc))
+            platform=channel.platform,
+            channel=channel.id,
+            raw_data=json.dumps(profile),
+            date_archived=datetime.now(timezone.utc))
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 

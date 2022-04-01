@@ -14,7 +14,7 @@ class TwitterScraper(Scraper):
 
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         if channel.platform_id:
-            identifier = channel.platform_id
+            identifier = int(channel.platform_id)
         else:
             identifier = channel.screenname
 
@@ -23,7 +23,7 @@ class TwitterScraper(Scraper):
         first = True
 
         for tweet in scraper.get_items():
-            if since is not None and tweet.date.replace(tzinfo=timezone.utc) <= since.date_archived.replace(tzinfo=timezone.utc):
+            if since is not None and tweet.date.replace(tzinfo=timezone.utc) <= since.date.replace(tzinfo=timezone.utc):
                 # with TwitterProfileScraper, the first tweet could be an old pinned tweet
                 if first:
                     first = False
@@ -105,7 +105,7 @@ class TwitterScraper(Scraper):
             raise ChannelDoesNotExistError(channel.url)
         else:   
             return RawChannelInfo(scraper=self.__version__,
-            platform=channel.platform,
-            channel=channel.id,
-            raw_data=json.dumps(entity.__dict__, default=str),
-            date_archived=datetime.now(timezone.utc))
+                platform=channel.platform,
+                channel=channel.id,
+                raw_data=json.dumps(entity.__dict__, default=str),
+                date_archived=datetime.now(timezone.utc))
