@@ -42,8 +42,8 @@ class ScraperResult:
     #: Dict in which the keys are the original media URLs from the post, and the corresponding values are the URLs of the archived media files. 
     archived_urls: dict
 
-    #: Has the media in this post been archived?
-    media_archived: bool
+    #: What date was the media archived? (None if not archived)
+    media_archived: datetime
 
 @dataclass
 class Channel:
@@ -252,7 +252,7 @@ raw_posts_table = Table('raw_posts', mapper_registry.metadata,
                        Column('raw_posts', String),
                        Column('date_archived', DateTime),
                        Column('archived_urls', JSON),
-                       Column('media_archived', Boolean))
+                       Column('media_archived', DateTime))
 
 raw_channel_info_table = Table('raw_channel_info', mapper_registry.metadata,
                     Column('id', Integer, primary_key=True),

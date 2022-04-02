@@ -9,6 +9,7 @@ from loguru import logger
 import ffmpeg
 from sqlalchemy.orm import sessionmaker
 import yt_dlp
+from  sqlalchemy.sql.expression import func
 
 from cisticola.base import Channel, ScraperResult, mapper_registry
 from cisticola.utils import make_request
@@ -397,10 +398,8 @@ class ScraperController:
 
                     for post in posts:
                         session.add(post)
+                        session.commit()
                         added += 1
-
-                        if added > 100:
-                            break
 
                     session.commit()
                     logger.info(
@@ -418,7 +417,7 @@ class ScraperController:
 
         session = self.session()
 
-        posts = session.query(ScraperResult).where(ScraperResult.media_archived == False).all()
+        posts = session.query(ScraperResult).where(ScraperResult.media_archived == False).order_by(func.random()).all()
 
         logger.info(f"Found {len(posts)} posts without media. Archiving now")
 

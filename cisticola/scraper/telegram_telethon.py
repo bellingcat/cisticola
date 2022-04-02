@@ -62,7 +62,7 @@ class TelegramTelethonScraper(Scraper):
                 else:
                     logger.warning("Downloaded blob was None")
             
-        result.media_archived = True
+        result.media_archived = datetime.now(timezone.utc)
         return result
 
     def archive_post_media(self, post : types.Message, client : TelegramClient = None):
@@ -146,7 +146,7 @@ class TelegramTelethonScraper(Scraper):
                     date_archived=datetime.now(timezone.utc),
                     raw_posts=json.dumps(post.to_dict(), default=str),
                     archived_urls=archived_urls,
-                    media_archived=archive_media)
+                    media_archived=datetime.now(timezone.utc) if archive_media else None)
 
     def get_profile(self, channel: Channel) -> RawChannelInfo:
         username = channel.screenname

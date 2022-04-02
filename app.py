@@ -6,19 +6,12 @@ from sqlalchemy.orm import sessionmaker
 import os
 import time
 import sys
-import telethon.errors.rpcerrorlist
 
-from cisticola.base import Channel, RawChannelInfo, mapper_registry
+from cisticola.base import Channel, mapper_registry
 from cisticola.scraper import (
     ScraperController,
-    BitchuteScraper,
-    GabScraper,
-    GettrScraper,
-    OdyseeScraper,
-    RumbleScraper,
-    TelegramSnscrapeScraper,
-    TelegramTelethonScraper,
-    TwitterScraper)
+    VkontakteScraper,
+    TelegramTelethonScraper)
 
 def sync_channels(args):
     logger.info("Synchronizing channels")
@@ -52,7 +45,7 @@ def sync_channels(args):
             if c['platform_id'] != '':
                 platform_id = c['platform_id']
 
-            channel = session.query(Channel).filter_by(platform_id=platform_id, platform=c['platform'], url=c['url']).first()
+            channel = session.query(Channel).filter_by(platform_id=str(platform_id), platform=c['platform'], url=c['url']).first()
 
             if not channel:
                 channel = Channel(**c, source='researcher')
@@ -85,7 +78,7 @@ def get_scraper_controller():
 
     scrapers = [
         TelegramTelethonScraper(),
-        TwitterScraper()]
+        VkontakteScraper()]
 
     controller.register_scrapers(scrapers)
 
