@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, List
 from datetime import datetime, timezone
 import os
 import json
@@ -50,28 +50,14 @@ class InstagramScraper(Scraper):
 
             post_url = f'{BASE_URL}p/{post.shortcode}/'
 
-            archived_urls = {}
+            archived_urls = get_archived_urls_from_post(post = post)
 
-            if archive_media:
+            for url in archived_urls.keys():
 
-                with tempfile.TemporaryDirectory() as temp_dir:
-
-                    loader.download_post(post = post, target = Path(temp_dir))
-
-                    files = os.listdir(temp_dir)
-                    files = [f for f in files if not f.endswith('.txt')]
-
-                    for file in files:
-                        ext = file.split('.')[-1]
-                        content_type = CONTENT_TYPES[ext]
-                        filename = Path(temp_dir, file)
-                        key = f'{post.shortcode}__{file}'
-                    
-                        with open(filename, 'rb') as f:
-                            blob = f.read()
-                
-                        archived_url = self.archive_blob(blob = blob, content_type = content_type, key = key)
-                        archived_urls[post_url] = archived_url
+                if archive_media:
+                    media_blob, content_type, key = self.url_to_blob(url)
+                    archived_url = self.archive_blob(media_blob, content_type, key)
+                    archived_urls[url] = archived_url
 
             yield ScraperResult(
                 scraper=self.__version__,
@@ -99,7 +85,7 @@ class InstagramScraper(Scraper):
                     date_archived=datetime.now(timezone.utc),
                     raw_posts=json.dumps(comment_dict, default=str),
                     archived_urls={},
-                    media_archived=archive_media)
+                    media_archived=True)
 
     def can_handle(self, channel):
         if channel.platform == "Instagram" and self.get_username_from_url(channel.url) is not None:
@@ -127,7 +113,20 @@ class InstagramScraper(Scraper):
         profile['followees'] = user_profile.followees
 
         return RawChannelInfo(scraper=self.__version__,
-                        platform=channel.platform,
-                        channel=channel.id,
-                        raw_data=json.dumps(profile),
-                        date_archived=datetime.now(timezone.utc))
+            platform=channel.platform,
+            channel=channel.id,
+            raw_data=json.dumps(profile),
+            date_archived=datetime.now(timezone.utc))
+
+def get_archived_urls_from_post(post: instaloader.Post) -> List[str]:
+    typename = post._node['__typename']
+    if typename == 'GraphImage':
+        urls = [post._node['display_url']]
+    elif typename == 'GraphVideo':
+        urls = [post._node['video_url']]
+    elif typename == 'GraphSidecar':
+        urls = [edge['node']['display_url'] for edge in post._node['edge_sidecar_to_children']['edges']]
+    else:
+        raise NotImplementedError(f'post of type {typename} is currently not supported.')
+        
+    return {url : None for url in urls}

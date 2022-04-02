@@ -34,8 +34,8 @@ class TelegramSnscrapeScraper(Scraper):
             for image_url in post.images:
                 archived_urls[image_url] = None
 
-            if post.video:
-                archived_urls[post.video] = None
+            for video_url in post.videos:
+                archived_urls[video_url] = None
 
             if archive_media:
                 for url in archived_urls:

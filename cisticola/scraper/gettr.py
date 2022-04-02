@@ -32,26 +32,25 @@ class GettrScraper(Scraper):
 
             archived_urls = {}
 
-            if archive_media:
+            if 'imgs' in post:
+                for img in post['imgs']:
+                    url = "https://media.gettr.com/" + img
+                    archived_urls[url] = None
 
-                if 'imgs' in post:
-                    for img in post['imgs']:
-                        url = "https://media.gettr.com/" + img
-                        media_blob, content_type, key = self.url_to_blob(url)
-                        archived_url = self.archive_blob(media_blob, content_type, key)
-                        archived_urls[img] = archived_url
+            if 'main' in post:
+                url = "https://media.gettr.com/" + post['main']
+                archived_urls[url] = None
 
-                if 'main' in post:
-                    url = "https://media.gettr.com/" + post['main']
+            if 'ovid' in post:
+                url = "https://media.gettr.com/" + post['ovid']
+                archived_urls[url] = None
+
+            for url in archived_urls.keys():
+
+                if archive_media:
                     media_blob, content_type, key = self.url_to_blob(url)
                     archived_url = self.archive_blob(media_blob, content_type, key)
-                    archived_urls[post['main']] = archived_url
-
-                if 'vid' in post:
-                    url = "https://media.gettr.com/" + post['vid']
-                    media_blob, content_type, key = self.m3u8_url_to_blob(url)
-                    archived_url = self.archive_blob(media_blob, content_type, key)
-                    archived_urls[post['vid']] = archived_url
+                    archived_urls[url] = archived_url
 
             yield ScraperResult(
                 scraper=self.__version__,
@@ -74,7 +73,7 @@ class GettrScraper(Scraper):
         return key 
 
     def get_profile(self, channel: Channel) -> RawChannelInfo:
-        client = client = PublicClient()
+        client = PublicClient()
         username = self.get_username_from_url(channel.url)
         profile = client.user_info(username)
 

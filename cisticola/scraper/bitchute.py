@@ -45,9 +45,12 @@ class BitchuteScraper(Scraper):
 
             archived_urls = {}
 
-            if archive_media:
-                if 'video_url' in post:
-                    url = post['video_url']
+            if 'video_url' in post:
+                url = post['video_url']
+                archived_urls[url] = None 
+
+                if archive_media:
+
                     media_blob, content_type, key = self.url_to_blob(url)
                     archived_url = self.archive_blob(media_blob, content_type, key)
                     archived_urls[url] = archived_url
@@ -114,6 +117,7 @@ class BitchuteScraper(Scraper):
             channel=channel.id,
             raw_data=json.dumps(profile),
             date_archived=datetime.now(timezone.utc))
+            
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
 def strip_tags(html, convert_newlines=True):

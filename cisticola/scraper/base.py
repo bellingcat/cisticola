@@ -235,6 +235,20 @@ class Scraper:
         return archived_url
 
     def archive_files(self, result: ScraperResult) -> ScraperResult:
+        """Archive files corresponding to ``archived_url`` dict keys, if the 
+        files have not previously been archived.
+
+        Parameters
+        ----------
+        result: ScraperResult
+            Previously scraped ScraperResult run with ``archive_media=False``.
+
+        Returns
+        -------
+        ScraperResult
+            Same ScraperResult as ``result``, but with all URLs in ``archived_url`` dict archived.
+        """
+
         for url in result.archived_urls:
             if result.archived_urls[url] is None:
                 media_blob, content_type, key = self.url_to_blob(url)
@@ -243,7 +257,6 @@ class Scraper:
 
         result.media_archived = True
         return result
-
 
     def can_handle(self, channel: Channel) -> bool:
         """Whether or not the scraper can scrape the specified channel.
@@ -345,7 +358,23 @@ class ScraperController:
             logger.error("No DB session")
             return
 
+        session = self.session()
+
+        # If any channels are not already in the database, add them
         for channel in channels:
+
+            platform_id = None
+            if channel.platform_id not in (None, ''):
+                platform_id = channel.platform_id
+
+            channel_in_db = session.query(Channel).filter_by(platform_id=platform_id, platform=channel.platform, url=channel.url).first()
+
+            if not channel_in_db:
+                logger.debug(f"{channel} does not exist in database, adding")
+                session.add(channel)
+                session.flush()
+                session.commit()
+
             handled = False
 
             for scraper in self.scrapers:
@@ -355,7 +384,6 @@ class ScraperController:
                     added = 0
 
                     # get most recent post
-                    session = self.session()
                     rows = session.query(ScraperResult).where(
                         ScraperResult.channel == channel.id).order_by(
                         ScraperResult.date.desc()).limit(1).all()
