@@ -3,6 +3,7 @@ import os
 from io import BytesIO
 from urllib.parse import urlparse
 import tempfile
+from datetime import datetime, timezone
 
 import boto3
 from loguru import logger
@@ -417,7 +418,7 @@ class ScraperController:
 
         session = self.session()
 
-        posts = session.query(ScraperResult).where(ScraperResult.media_archived == False).order_by(func.random()).all()
+        posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).order_by(func.random()).all()
 
         logger.info(f"Found {len(posts)} posts without media. Archiving now")
 
@@ -431,7 +432,7 @@ class ScraperController:
                     post = scraper.archive_files(post)
 
                     if post:
-                        session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': True})
+                        session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': datetime.now(timezone.utc)})
                         session.commit()
 
                     break
