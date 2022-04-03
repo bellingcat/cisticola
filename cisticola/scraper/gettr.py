@@ -23,7 +23,7 @@ class GettrScraper(Scraper):
     @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         client = PublicClient()
-        username = self.get_username_from_url(channel.url)
+        username = self.get_username_from_url(channel.url).lower()
         scraper = client.user_activity(username=username, type="posts")
 
         for post in scraper:
