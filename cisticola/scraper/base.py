@@ -403,9 +403,6 @@ class ScraperController:
                         session.commit()
                         added += 1
 
-                        if added >= 200:
-                            break
-
                     session.commit()
                     logger.info(
                         f"{scraper} found {added} new posts from {channel}")

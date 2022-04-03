@@ -4,25 +4,21 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-sqlalchemy = "*"
+SQLAlchemy = "*"
 loguru = "*"
 gogettr = "*"
 requests = "*"
 bs4 = "*"
 dateparser = "*"
 boto3 = "*"
-snscrape = {git = "https://github.com/bellingcat/snscrape.git"}
 ffmpeg-python = "*"
-polyphemus = {git = "https://github.com/bellingcat/polyphemus.git"}
-yt-dlp = "*" 
-telethon = "*"
+yt-dlp = "*"
+Telethon = "*"
 pytesseract = "*"
-pyexiftool = {git = "https://github.com/smarnach/pyexiftool.git"}
 instaloader = "*"
 gspread = "*"
 cryptg = "*"
-gabber = {git = "https://github.com/stanfordio/gabber.git"}
-psycopg2-binary = "*"
+psycopg2 = "*"
 tqdm = "*"
 ratelimit = "*"
 pytz = "*"
@@ -33,11 +29,23 @@ pytest-cov = "*"
 pytest-html = "*"
 pytest-metadata = "*"
 black = "*"
-sphinx = "*"
-sphinx_rtd_theme = "*"
+Sphinx = "*"
+sphinx-rtd-theme = "*"
 
 [requires]
 python_version = "3.9"
 
 [pipenv]
 allow_prereleases = true
+
+[packages.polyphemus]
+git = "https://github.com/bellingcat/polyphemus.git"
+
+[packages.PyExifTool]
+git = "https://github.com/smarnach/pyexiftool.git"
+
+[packages.gabber]
+git = "https://github.com/stanfordio/gabber.git"
+
+[packages.snscrape]
+git = "https://github.com/bellingcat/snscrape"

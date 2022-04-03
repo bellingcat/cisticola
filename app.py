@@ -128,7 +128,7 @@ def init_db():
 if __name__ == "__main__":
     logger.remove()
     logger.add(sys.stdout, level="DEBUG", catch=True)
-    logger.add("./test.log", level="TRACE")
+    logger.add("logs/cisticola.log", level="TRACE", rotation="100 MB")
 
     parser = argparse.ArgumentParser(description="Cisticola command line tools")
     parser.add_argument(
