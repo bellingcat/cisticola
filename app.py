@@ -13,7 +13,6 @@ from cisticola.scraper import (
     VkontakteScraper,
     TelegramTelethonScraper,
     GettrScraper,
-    OdyseeScraper,
     RumbleScraper)
 
 def sync_channels(args):
@@ -83,7 +82,6 @@ def get_scraper_controller():
         TelegramTelethonScraper(),
         VkontakteScraper(),
         GettrScraper(),
-        OdyseeScraper(),
         RumbleScraper()
         ]
 
