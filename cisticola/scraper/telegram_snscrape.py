@@ -9,7 +9,7 @@ from cisticola.scraper.base import Scraper
 
 class TelegramSnscrapeScraper(Scraper):
     """An implementation of a Scraper for Telegram, using snscrape library"""
-    __version__ = "TelegramSnscrapeScraper 0.0.1"
+    __version__ = "TelegramSnscrapeScraper 0.0.0"
 
     def can_handle(self, channel):
         if channel.platform == "Telegram" and channel.public and not channel.chat:

@@ -13,7 +13,7 @@ from cisticola.scraper.base import Scraper
 
 class OdyseeScraper(Scraper):
     """An implementation of a Scraper for Odysee, using polyphemus library"""
-    __version__ = "OdyseeScraper 0.0.1"
+    __version__ = "OdyseeScraper 0.0.0"
 
     def __init__(self):
         super().__init__()

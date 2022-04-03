@@ -11,7 +11,7 @@ from cisticola.scraper.base import Scraper
 
 class GabScraper(Scraper):
     """An implementation of a Scraper for Gab, using gabber library"""
-    __version__ = "GabScraper 0.0.2"
+    __version__ = "GabScraper 0.0.0"
 
     def get_username_from_url(self, url):
         username = url.split('https://gab.com/')[-1]

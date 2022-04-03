@@ -13,7 +13,7 @@ BASE_URL = 'https://rumble.com'
 
 class RumbleScraper(Scraper):
     """An implementation of a Scraper for Rumble, using custom functions"""
-    __version__ = "RumbleScraper 0.0.1"
+    __version__ = "RumbleScraper 0.0.0"
 
     @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:

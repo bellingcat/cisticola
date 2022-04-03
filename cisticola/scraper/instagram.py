@@ -19,7 +19,7 @@ CONTENT_TYPES = {
 
 class InstagramScraper(Scraper):
     """An implementation of a Scraper for Instagram, using instaloader library"""
-    __version__ = "InstagramScraper 0.0.1"
+    __version__ = "InstagramScraper 0.0.0"
 
     def get_username_from_url(self, url):
         username = url.split(BASE_URL)[1].strip('/')
