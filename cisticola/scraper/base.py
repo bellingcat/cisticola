@@ -436,7 +436,7 @@ class ScraperController:
                     post = scraper.archive_files(post)
 
                     if post:
-                        session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': datetime.now(timezone.utc)})
+                        session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': post.media_archived})
                         session.commit()
 
                     break
