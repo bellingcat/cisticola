@@ -58,11 +58,11 @@ class TelegramTelethonScraper(Scraper):
                     # TODO specify Content-Type
                     archived_url = self.archive_blob(blob = blob, content_type = '', key = output_file_with_ext)
                     result.archived_urls[key] = archived_url
-                    return result
+                    result.media_archived = datetime.now(timezone.utc)
                 else:
                     logger.warning("Downloaded blob was None")
+                    result.media_archived = datetime.now(timezone.utc)
             
-        result.media_archived = datetime.now(timezone.utc)
         return result
 
     def archive_post_media(self, post : types.Message, client : TelegramClient = None):
