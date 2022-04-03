@@ -94,11 +94,17 @@ def process_video(video):
     else:
         rumbles = rumble_soup['data-value']
 
+    view_span = video.find('span', {'class' : 'video-item--views'})
+    if view_span is None:
+        views = None
+    else:
+        views = view_span.get('data-value')
+
     info = {
         'title' : video.find('h3').text,
         'thumbnail' : video.find('img')['src'],
         'link' : BASE_URL + video.find('a', href = True)['href'],
-        'views' : video.find('span', {'class' : 'video-item--views'})['data-value'],
+        'views' : views,
         'rumbles' : rumbles,
         'duration' : video.find('span', {'class' : 'video-item--duration'})['data-value'],
         'datetime' : datetime.fromisoformat(video.find('time')['datetime'])}
@@ -119,7 +125,7 @@ def get_channel_videos(url):
         if r.status_code == 404:
             break
 
-        soup = BeautifulSoup(r.content, features = 'lxml')
+        soup = BeautifulSoup(r.content, features = 'html.parser')
 
         video_list = soup.find_all('li', {'class' : 'video-listing-entry'})
 
