@@ -44,7 +44,7 @@ class TelegramTelethonScraper(Scraper):
             key = list(result.archived_urls.keys())[0]
 
             if result.archived_urls[key] is None:
-                raw = json.loads(result.raw_posts)
+                raw = json.loads(result.raw_data)
                     
                 message = client.get_messages(raw['peer_id']['channel_id'], ids=[raw['id']])
 
@@ -144,7 +144,7 @@ class TelegramTelethonScraper(Scraper):
                     platform_id=post_url,
                     date=post.date.replace(tzinfo=timezone.utc),
                     date_archived=datetime.now(timezone.utc),
-                    raw_posts=json.dumps(post.to_dict(), default=str),
+                    raw_data=json.dumps(post.to_dict(), default=str),
                     archived_urls=archived_urls,
                     media_archived=datetime.now(timezone.utc) if archive_media else None)
 

@@ -69,7 +69,7 @@ class VkontakteScraper(Scraper):
                 platform_id=post.url.split('/')[-1],
                 date=datetime.fromordinal(post.date.toordinal()).replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=post.json(),
+                raw_data=post.json(),
                 archived_urls=archived_urls,
                 media_archived=datetime.now(timezone.utc) if archive_media else None)
 

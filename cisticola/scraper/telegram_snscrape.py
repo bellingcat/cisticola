@@ -50,9 +50,9 @@ class TelegramSnscrapeScraper(Scraper):
                 platform_id=post.url,
                 date=post.date,
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=post.json(),
+                raw_data=post.json(),
                 archived_urls=archived_urls,
-                media_archived=archive_media
+                media_archived=datetime.now(timezone.utc) if archive_media else None
             )
 
     def get_profile(self, channel: Channel) -> RawChannelInfo:

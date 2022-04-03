@@ -20,7 +20,7 @@ class BitchuteTransformer(Transformer):
         return False        
 
     def transform_media(self, data: ScraperResult, transformed: Post) -> Generator[Media, None, None]:
-        raw = json.loads(data.raw_posts)
+        raw = json.loads(data.raw_data)
 
         orig = raw['video_url']
         new = data.archived_urls[orig]
@@ -30,7 +30,7 @@ class BitchuteTransformer(Transformer):
         yield m
 
     def transform(self, data: ScraperResult) -> Post:
-        raw = json.loads(data.raw_posts)
+        raw = json.loads(data.raw_data)
 
         soup = BeautifulSoup(raw['body'], features = 'html.parser')
         content = soup.find_all('p')[-1].text

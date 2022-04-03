@@ -72,9 +72,9 @@ class TwitterScraper(Scraper):
                 platform_id=tweet.id,
                 date=tweet.date,
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=tweet.json(),
+                raw_data=tweet.json(),
                 archived_urls=archived_urls,
-                media_archived=archive_media)
+                media_archived=datetime.now(timezone.utc) if archive_media else None)
 
     def can_handle(self, channel):
         if channel.platform == "Twitter" and (channel.platform_id or channel.screenname):

@@ -257,7 +257,7 @@ class Scraper:
                 archived_url = self.archive_blob(media_blob, content_type, key)
                 result.archived_urls[url] = archived_url
 
-        result.media_archived = True
+        result.media_archived = datetime.now(timezone.utc)
         return result
 
     def can_handle(self, channel: Channel) -> bool:
@@ -401,6 +401,9 @@ class ScraperController:
                         session.add(post)
                         session.commit()
                         added += 1
+
+                        if added >= 200:
+                            break
 
                     session.commit()
                     logger.info(

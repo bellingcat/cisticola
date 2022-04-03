@@ -11,7 +11,10 @@ from cisticola.base import Channel, mapper_registry
 from cisticola.scraper import (
     ScraperController,
     VkontakteScraper,
-    TelegramTelethonScraper)
+    TelegramTelethonScraper,
+    GettrScraper,
+    OdyseeScraper,
+    RumbleScraper)
 
 def sync_channels(args):
     logger.info("Synchronizing channels")
@@ -78,7 +81,11 @@ def get_scraper_controller():
 
     scrapers = [
         TelegramTelethonScraper(),
-        VkontakteScraper()]
+        VkontakteScraper(),
+        GettrScraper(),
+        OdyseeScraper(),
+        RumbleScraper()
+        ]
 
     controller.register_scrapers(scrapers)
 

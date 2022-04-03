@@ -34,7 +34,7 @@ class ScraperResult:
     date: datetime
 
     #: JSON dump of dict that contains all data scraped for the post.
-    raw_posts: str
+    raw_data: str
 
     #: Datetime (relative to UTC) that the scraped post was archived at.
     date_archived: datetime
@@ -249,7 +249,7 @@ raw_posts_table = Table('raw_posts', mapper_registry.metadata,
                        Column('channel', Integer, ForeignKey('channels.id')),
                        Column('platform_id', String),
                        Column('date', DateTime),
-                       Column('raw_posts', String),
+                       Column('raw_data', String),
                        Column('date_archived', DateTime),
                        Column('archived_urls', JSON),
                        Column('media_archived', DateTime))

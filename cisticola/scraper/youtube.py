@@ -75,9 +75,9 @@ class YoutubeScraper(Scraper):
                         platform_id=video_id,
                         date=datetime.strptime(video['upload_date'], '%Y%m%d').replace(tzinfo=timezone.utc),
                         date_archived=datetime.now(timezone.utc),
-                        raw_posts=json.dumps(video, default = str),
+                        raw_data=json.dumps(video, default = str),
                         archived_urls=archived_urls,
-                        media_archived=archive_media)
+                        media_archived=datetime.now(timezone.utc) if archive_media else None)
                         
     def can_handle(self, channel):
         if channel.platform == "Youtube" and channel.url:
@@ -115,7 +115,7 @@ class YoutubeScraper(Scraper):
                     archived_url = self.archive_blob(media_blob, content_type, key)
                     result.archived_urls[url] = archived_url
 
-        result.media_archived = True
+        result.media_archived = datetime.now(timezone.utc)
         return result
 
     def get_profile(self, channel: Channel) -> RawChannelInfo:

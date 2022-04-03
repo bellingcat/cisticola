@@ -41,9 +41,9 @@ class RumbleScraper(Scraper):
                 platform_id=post['media_url'].split('/')[-2],
                 date=post['datetime'].replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=json.dumps(post, default = str),
+                raw_data=json.dumps(post, default = str),
                 archived_urls=archived_urls,
-                media_archived=archive_media)
+                media_archived=datetime.now(timezone.utc) if archive_media else None)
 
     def url_to_key(self, url: str, content_type: str) -> str:
         ext = '.' + content_type.split('/')[-1]
@@ -57,7 +57,7 @@ class RumbleScraper(Scraper):
                 archived_url = self.archive_blob(media_blob, content_type, key)
                 result.archived_urls[url] = archived_url
 
-        result.media_archived = True
+        result.media_archived = datetime.now(timezone.utc)
         return result
 
     def can_handle(self, channel):
