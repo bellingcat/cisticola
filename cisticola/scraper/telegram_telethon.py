@@ -26,6 +26,7 @@ class TelegramTelethonScraper(Scraper):
             username = username.split('s/')[1]
         return username
 
+    @logger.catch
     def archive_files(self, result: ScraperResult, client : TelegramClient = None) -> ScraperResult:
         if len(result.archived_urls.keys()) == 0:
             return result

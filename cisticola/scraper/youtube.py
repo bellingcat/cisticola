@@ -83,6 +83,7 @@ class YoutubeScraper(Scraper):
         if channel.platform == "Youtube" and channel.url:
             return True
 
+    @logger.catch
     def archive_files(self, result: ScraperResult) -> ScraperResult:
         for url in result.archived_urls:
             if result.archived_urls[url] is None:

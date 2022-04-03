@@ -79,6 +79,7 @@ class OdyseeScraper(Scraper):
                     archived_urls={},
                     media_archived=datetime.now(timezone.utc))
 
+    @logger.catch
     def archive_files(self, result: ScraperResult) -> ScraperResult:
         for url in result.archived_urls:
             if result.archived_urls[url] is None:

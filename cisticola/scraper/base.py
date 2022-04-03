@@ -236,6 +236,7 @@ class Scraper:
 
         return archived_url
 
+    @logger.catch
     def archive_files(self, result: ScraperResult) -> ScraperResult:
         """Archive files corresponding to ``archived_url`` dict keys, if the 
         files have not previously been archived.

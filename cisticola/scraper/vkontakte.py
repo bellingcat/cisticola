@@ -73,6 +73,7 @@ class VkontakteScraper(Scraper):
                 archived_urls=archived_urls,
                 media_archived=datetime.now(timezone.utc) if archive_media else None)
 
+    @logger.catch
     def archive_files(self, result: ScraperResult) -> ScraperResult:
         for url in result.archived_urls:
             if result.archived_urls[url] is None:
