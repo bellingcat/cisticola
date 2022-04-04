@@ -13,7 +13,7 @@ from cisticola.scraper import Scraper
 
 class YoutubeScraper(Scraper):
     """An implementation of a Scraper for Youtube, using youtube-dl"""
-    __version__ = "YoutubeScraper 0.0.1"
+    __version__ = "YoutubeScraper 0.0.2"
 
     @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
@@ -35,7 +35,10 @@ class YoutubeScraper(Scraper):
                 "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
                 "merge_output_format": "mp4",
                 "outtmpl": f"{temp_dir}/%(id)s.%(ext)s",
-                "daterange" : daterange}
+                "daterange" : daterange,
+                "quiet": True,
+                "verbose": False,
+                "retries": 5}
 
             ydl = yt_dlp.YoutubeDL(ydl_opts)
 
@@ -94,7 +97,10 @@ class YoutubeScraper(Scraper):
                     ydl_opts = {
                         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
                         "merge_output_format": "mp4",
-                        "outtmpl": f"{temp_dir}/%(id)s.%(ext)s"}
+                        "outtmpl": f"{temp_dir}/%(id)s.%(ext)s",
+                        "quiet": True,
+                        "verbose": False,
+                        "retries": 5}
 
                     ydl = yt_dlp.YoutubeDL(ydl_opts)
 
