@@ -10,7 +10,7 @@ from cisticola.scraper.base import Scraper, ChannelDoesNotExistError
 
 class TwitterScraper(Scraper):
     """An implementation of a Scraper for Twitter, using snscrape library"""
-    __version__ = "TwitterScraper 0.0.1"
+    __version__ = "TwitterScraper 0.0.0"
 
     @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
@@ -72,9 +72,9 @@ class TwitterScraper(Scraper):
                 platform_id=tweet.id,
                 date=tweet.date,
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=tweet.json(),
+                raw_data=tweet.json(),
                 archived_urls=archived_urls,
-                media_archived=archive_media)
+                media_archived=datetime.now(timezone.utc) if archive_media else None)
 
     def can_handle(self, channel):
         if channel.platform == "Twitter" and (channel.platform_id or channel.screenname):

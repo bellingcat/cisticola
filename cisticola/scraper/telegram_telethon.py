@@ -26,6 +26,7 @@ class TelegramTelethonScraper(Scraper):
             username = username.split('s/')[1]
         return username
 
+    @logger.catch
     def archive_files(self, result: ScraperResult, client : TelegramClient = None) -> ScraperResult:
         if len(result.archived_urls.keys()) == 0:
             return result
@@ -44,7 +45,7 @@ class TelegramTelethonScraper(Scraper):
             key = list(result.archived_urls.keys())[0]
 
             if result.archived_urls[key] is None:
-                raw = json.loads(result.raw_posts)
+                raw = json.loads(result.raw_data)
                     
                 message = client.get_messages(raw['peer_id']['channel_id'], ids=[raw['id']])
 
@@ -58,11 +59,11 @@ class TelegramTelethonScraper(Scraper):
                     # TODO specify Content-Type
                     archived_url = self.archive_blob(blob = blob, content_type = '', key = output_file_with_ext)
                     result.archived_urls[key] = archived_url
-                    return result
+                    result.media_archived = datetime.now(timezone.utc)
                 else:
                     logger.warning("Downloaded blob was None")
+                    result.media_archived = datetime.now(timezone.utc)
             
-        result.media_archived = True
         return result
 
     def archive_post_media(self, post : types.Message, client : TelegramClient = None):
@@ -144,9 +145,9 @@ class TelegramTelethonScraper(Scraper):
                     platform_id=post_url,
                     date=post.date.replace(tzinfo=timezone.utc),
                     date_archived=datetime.now(timezone.utc),
-                    raw_posts=json.dumps(post.to_dict(), default=str),
+                    raw_data=json.dumps(post.to_dict(), default=str),
                     archived_urls=archived_urls,
-                    media_archived=archive_media)
+                    media_archived=datetime.now(timezone.utc) if archive_media else None)
 
     def get_profile(self, channel: Channel) -> RawChannelInfo:
         username = channel.screenname

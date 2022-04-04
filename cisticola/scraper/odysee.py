@@ -13,7 +13,7 @@ from cisticola.scraper.base import Scraper
 
 class OdyseeScraper(Scraper):
     """An implementation of a Scraper for Odysee, using polyphemus library"""
-    __version__ = "OdyseeScraper 0.0.1"
+    __version__ = "OdyseeScraper 0.0.0"
 
     def __init__(self):
         super().__init__()
@@ -62,9 +62,9 @@ class OdyseeScraper(Scraper):
                 platform_id=video.info['claim_id'],
                 date=datetime.fromtimestamp(video.info['created']),
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=json.dumps(video.info),
+                raw_data=json.dumps(video.info),
                 archived_urls=archived_urls,
-                media_archived=archive_media)
+                media_archived=datetime.now(timezone.utc) if archive_media else None)
 
             for comment in all_comments:
 
@@ -75,10 +75,11 @@ class OdyseeScraper(Scraper):
                     platform_id=comment.info['claim_id'],
                     date=datetime.fromtimestamp(comment.info['created']),
                     date_archived=datetime.now(),
-                    raw_posts=json.dumps(comment.info),
+                    raw_data=json.dumps(comment.info),
                     archived_urls={},
-                    media_archived=True)
+                    media_archived=datetime.now(timezone.utc))
 
+    @logger.catch
     def archive_files(self, result: ScraperResult) -> ScraperResult:
         for url in result.archived_urls:
             if result.archived_urls[url] is None:
@@ -91,7 +92,7 @@ class OdyseeScraper(Scraper):
                 archived_url = self.archive_blob(media_blob, content_type, key)
                 result.archived_urls[url] = archived_url
 
-        result.media_archived = True
+        result.media_archived = datetime.now(timezone.utc)
         return result
 
     def can_handle(self, channel):

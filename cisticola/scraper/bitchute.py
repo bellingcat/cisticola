@@ -16,7 +16,7 @@ from cisticola.scraper.base import Scraper
 class BitchuteScraper(Scraper):
     """An implementation of a Scraper for Bitchute, using classes from the 4cat
     library"""
-    __version__ = "BitchuteScraper 0.0.1"
+    __version__ = "BitchuteScraper 0.0.0"
 
     def get_username_from_url(self, url):
         username = url.split('bitchute.com/channel/')[-1].strip('/')
@@ -62,9 +62,9 @@ class BitchuteScraper(Scraper):
                 platform_id=post['id'],
                 date=datetime.fromtimestamp(post['timestamp']),
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=json.dumps(post),
+                raw_data=json.dumps(post),
                 archived_urls=archived_urls,
-                media_archived=archive_media)
+                media_archived=datetime.now(timezone.utc) if archive_media else None)
 
     def can_handle(self, channel):
         if channel.platform == "Bitchute" and self.get_username_from_url(channel.url) is not None:

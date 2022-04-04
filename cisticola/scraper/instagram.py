@@ -19,7 +19,7 @@ CONTENT_TYPES = {
 
 class InstagramScraper(Scraper):
     """An implementation of a Scraper for Instagram, using instaloader library"""
-    __version__ = "InstagramScraper 0.0.1"
+    __version__ = "InstagramScraper 0.0.0"
 
     def get_username_from_url(self, url):
         username = url.split(BASE_URL)[1].strip('/')
@@ -66,9 +66,9 @@ class InstagramScraper(Scraper):
                 platform_id=post.mediaid,
                 date=post.date_utc,
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=json.dumps(post._asdict(), default=str),
+                raw_data=json.dumps(post._asdict(), default=str),
                 archived_urls=archived_urls,
-                media_archived=archive_media)
+                media_archived=datetime.now(timezone.utc) if archive_media else None)
 
             for comment in post.get_comments():
 
@@ -83,9 +83,9 @@ class InstagramScraper(Scraper):
                     platform_id=post.mediaid,
                     date=comment.created_at_utc,
                     date_archived=datetime.now(timezone.utc),
-                    raw_posts=json.dumps(comment_dict, default=str),
+                    raw_data=json.dumps(comment_dict, default=str),
                     archived_urls={},
-                    media_archived=True)
+                    media_archived=datetime.now(timezone.utc))
 
     def can_handle(self, channel):
         if channel.platform == "Instagram" and self.get_username_from_url(channel.url) is not None:

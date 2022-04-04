@@ -64,15 +64,16 @@ class VkontakteScraper(Scraper):
 
             yield ScraperResult(
                 scraper=self.__version__,
-                platform="Vkontatke",
+                platform="VK",
                 channel=channel.id,
                 platform_id=post.url.split('/')[-1],
                 date=datetime.fromordinal(post.date.toordinal()).replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=post.json(),
+                raw_data=post.json(),
                 archived_urls=archived_urls,
-                media_archived=archive_media)
+                media_archived=datetime.now(timezone.utc) if archive_media else None)
 
+    @logger.catch
     def archive_files(self, result: ScraperResult) -> ScraperResult:
         for url in result.archived_urls:
             if result.archived_urls[url] is None:
@@ -84,12 +85,12 @@ class VkontakteScraper(Scraper):
                 archived_url = self.archive_blob(media_blob, content_type, key)
                 result.archived_urls[url] = archived_url
 
-        result.media_archived = True
+        result.media_archived = datetime.now(timezone.utc)
         return result
 
 
     def can_handle(self, channel):
-        if channel.platform == "Vkontakte" and channel.platform_id:
+        if channel.platform == "VK":
             return True
 
     def url_to_key(self, url: str, content_type: str) -> str:

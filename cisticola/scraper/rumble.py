@@ -13,7 +13,7 @@ BASE_URL = 'https://rumble.com'
 
 class RumbleScraper(Scraper):
     """An implementation of a Scraper for Rumble, using custom functions"""
-    __version__ = "RumbleScraper 0.0.1"
+    __version__ = "RumbleScraper 0.0.0"
 
     @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
@@ -41,15 +41,16 @@ class RumbleScraper(Scraper):
                 platform_id=post['media_url'].split('/')[-2],
                 date=post['datetime'].replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=json.dumps(post, default = str),
+                raw_data=json.dumps(post, default = str),
                 archived_urls=archived_urls,
-                media_archived=archive_media)
+                media_archived=datetime.now(timezone.utc) if archive_media else None)
 
     def url_to_key(self, url: str, content_type: str) -> str:
         ext = '.' + content_type.split('/')[-1]
         key = urlparse(url).path.split('/')[-2] + ext
         return key 
 
+    @logger.catch
     def archive_files(self, result: ScraperResult) -> ScraperResult:
         for url in result.archived_urls:
             if result.archived_urls[url] is None:
@@ -57,7 +58,7 @@ class RumbleScraper(Scraper):
                 archived_url = self.archive_blob(media_blob, content_type, key)
                 result.archived_urls[url] = archived_url
 
-        result.media_archived = True
+        result.media_archived = datetime.now(timezone.utc)
         return result
 
     def can_handle(self, channel):

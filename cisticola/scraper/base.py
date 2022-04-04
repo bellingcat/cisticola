@@ -3,12 +3,14 @@ import os
 from io import BytesIO
 from urllib.parse import urlparse
 import tempfile
+from datetime import datetime, timezone
 
 import boto3
 from loguru import logger
 import ffmpeg
 from sqlalchemy.orm import sessionmaker
 import yt_dlp
+from  sqlalchemy.sql.expression import func
 
 from cisticola.base import Channel, ScraperResult, mapper_registry
 from cisticola.utils import make_request
@@ -235,6 +237,7 @@ class Scraper:
 
         return archived_url
 
+    @logger.catch
     def archive_files(self, result: ScraperResult) -> ScraperResult:
         """Archive files corresponding to ``archived_url`` dict keys, if the 
         files have not previously been archived.
@@ -256,7 +259,7 @@ class Scraper:
                 archived_url = self.archive_blob(media_blob, content_type, key)
                 result.archived_urls[url] = archived_url
 
-        result.media_archived = True
+        result.media_archived = datetime.now(timezone.utc)
         return result
 
     def can_handle(self, channel: Channel) -> bool:
@@ -398,10 +401,8 @@ class ScraperController:
 
                     for post in posts:
                         session.add(post)
+                        session.commit()
                         added += 1
-
-                        if added > 100:
-                            break
 
                     session.commit()
                     logger.info(
@@ -419,7 +420,7 @@ class ScraperController:
 
         session = self.session()
 
-        posts = session.query(ScraperResult).where(ScraperResult.media_archived == False).all()
+        posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).order_by(func.random()).all()
 
         logger.info(f"Found {len(posts)} posts without media. Archiving now")
 
@@ -433,7 +434,7 @@ class ScraperController:
                     post = scraper.archive_files(post)
 
                     if post:
-                        session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': True})
+                        session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': post.media_archived})
                         session.commit()
 
                     break

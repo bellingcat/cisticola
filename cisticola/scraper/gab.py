@@ -11,7 +11,7 @@ from cisticola.scraper.base import Scraper
 
 class GabScraper(Scraper):
     """An implementation of a Scraper for Gab, using gabber library"""
-    __version__ = "GabScraper 0.0.2"
+    __version__ = "GabScraper 0.0.0"
 
     def get_username_from_url(self, url):
         username = url.split('https://gab.com/')[-1]
@@ -81,9 +81,9 @@ class GabScraper(Scraper):
                 platform_id=post['id'],
                 date=datetime.fromisoformat(post['created_at'].replace("Z", "+00:00")).replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=json.dumps(post),
+                raw_data=json.dumps(post),
                 archived_urls=archived_urls,
-                media_archived=archive_media)
+                media_archived=datetime.now(timezone.utc) if archive_media else None)
 
     def can_handle(self, channel: Channel) -> bool:
         if channel.platform == "Gab" and self.get_username_from_url(channel.url) is not None:

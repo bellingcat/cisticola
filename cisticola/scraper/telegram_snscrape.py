@@ -9,7 +9,7 @@ from cisticola.scraper.base import Scraper
 
 class TelegramSnscrapeScraper(Scraper):
     """An implementation of a Scraper for Telegram, using snscrape library"""
-    __version__ = "TelegramSnscrapeScraper 0.0.1"
+    __version__ = "TelegramSnscrapeScraper 0.0.0"
 
     def can_handle(self, channel):
         if channel.platform == "Telegram" and channel.public and not channel.chat:
@@ -50,9 +50,9 @@ class TelegramSnscrapeScraper(Scraper):
                 platform_id=post.url,
                 date=post.date,
                 date_archived=datetime.now(timezone.utc),
-                raw_posts=post.json(),
+                raw_data=post.json(),
                 archived_urls=archived_urls,
-                media_archived=archive_media
+                media_archived=datetime.now(timezone.utc) if archive_media else None
             )
 
     def get_profile(self, channel: Channel) -> RawChannelInfo:
