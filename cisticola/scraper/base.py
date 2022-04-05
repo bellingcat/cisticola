@@ -20,7 +20,7 @@ class Scraper:
     from a given channel on that specific platform. 
     """
 
-    __version__ = "Scraper 0.0.1"
+    __version__ = "Scraper 0.0.0"
 
     def __init__(self):
 
