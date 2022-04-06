@@ -15,6 +15,9 @@ class YoutubeScraper(Scraper):
     """An implementation of a Scraper for Youtube, using youtube-dl"""
     __version__ = "YoutubeScraper 0.0.0"
 
+    cookiestring = os.environ["YOUTUBE_COOKIESTRING"].replace(r'\n', '\n').replace(r'\t', '\t')
+    cookiefilename = 'cookiefile.txt'
+
     @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
@@ -29,6 +32,10 @@ class YoutubeScraper(Scraper):
 
         with tempfile.TemporaryDirectory() as temp_dir:
 
+            cookiefile = Path(temp_dir)/self.cookiefilename
+            with open(cookiefile, 'w') as f:
+                f.write(self.cookiestring)
+
             daterange = yt_dlp.utils.DateRange(start = start_date)
 
             ydl_opts = {
@@ -38,7 +45,8 @@ class YoutubeScraper(Scraper):
                 "daterange" : daterange,
                 "quiet": True,
                 "verbose": False,
-                "retries": 5}
+                "retries": 5,
+                "cookiefile": cookiefile}
 
             ydl = yt_dlp.YoutubeDL(ydl_opts)
 
@@ -95,13 +103,18 @@ class YoutubeScraper(Scraper):
 
                 with tempfile.TemporaryDirectory() as temp_dir:
 
+                    cookiefile = Path(temp_dir)/self.cookiefilename
+                    with open(cookiefile, 'w') as f:
+                        f.write(self.cookiestring)
+
                     ydl_opts = {
                         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
                         "merge_output_format": "mp4",
                         "outtmpl": f"{temp_dir}/%(id)s.%(ext)s",
                         "quiet": True,
                         "verbose": False,
-                        "retries": 5}
+                        "retries": 5,
+                        "cookiefile": cookiefile}
 
                     ydl = yt_dlp.YoutubeDL(ydl_opts)
 
@@ -110,7 +123,7 @@ class YoutubeScraper(Scraper):
                     except yt_dlp.utils.DownloadError as e:
                         raise e
                         
-                    files = os.listdir(temp_dir)
+                    files = [file for file in os.listdir(temp_dir) if file != self.cookiefilename]
                     if len(files) != 1:
                         logger.warning(f'{len(files)} files downloaded for video: {url}')
                     key = files[0]
@@ -126,7 +139,12 @@ class YoutubeScraper(Scraper):
         return result
 
     def get_profile(self, channel: Channel) -> RawChannelInfo:
-        ydl_opts = {}
+        
+        ydl_opts = {
+            "quiet": True,
+            "verbose": False,
+            "retries": 5}
+
         ydl = yt_dlp.YoutubeDL(ydl_opts)
 
         meta = None
