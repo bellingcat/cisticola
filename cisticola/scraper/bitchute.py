@@ -16,7 +16,7 @@ from cisticola.scraper.base import Scraper
 class BitchuteScraper(Scraper):
     """An implementation of a Scraper for Bitchute, using classes from the 4cat
     library"""
-    __version__ = "BitchuteScraper 0.0.0"
+    __version__ = "BitchuteScraper 0.0.1"
 
     def get_username_from_url(self, url):
         username = url.split('bitchute.com/channel/')[-1].strip('/')

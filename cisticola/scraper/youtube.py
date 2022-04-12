@@ -13,7 +13,7 @@ from cisticola.scraper import Scraper
 
 class YoutubeScraper(Scraper):
     """An implementation of a Scraper for Youtube, using youtube-dl"""
-    __version__ = "YoutubeScraper 0.0.0"
+    __version__ = "YoutubeScraper 0.0.1"
 
     cookiestring = os.environ["YOUTUBE_COOKIESTRING"].replace(r'\n', '\n').replace(r'\t', '\t')
     cookiefilename = 'cookiefile.txt'
