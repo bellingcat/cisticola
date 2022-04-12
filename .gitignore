@@ -9,9 +9,11 @@ docs/source/_*
 *.db
 .env
 *.session
+*.session-journal
 service_account.json
 .vscode/
 *.log
+*.lock
 
 # Unit test / coverage reports
 reports

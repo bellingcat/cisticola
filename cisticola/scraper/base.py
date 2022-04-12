@@ -421,7 +421,7 @@ class ScraperController:
 
         # this query is really slow (~2.5 minutes) because of the shuffle. shuffling is so that multiple media archivers could work
         # simultaneously with low risk of collision (at least while the number of unarchived items is very large)
-        posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).order_by(func.random()).limit(10000).all()
+        posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).order_by(func.random()).limit(4000).all()
 
         logger.info(f"Found {len(posts)} posts without media. Archiving now")
 
