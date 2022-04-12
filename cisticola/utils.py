@@ -31,21 +31,15 @@ def make_request(url, headers = None, max_retries = 5, break_codes = None):
 
     r = None
 
-    for n_retries in range(max_retries):
-        try:
-            r = request_until_200(
-                url = url, 
-                headers = headers, 
-                max_retries = max_retries,
-                break_codes = break_codes)
-            logger.debug(f"Request for url: {url} succeeded on attempt: {n_retries}/{max_retries}")
-        except Exception as e:
-            logger.warning(f"Request for url: {url} raised exception: [{e}] on attempt: {n_retries}/{max_retries}")
-            continue 
-        else:
-            break 
-    else:
-        logger.error(f"Request for url: {url} failed after {max_retries} attempts")
+    try:
+        r = request_until_200(
+            url = url, 
+            headers = headers, 
+            max_retries = max_retries,
+            break_codes = break_codes)
+        logger.debug(f"Request for url: {url} succeeded")
+    except Exception as e:
+        logger.warning(f"Request for url: {url} raised exception: [{e}]")
 
     return r
 
