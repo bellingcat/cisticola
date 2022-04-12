@@ -16,7 +16,7 @@ from cisticola.scraper.base import Scraper
 class BitchuteScraper(Scraper):
     """An implementation of a Scraper for Bitchute, using classes from the 4cat
     library"""
-    __version__ = "BitchuteScraper 0.0.0"
+    __version__ = "BitchuteScraper 0.0.1"
 
     def get_username_from_url(self, url):
         username = url.split('bitchute.com/channel/')[-1].strip('/')
@@ -184,7 +184,7 @@ def request_from_bitchute(session, method, url, headers=None, data=None):
                 raise NotImplemented()
 
             if request.status_code >= 300:
-                raise ValueError("Response %i from BitChut for URL %s, need to retry" % (request.status_code, url))
+                raise ValueError("Response %i from BitChute for URL %s, need to retry" % (request.status_code, url))
 
             response = request.json()
             return response
@@ -421,14 +421,8 @@ def get_videos_user(session, user, csrftoken, detail):
 
         post_data = {"csrfmiddlewaretoken": csrftoken, "name": "", "offset": str(offset)}
 
-        try:
-            request = session.post(url, data=post_data, headers=headers)
-            if request.status_code != 200:
-                raise ConnectionError()
-            response = request.json()
+        response = request_from_bitchute(session, "POST", url, headers=headers, data=post_data)
 
-        except (json.JSONDecodeError, requests.RequestException, ConnectionError) as e:
-            raise ValueError('FALSE')
         soup = BeautifulSoup(response["html"], 'html.parser')
         videos = soup.select(".channel-videos-container")
         comments = []

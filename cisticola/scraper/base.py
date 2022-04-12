@@ -10,7 +10,8 @@ from loguru import logger
 import ffmpeg
 from sqlalchemy.orm import sessionmaker
 import yt_dlp
-from  sqlalchemy.sql.expression import func
+from sqlalchemy.sql.expression import func
+from pathlib import Path
 
 from cisticola.base import Channel, ScraperResult, mapper_registry
 from cisticola.utils import make_request
@@ -181,13 +182,20 @@ class Scraper:
         content_type = 'video/mp4'
 
         with tempfile.TemporaryDirectory() as temp_dir:
+            cookiefile = Path(temp_dir)/self.cookiefilename
+            with open(cookiefile, 'w') as f:
+                f.write(self.cookiestring)
+                
             ydl_opts = {
                 "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
                 "merge_output_format": "mp4",
                 "outtmpl": f"{temp_dir}/%(id)s.%(ext)s",
                 "noplaylist": True,
-                'quiet': True,
-                "verbose": False,}
+                "quiet": True,
+                "verbose": False,
+                "retries": 5,
+                "cookiefile": cookiefile}
+
             ydl = yt_dlp.YoutubeDL(ydl_opts)
 
             try:
