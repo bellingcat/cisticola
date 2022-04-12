@@ -186,8 +186,9 @@ class Scraper:
                 "merge_output_format": "mp4",
                 "outtmpl": f"{temp_dir}/%(id)s.%(ext)s",
                 "noplaylist": True,
-                'quiet': True,
-                "verbose": False,}
+                "quiet": True,
+                "verbose": False,
+                "retries": 5}
             ydl = yt_dlp.YoutubeDL(ydl_opts)
 
             try:

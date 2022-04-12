@@ -35,7 +35,10 @@ class YoutubeScraper(Scraper):
                 "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
                 "merge_output_format": "mp4",
                 "outtmpl": f"{temp_dir}/%(id)s.%(ext)s",
-                "daterange" : daterange}
+                "daterange" : daterange,
+                "quiet": True,
+                "verbose": False,
+                "retries": 5}
 
             ydl = yt_dlp.YoutubeDL(ydl_opts)
 
@@ -95,7 +98,10 @@ class YoutubeScraper(Scraper):
                     ydl_opts = {
                         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
                         "merge_output_format": "mp4",
-                        "outtmpl": f"{temp_dir}/%(id)s.%(ext)s"}
+                        "outtmpl": f"{temp_dir}/%(id)s.%(ext)s",
+                        "quiet": True,
+                        "verbose": False,
+                        "retries": 5}
 
                     ydl = yt_dlp.YoutubeDL(ydl_opts)
 
