@@ -14,7 +14,6 @@ from cisticola.scraper import (
     TelegramTelethonScraper,
     GettrScraper,
     BitchuteScraper,
-    YoutubeScraper,
     RumbleScraper,
 )
 
@@ -117,8 +116,7 @@ def get_scraper_controller():
         TelegramTelethonScraper(),
         GettrScraper(),
         BitchuteScraper(),
-        RumbleScraper(),
-        YoutubeScraper()]
+        RumbleScraper()]
 
     controller.register_scrapers(scrapers)
 
