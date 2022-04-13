@@ -138,6 +138,7 @@ class YoutubeScraper(Scraper):
         result.media_archived = datetime.now(timezone.utc)
         return result
 
+    @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
         
         ydl_opts = {

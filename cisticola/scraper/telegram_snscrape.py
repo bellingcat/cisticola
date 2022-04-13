@@ -55,6 +55,7 @@ class TelegramSnscrapeScraper(Scraper):
                 media_archived=datetime.now(timezone.utc) if archive_media else None
             )
 
+    @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         scr = snscrape.modules.telegram.TelegramChannelScraper(

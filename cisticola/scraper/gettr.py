@@ -72,6 +72,7 @@ class GettrScraper(Scraper):
         key = urlparse(url).path.split('/')[-2] + ext
         return key 
 
+    @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
         client = PublicClient()
         username = self.get_username_from_url(channel.url)

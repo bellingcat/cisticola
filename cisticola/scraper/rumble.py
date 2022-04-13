@@ -69,6 +69,7 @@ class RumbleScraper(Scraper):
         if channel.platform == "Rumble" and channel.url is not None:
             return True
 
+    @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         profile = get_channel_profile(url = channel.url)
