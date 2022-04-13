@@ -32,24 +32,25 @@ def sync_channels(args):
     row = 2
 
     for c in channels:
-        # only adding channels, so skip everything with an ID
-        if c["id"] == "":
+        if c["public"] == "":
+            c["public"] = False
+        if c["chat"] == "":
+            c["chat"] = False
+
+        for k in c.keys():
+            if c[k] == "TRUE" or c[k] == "yes":
+                c[k] = True
+            if c[k] == "FALSE" or c[k] == "no":
+                c[k] = False
+
+            if c[k] == "":
+                c[k] = None
+
+        del c["followers"]
+
+        # add new channel
+        if c["id"] == "" or c["id"] is None:
             del c["id"]
-            del c["followers"]
-
-            if c["public"] == "":
-                c["public"] = False
-            if c["chat"] == "":
-                c["chat"] = False
-
-            for k in c.keys():
-                if c[k] == "TRUE" or c[k] == "yes":
-                    c[k] = True
-                if c[k] == "FALSE" or c[k] == "no":
-                    c[k] = False
-
-                if c[k] == "":
-                    c[k] = None
 
             # check to see if this already exists,
             platform_id = None
@@ -73,6 +74,23 @@ def sync_channels(args):
 
                 wks.update_cell(row, 1, channel.id)
                 time.sleep(1)
+        else:
+            channel = session.query(Channel).filter_by(id=int(c["id"])).first()
+
+            logger.info(f"Updating channel {channel}")
+            channel.name = c["name"]
+            channel.category = c["category"]
+            channel.platform = c["platform"]
+            channel.url = c["url"]
+            channel.screenname = c["screenname"]
+            channel.country = c["country"]
+            channel.influencer = c["influencer"]
+            channel.public = c["public"]
+            channel.chat = c["chat"]
+            channel.notes = c["notes"]
+
+            session.flush()
+            session.commit()
 
         row += 1
 
