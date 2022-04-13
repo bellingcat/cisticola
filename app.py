@@ -13,6 +13,9 @@ from cisticola.scraper import (
     VkontakteScraper,
     TelegramTelethonScraper,
     GettrScraper,
+    BitchuteScraper,
+    YoutubeScraper,
+    RumbleScraper,
 )
 
 
@@ -92,7 +95,12 @@ def get_scraper_controller():
     controller = ScraperController()
     controller.connect_to_db(engine)
 
-    scrapers = [TelegramTelethonScraper(), VkontakteScraper(), GettrScraper()]
+    scrapers = [VkontakteScraper(),
+        TelegramTelethonScraper(),
+        GettrScraper(),
+        BitchuteScraper(),
+        RumbleScraper(),
+        YoutubeScraper()]
 
     controller.register_scrapers(scrapers)
 

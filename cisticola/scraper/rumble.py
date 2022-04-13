@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 from loguru import logger
 
 from bs4 import BeautifulSoup
+import os
 
 from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper import Scraper, make_request
@@ -13,7 +14,10 @@ BASE_URL = 'https://rumble.com'
 
 class RumbleScraper(Scraper):
     """An implementation of a Scraper for Rumble, using custom functions"""
-    __version__ = "RumbleScraper 0.0.0"
+    __version__ = "RumbleScraper 0.0.1"
+
+    cookiestring = os.environ["YOUTUBE_COOKIESTRING"].replace(r'\n', '\n').replace(r'\t', '\t')
+    cookiefilename = 'cookiefile.txt'
 
     @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
