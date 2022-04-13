@@ -97,6 +97,7 @@ class TwitterScraper(Scraper):
         key = parsed_url.path.split('/')[-1] + ext
         return key 
 
+    @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         scraper = TwitterUserScraper(channel.screenname)

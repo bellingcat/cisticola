@@ -149,6 +149,7 @@ class TelegramTelethonScraper(Scraper):
                     archived_urls=archived_urls,
                     media_archived=datetime.now(timezone.utc) if archive_media else None)
 
+    @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
         username = channel.screenname
         if username is None:

@@ -105,6 +105,7 @@ class OdyseeScraper(Scraper):
 
         return f'{key}.{ext}'
 
+    @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         username = self.get_username_from_url(channel.url)
