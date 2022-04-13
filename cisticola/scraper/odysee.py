@@ -34,7 +34,7 @@ class OdyseeScraper(Scraper):
         all_videos = scraper.get_all_videos()
 
         for video in all_videos:
-            if since is not None and datetime.fromtimestamp(video.created) <= since.date:
+            if since is not None and video.created.replace(tzinfo=timezone.utc) <= since.date:
                 break
 
             url = video.streaming_url
@@ -63,9 +63,9 @@ class OdyseeScraper(Scraper):
                 platform="Odysee",
                 channel=channel.id,
                 platform_id=video.claim_id,
-                date=datetime.fromtimestamp(video.created),
+                date=video.created.replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_data=json.dumps(video.__dict__),
+                raw_data=json.dumps(video.__dict__, default = str),
                 archived_urls=archived_urls,
                 media_archived=datetime.now(timezone.utc) if archive_media else None)
 
@@ -76,9 +76,9 @@ class OdyseeScraper(Scraper):
                     platform="Odysee",
                     channel=channel.id,
                     platform_id=comment.claim_id,
-                    date=datetime.fromtimestamp(comment.created),
+                    date=comment.created.replace(tzinfo=timezone.utc),
                     date_archived=datetime.now(),
-                    raw_data=json.dumps(comment.__dict__),
+                    raw_data=json.dumps(comment.__dict__, default = str),
                     archived_urls={},
                     media_archived=datetime.now(timezone.utc))
 
@@ -117,5 +117,5 @@ class OdyseeScraper(Scraper):
         return RawChannelInfo(scraper=self.__version__,
             platform=channel.platform,
             channel=channel.id,
-            raw_data=json.dumps(profile),
+            raw_data=json.dumps(profile, default = str),
             date_archived=datetime.now(timezone.utc))
