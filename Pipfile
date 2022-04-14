@@ -22,6 +22,8 @@ psycopg2 = "*"
 tqdm = "*"
 ratelimit = "*"
 pytz = "*"
+langdetect = "*"
+spacy = "==3.2.4"
 
 [dev-packages]
 pytest = "*"

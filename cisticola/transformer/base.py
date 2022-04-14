@@ -68,6 +68,10 @@ class ETLController:
 
         self.transformers.append(transformer)
 
+    def register_transformers(self, transformers):
+        for t in transformers:
+            self.register_transformer(t)
+
     def connect_to_db(self, engine: Engine):
         """Connects the ETLController to a SQLAlchemy engine.
 
@@ -93,7 +97,8 @@ class ETLController:
             instance = session.query(Channel).filter_by(url=obj.url, platform_id=obj.platform_id, platform=obj.platform).first()
             
         elif type(obj) == Post:
-            instance = session.query(Post).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
+            instance = None
+            # instance = session.query(Post).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
 
         elif issubclass(type(obj), Media):
             instance = session.query(type(obj)).filter_by(original_url=obj.original_url, post=obj.post).first()
@@ -151,11 +156,11 @@ class ETLController:
                 handled = False
 
                 if transformer.can_handle(result):
-                    logger.info(f"{transformer} is handling result {result}")
+                    logger.trace(f"{transformer} is handling result {result}")
                     handled = True
                     session = self.session()
 
-                    transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate))
+                    transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate), session)
                     session.commit()
                     break
 
@@ -182,6 +187,7 @@ class ETLController:
             session.query(ScraperResult)
             .join(Post, isouter=True)
             .where(Post.raw_id == None)
+            .order_by(ScraperResult.date.asc())
             .all()
         )
         logger.info(f"Found {len(untransformed)} items to ETL")
