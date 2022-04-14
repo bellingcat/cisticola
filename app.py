@@ -202,6 +202,7 @@ if __name__ == "__main__":
         logger.add("logs/channel-info.log", level="TRACE", rotation="100 MB")
         scrape_channel_info(args)
     elif args.command == "transform":
+        logger.add("logs/transform.log", level="TRACE", rotation="100 MB")
         transform(args)
     else:
         logger.error(f"Unrecognized command {args.command}")
