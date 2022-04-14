@@ -16,6 +16,7 @@ from cisticola.scraper import (
     BitchuteScraper,
     RumbleScraper,
 )
+from cisticola.transformer import (ETLController, TelegramTelethonTransformer)
 
 
 def sync_channels(args):
@@ -122,6 +123,18 @@ def get_scraper_controller():
 
     return controller
 
+def get_transformer_controller():
+    engine = create_engine(os.environ["DB"])
+
+    controller = ETLController()
+    controller.connect_to_db(engine)
+
+    transformers = [TelegramTelethonTransformer()]
+
+    controller.register_transformers(transformers)
+
+    return controller
+
 
 def scrape_channels(args):
     logger.info(f"Scraping channels, media: {args.media}")
@@ -142,6 +155,12 @@ def archive_media(args):
 
     controller = get_scraper_controller()
     controller.archive_unarchived_media()
+
+def transform(args):
+    logger.info(f"Transforming untransformed media")
+
+    controller = get_transformer_controller()
+    controller.transform_all_untransformed()
 
 
 def init_db():
@@ -182,5 +201,7 @@ if __name__ == "__main__":
     elif args.command == "channel-info":
         logger.add("logs/channel-info.log", level="TRACE", rotation="100 MB")
         scrape_channel_info(args)
+    elif args.command == "transform":
+        transform(args)
     else:
         logger.error(f"Unrecognized command {args.command}")
