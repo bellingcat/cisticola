@@ -152,7 +152,6 @@ def init_db():
 if __name__ == "__main__":
     logger.remove()
     logger.add(sys.stdout, level="DEBUG", catch=True)
-    logger.add("logs/cisticola.log", level="TRACE", rotation="100 MB")
 
     parser = argparse.ArgumentParser(description="Cisticola command line tools")
     parser.add_argument(
@@ -172,12 +171,16 @@ if __name__ == "__main__":
     if args.command == "init-db":
         init_db()
     elif args.command == "sync-channels":
+        logger.add("logs/sync-channels.log", level="TRACE", rotation="100 MB")
         sync_channels(args)
     elif args.command == "scrape-channels":
+        logger.add("logs/scrape-channels.log", level="TRACE", rotation="100 MB")
         scrape_channels(args)
     elif args.command == "archive-media":
+        logger.add("logs/archive-media.log", level="TRACE", rotation="100 MB")
         archive_media(args)
     elif args.command == "channel-info":
+        logger.add("logs/channel-info.log", level="TRACE", rotation="100 MB")
         scrape_channel_info(args)
     else:
         logger.error(f"Unrecognized command {args.command}")

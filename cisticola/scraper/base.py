@@ -449,7 +449,8 @@ class ScraperController:
             handled = False
 
             for scraper in self.scrapers:
-                if scraper.__version__ == post.scraper:
+                # compare major versions
+                if scraper.__version__.split('.')[0] == post.scraper.split('.')[0]:
                     handled = True
                     logger.debug(f"{scraper} is archiving media for ID {post.id}")
                     post = scraper.archive_files(post)
