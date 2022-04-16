@@ -94,7 +94,7 @@ class ETLController:
 
         # This is using some adhoc unique constraints that might be worth formalizing at some point
         if type(obj) == Channel:
-            instance = session.query(Channel).filter_by(url=obj.url, platform_id=obj.platform_id, platform=obj.platform).first()
+            instance = session.query(Channel).filter_by(url=obj.url, platform_id=str(obj.platform_id), platform=obj.platform).first()
             
         elif type(obj) == Post:
             instance = None
@@ -130,9 +130,8 @@ class ETLController:
         if hydrate:
             obj.hydrate()
 
-        logger.info(f"Inserting new object {obj}")
+        # logger.info(f"Inserting new object {obj}")
         session.add(obj)
-        session.flush()
         return obj
 
     @logger.catch(reraise=True)
@@ -151,6 +150,8 @@ class ETLController:
             logger.error("No DB session")
             return
 
+        session = self.session()
+
         for result in results:
             for transformer in self.transformers:
                 handled = False
@@ -158,9 +159,9 @@ class ETLController:
                 if transformer.can_handle(result):
                     logger.trace(f"{transformer} is handling result {result}")
                     handled = True
-                    session = self.session()
 
                     transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate), session)
+                    
                     session.commit()
                     break
 
@@ -185,9 +186,12 @@ class ETLController:
         session = self.session()
         untransformed = (
             session.query(ScraperResult)
+            .filter_by(platform="Telegram")
+            .filter(ScraperResult.raw_data.notlike("%MessageService%"))
             .join(Post, isouter=True)
             .where(Post.raw_id == None)
             .order_by(ScraperResult.date.asc())
+            .limit(50000)
             .all()
         )
         logger.info(f"Found {len(untransformed)} items to ETL")
