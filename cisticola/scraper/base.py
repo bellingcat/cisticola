@@ -12,8 +12,9 @@ from sqlalchemy.orm import sessionmaker
 import yt_dlp
 from sqlalchemy.sql.expression import func
 from pathlib import Path
+from sqlalchemy import nullsfirst
 
-from cisticola.base import Channel, ScraperResult, mapper_registry
+from cisticola.base import Channel, RawChannelInfo, ScraperResult, mapper_registry
 from cisticola.utils import make_request
 
 class Scraper:
@@ -340,6 +341,8 @@ class ScraperController:
 
         channels = session.query(Channel).where(Channel.source=='researcher').all()
 
+        session.close()
+
         return self.scrape_channels(channels, archive_media=archive_media)
 
     def scrape_all_channel_info(self):
@@ -349,8 +352,15 @@ class ScraperController:
 
         session = self.session()
 
-        channels = session.query(Channel).where(Channel.source=='researcher').all()
+        # Because of rate limiting, we may not be able to succesfully scrape info for all of these channels.
+        # This will sort the channels by the least recently scraped.
+        most_recently_archived = session.query(func.max(RawChannelInfo.date_archived).label("date"), RawChannelInfo.channel.label("channel")).group_by(RawChannelInfo.channel).subquery()
+        channels = session.query(Channel).\
+            where(Channel.source=='researcher').\
+            outerjoin(most_recently_archived, Channel.id == most_recently_archived.c.channel).\
+            order_by(nullsfirst(most_recently_archived.c.date.asc())).all()
 
+        session.close()
         return self.scrape_channel_info(channels)
     
     def scrape_channels(self, channels: List[Channel], archive_media: bool = True):
@@ -419,6 +429,8 @@ class ScraperController:
             if not handled:
                 logger.warning(f"No handler found for Channel {channel}")
 
+        session.close()
+
     @logger.catch(reraise = True)
     def archive_unarchived_media(self):
         if self.session is None:
@@ -437,7 +449,8 @@ class ScraperController:
             handled = False
 
             for scraper in self.scrapers:
-                if scraper.__version__ == post.scraper:
+                # compare major versions
+                if scraper.__version__.split('.')[0] == post.scraper.split('.')[0]:
                     handled = True
                     logger.debug(f"{scraper} is archiving media for ID {post.id}")
                     post = scraper.archive_files(post)
@@ -452,6 +465,7 @@ class ScraperController:
                 logger.warning(f"No handler found for post scraped with {post.scraper}")
 
         session.commit()
+        session.close()
 
     @logger.catch(reraise = True)
     def scrape_channel_info(self, channels: List[Channel]):
@@ -470,6 +484,7 @@ class ScraperController:
             logger.error("No DB session")
             return
 
+        session = self.session()
         for channel in channels:
             handled = False
 
@@ -479,10 +494,13 @@ class ScraperController:
                     handled = True
 
                     # get most recent post
-                    session = self.session()
 
                     try:
                         info = scraper.get_profile(channel)
+                        if info is None:
+                            logger.warning(f"No info returned for {channel}")
+                            break
+
                         session.add(info)
 
                         session.commit()
@@ -494,6 +512,8 @@ class ScraperController:
 
             if not handled:
                 logger.warning(f"No handler found for Channel {channel}")
+
+        session.close()
 
     def connect_to_db(self, engine):
         """Connect the specified SQLAlchemy engine to the controller.

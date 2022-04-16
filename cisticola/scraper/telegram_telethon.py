@@ -18,7 +18,7 @@ MEDIA_TYPES = ['photo', 'video', 'document', 'webpage']
 
 class TelegramTelethonScraper(Scraper):
     """An implementation of a Scraper for Telegram, using Telethon library"""
-    __version__ = "TelegramTelethonScraper 0.0.1"
+    __version__ = "TelegramTelethonScraper 0.0.2"
 
     def get_username_from_url(self, url):
         username = url.split('https://t.me/')[1]
@@ -62,6 +62,7 @@ class TelegramTelethonScraper(Scraper):
                     result.media_archived = datetime.now(timezone.utc)
                 else:
                     logger.warning("Downloaded blob was None")
+                    result.archived_urls = {}
                     result.media_archived = datetime.now(timezone.utc)
             
         return result
@@ -80,6 +81,10 @@ class TelegramTelethonScraper(Scraper):
                 return self.archive_post_media(post, client=client)
 
         if type(post.media) == types.MessageMediaDocument:
+            if post.media.document.size/(1024*1024) > 50:
+                logger.info(f"Skipping archive of large {type(post.media)} with size {post.media.document.size/(1024*1024)} MB")
+                return None, None
+
             logger.debug(f"Archiving {type(post.media)} with size {post.media.document.size/(1024*1024)} MB")
         else:
             logger.debug(f"Archiving {type(post.media)}")
