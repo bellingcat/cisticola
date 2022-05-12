@@ -9,6 +9,7 @@ import time
 from telethon.sync import TelegramClient
 from telethon.errors.rpcerrorlist import ChannelPrivateError, ChannelInvalidError
 import os
+from datetime import datetime, timezone
 
 from cisticola.transformer.base import Transformer 
 from cisticola.base import ScraperResult, Post, Image, Video, Media, Channel
@@ -41,6 +42,9 @@ class TelegramTelethonTransformer(Transformer):
         except ChannelInvalidError:
             logger.info("ChannelInvalidError")
             return ("", "", "ChannelInvalidError")
+        except ValueError:
+            logger.info("ValueError")
+            return ("", "", "ValueError")
 
     def get_name_from_web_interface(self, orig_screenname, id):
         url = "https://t.me/s/" + orig_screenname + "/" + str(id)
@@ -102,7 +106,8 @@ class TelegramTelethonTransformer(Transformer):
                 if name == "":
                     logger.info("Trying fallback web interface")
                     orig_channel = session.query(Channel).filter_by(id=data.channel).first()
-                    name = self.get_name_from_web_interface(orig_channel.screenname, raw['id'])
+                    if orig_channel.screenname is not None:
+                        name = self.get_name_from_web_interface(orig_channel.screenname, raw['id'])
 
                 channel = Channel(
                     name=name,
@@ -138,6 +143,7 @@ class TelegramTelethonTransformer(Transformer):
             channel=data.channel,
             date=dateutil.parser.parse(raw['date']),
             date_archived=data.date_archived,
+            date_transformed=datetime.now(timezone.utc),
             url="",
             content=raw['message'],
             author_id=raw['post_author'],

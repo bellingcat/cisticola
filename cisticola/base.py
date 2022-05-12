@@ -149,6 +149,9 @@ class Post:
 
     #: Datetime (relative to UTC) that the scraped post was archived at.
     date_archived: datetime
+
+    #: Datetime (UTC) that the scraped post was transformed at.
+    date_transformed: datetime
     
     #: URL of the original post
     url: str
@@ -330,7 +333,7 @@ raw_posts_table = Table('raw_posts', mapper_registry.metadata,
                        Column('scraper', String),
                        Column('platform', String),
                        Column('channel', Integer, ForeignKey('channels.id'), index=True),
-                       Column('platform_id', String),
+                       Column('platform_id', String, index=True),
                        Column('date', DateTime, index=True),
                        Column('raw_data', String),
                        Column('date_archived', DateTime, index=True),
@@ -365,19 +368,20 @@ post_table = Table('posts', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
                               autoincrement=True),
                        Column('raw_id', Integer, ForeignKey('raw_posts.id'), index=True),
-                       Column('platform_id', Integer),
+                       Column('platform_id', Integer, index=True),
                        Column('scraper', String),
                        Column('transformer', String),
                        Column('platform', String),
                        Column('channel', Integer, ForeignKey('channels.id'), index=True),
                        Column('date', DateTime, index=True),
                        Column('date_archived', DateTime, index=True),
+                       Column('date_transformed', DateTime, index=True),
                        Column('url', String),
                        Column('author_id', String),
                        Column('author_username', String),
                        Column('content', String),
                        Column('forwarded_from', Integer, ForeignKey('channels.id'), index=True),
-                       Column('reply_to', Integer, ForeignKey('posts.id'), index=True),
+                       Column('reply_to', Integer, ForeignKey('posts.id', ondelete="CASCADE"), index=True),
                        Column('named_entities', JSON),
                        Column('cryptocurrency_addresses', JSON),
                        Column('hashtags', JSON),

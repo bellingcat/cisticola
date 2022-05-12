@@ -2,7 +2,9 @@ from typing import List, Generator, Union, Callable
 from loguru import logger
 from sqlalchemy.orm import sessionmaker, make_transient
 from sqlalchemy.engine.base import Engine
+from sqlalchemy.sql.expression import func
 from collections import defaultdict
+from datetime import datetime
 
 from cisticola.base import ScraperResult, Post, Media, Channel, mapper_registry
 
@@ -130,8 +132,9 @@ class ETLController:
         if hydrate:
             obj.hydrate()
 
-        # logger.info(f"Inserting new object {obj}")
         session.add(obj)
+        logger.trace(f"Inserted new object {obj}")
+
         return obj
 
     @logger.catch(reraise=True)
@@ -161,7 +164,7 @@ class ETLController:
                     handled = True
 
                     transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate), session)
-                    
+
                     session.commit()
                     break
 
@@ -190,8 +193,9 @@ class ETLController:
             .filter(ScraperResult.raw_data.notlike("%MessageService%"))
             .join(Post, isouter=True)
             .where(Post.raw_id == None)
+            # .order_by(func.random())
             .order_by(ScraperResult.date.asc())
-            .limit(50000)
+            .limit(100000)
             .all()
         )
         logger.info(f"Found {len(untransformed)} items to ETL")
