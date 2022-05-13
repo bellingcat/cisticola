@@ -156,20 +156,21 @@ class ETLController:
         session = self.session()
 
         for result in results:
-            for transformer in self.transformers:
-                handled = False
+            if result.scraper is not None and result.platform is not None:
+                for transformer in self.transformers:
+                    handled = False
 
-                if transformer.can_handle(result):
-                    logger.trace(f"{transformer} is handling result {result}")
-                    handled = True
+                    if transformer.can_handle(result):
+                        logger.trace(f"{transformer} is handling result {result.id} ({result.date})")
+                        handled = True
 
-                    transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate), session)
+                        transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate), session)
 
-                    session.commit()
-                    break
+                        session.commit()
+                        break
 
-                if handled == False:
-                    logger.warning(f"No Transformer could handle {result}")
+                    if handled == False:
+                        logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
 
     @logger.catch(reraise=True)
     def transform_all_untransformed(self, hydrate: bool = True):
@@ -187,17 +188,33 @@ class ETLController:
             return
 
         session = self.session()
-        untransformed = (
-            session.query(ScraperResult)
-            .filter_by(platform="Telegram")
-            .filter(ScraperResult.raw_data.notlike("%MessageService%"))
+
+        BATCH_SIZE = 50000
+        offset = 0
+        batch = []
+
+        query = (session.query(ScraperResult)
+            # .filter_by(platform="Telegram")
+            # .filter(ScraperResult.raw_data.notlike("%MessageService%"))
             .join(Post, isouter=True)
             .where(Post.raw_id == None)
             # .order_by(func.random())
             .order_by(ScraperResult.date.asc())
-            .limit(100000)
-            .all()
         )
-        logger.info(f"Found {len(untransformed)} items to ETL")
 
-        self.transform_results(untransformed, hydrate=hydrate)
+        while len(batch) > 0 or offset == 0:
+            logger.info(f"Fetching untransformed batch of {BATCH_SIZE}, offset {offset}")
+
+            batch = query.slice(offset, offset + BATCH_SIZE).all()
+            # untransformed = (
+                
+            #     .limit(BATCH_SIZE)
+            #     .offset(offset)
+            #     .all()
+            # )
+            
+            offset += BATCH_SIZE
+
+            logger.info(f"Found {len(batch)} items to ETL ({offset} already processed)")
+
+            self.transform_results(batch, hydrate=hydrate)

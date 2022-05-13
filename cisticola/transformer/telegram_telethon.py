@@ -63,6 +63,7 @@ class TelegramTelethonTransformer(Transformer):
 
         soup = BeautifulSoup(r.content)
         post = soup.findAll("div", {"data-post" : orig_screenname + "/" + str(id)})
+        name = ""
 
         # multiple posts can be combined into one result in the web interface
         decrement = 0
@@ -76,7 +77,6 @@ class TelegramTelethonTransformer(Transformer):
 
         if len(post) == 0:
             logger.warning(f"Could not find post from {url}")
-            name = ""
         else:
             fwd_tag = post[0].findAll("a", {"class", "tgme_widget_message_forwarded_from_name"})
 
