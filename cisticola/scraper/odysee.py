@@ -6,8 +6,8 @@ from urllib.parse import urlparse
 import requests
 from loguru import logger
 
-from polyphemus.base import OdyseeChannel
-from polyphemus.api import get_auth_token
+from polyphemus.base import OdyseeChannelScraper, process_raw_comment_info
+from polyphemus.api import get_auth_token, get_all_comments
 from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
 
@@ -29,40 +29,43 @@ class OdyseeScraper(Scraper):
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
         username = self.get_username_from_url(channel.url)
-        odysee_channel = OdyseeChannel(channel_name = username, auth_token = self.auth_token)
+        scraper = OdyseeChannelScraper(channel_name = username, auth_token = self.auth_token)
         
-        all_videos = odysee_channel.get_all_videos()
+        all_videos = scraper.get_all_videos()
 
         for video in all_videos:
-            if since is not None and datetime.fromtimestamp(video.info['created']) <= since.date:
+            if since is not None and video.created.replace(tzinfo=timezone.utc) <= since.date:
                 break
 
-            url = video.info['streaming_url']
+            url = video.streaming_url
+            if url is None:
+                archived_urls = {}
+            else:
+                archived_urls = {url: None}
 
-            archived_urls = {url: None}
+                if archive_media:
 
-            if archive_media:
+                    # Check if file is a video file or an m3u8 file
+                    r = requests.head(url)
+                    if r.headers['Content-Type'] == 'text/html; charset=utf-8':
+                        media_blob, content_type, key = self.m3u8_url_to_blob(url)
+                    else:
+                        media_blob, content_type, key = self.url_to_blob(url)
 
-                # Check if file is a video file or an m3u8 file
-                r = requests.head(url)
-                if r.headers['Content-Type'] == 'text/html; charset=utf-8':
-                    media_blob, content_type, key = self.m3u8_url_to_blob(url)
-                else:
-                    media_blob, content_type, key = self.url_to_blob(url)
+                    archived_url = self.archive_blob(media_blob, content_type, key)
+                    archived_urls[url] = archived_url
 
-                archived_url = self.archive_blob(media_blob, content_type, key)
-                archived_urls[url] = archived_url
-
-            all_comments = video.get_all_comments()
+            raw_comment_info_list = get_all_comments(video_id=video.claim_id)
+            all_comments = (process_raw_comment_info(raw_comment_info) for raw_comment_info in raw_comment_info_list)
 
             yield ScraperResult(
                 scraper=self.__version__,
                 platform="Odysee",
                 channel=channel.id,
-                platform_id=video.info['claim_id'],
-                date=datetime.fromtimestamp(video.info['created']),
+                platform_id=video.claim_id,
+                date=video.created.replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
-                raw_data=json.dumps(video.info),
+                raw_data=json.dumps(video.__dict__, default = str),
                 archived_urls=archived_urls,
                 media_archived=datetime.now(timezone.utc) if archive_media else None)
 
@@ -72,10 +75,10 @@ class OdyseeScraper(Scraper):
                     scraper=self.__version__,
                     platform="Odysee",
                     channel=channel.id,
-                    platform_id=comment.info['claim_id'],
-                    date=datetime.fromtimestamp(comment.info['created']),
+                    platform_id=comment.claim_id,
+                    date=comment.created.replace(tzinfo=timezone.utc),
                     date_archived=datetime.now(),
-                    raw_data=json.dumps(comment.info),
+                    raw_data=json.dumps(comment.__dict__, default = str),
                     archived_urls={},
                     media_archived=datetime.now(timezone.utc))
 
@@ -109,11 +112,11 @@ class OdyseeScraper(Scraper):
     def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         username = self.get_username_from_url(channel.url)
-        odysee_channel = OdyseeChannel(channel_name = username, auth_token = self.auth_token)
-        profile = odysee_channel.info
+        scraper = OdyseeChannelScraper(channel_name = username, auth_token = self.auth_token)
+        profile = scraper.get_entity().__dict__
 
         return RawChannelInfo(scraper=self.__version__,
             platform=channel.platform,
             channel=channel.id,
-            raw_data=json.dumps(profile),
+            raw_data=json.dumps(profile, default = str),
             date_archived=datetime.now(timezone.utc))
