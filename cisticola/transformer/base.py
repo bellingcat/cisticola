@@ -2,7 +2,9 @@ from typing import List, Generator, Union, Callable
 from loguru import logger
 from sqlalchemy.orm import sessionmaker, make_transient
 from sqlalchemy.engine.base import Engine
+from sqlalchemy.sql.expression import func
 from collections import defaultdict
+from datetime import datetime
 
 from cisticola.base import ScraperResult, Post, Media, Channel, mapper_registry
 
@@ -68,6 +70,10 @@ class ETLController:
 
         self.transformers.append(transformer)
 
+    def register_transformers(self, transformers):
+        for t in transformers:
+            self.register_transformer(t)
+
     def connect_to_db(self, engine: Engine):
         """Connects the ETLController to a SQLAlchemy engine.
 
@@ -90,10 +96,11 @@ class ETLController:
 
         # This is using some adhoc unique constraints that might be worth formalizing at some point
         if type(obj) == Channel:
-            instance = session.query(Channel).filter_by(url=obj.url, platform_id=obj.platform_id, platform=obj.platform).first()
+            instance = session.query(Channel).filter_by(url=obj.url, platform_id=str(obj.platform_id), platform=obj.platform).first()
             
         elif type(obj) == Post:
-            instance = session.query(Post).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
+            instance = None
+            # instance = session.query(Post).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
 
         elif issubclass(type(obj), Media):
             instance = session.query(type(obj)).filter_by(original_url=obj.original_url, post=obj.post).first()
@@ -125,9 +132,9 @@ class ETLController:
         if hydrate:
             obj.hydrate()
 
-        logger.info(f"Inserting new object {obj}")
         session.add(obj)
-        session.flush()
+        logger.trace(f"Inserted new object {obj}")
+
         return obj
 
     @logger.catch(reraise=True)
@@ -146,21 +153,24 @@ class ETLController:
             logger.error("No DB session")
             return
 
+        session = self.session()
+
         for result in results:
-            for transformer in self.transformers:
-                handled = False
+            if result.scraper is not None and result.platform is not None:
+                for transformer in self.transformers:
+                    handled = False
 
-                if transformer.can_handle(result):
-                    logger.info(f"{transformer} is handling result {result}")
-                    handled = True
-                    session = self.session()
+                    if transformer.can_handle(result):
+                        logger.trace(f"{transformer} is handling result {result.id} ({result.date})")
+                        handled = True
 
-                    transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate))
-                    session.commit()
-                    break
+                        transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate), session)
 
-                if handled == False:
-                    logger.warning(f"No Transformer could handle {result}")
+                        session.commit()
+                        break
+
+                    if handled == False:
+                        logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
 
     @logger.catch(reraise=True)
     def transform_all_untransformed(self, hydrate: bool = True):
@@ -178,12 +188,33 @@ class ETLController:
             return
 
         session = self.session()
-        untransformed = (
-            session.query(ScraperResult)
+
+        BATCH_SIZE = 50000
+        offset = 0
+        batch = []
+
+        query = (session.query(ScraperResult)
+            # .filter_by(platform="Telegram")
+            # .filter(ScraperResult.raw_data.notlike("%MessageService%"))
             .join(Post, isouter=True)
             .where(Post.raw_id == None)
-            .all()
+            # .order_by(func.random())
+            .order_by(ScraperResult.date.asc())
         )
-        logger.info(f"Found {len(untransformed)} items to ETL")
 
-        self.transform_results(untransformed, hydrate=hydrate)
+        while len(batch) > 0 or offset == 0:
+            logger.info(f"Fetching untransformed batch of {BATCH_SIZE}, offset {offset}")
+
+            batch = query.slice(offset, offset + BATCH_SIZE).all()
+            # untransformed = (
+                
+            #     .limit(BATCH_SIZE)
+            #     .offset(offset)
+            #     .all()
+            # )
+            
+            offset += BATCH_SIZE
+
+            logger.info(f"Found {len(batch)} items to ETL ({offset} already processed)")
+
+            self.transform_results(batch, hydrate=hydrate)

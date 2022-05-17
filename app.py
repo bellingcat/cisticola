@@ -16,6 +16,7 @@ from cisticola.scraper import (
     BitchuteScraper,
     RumbleScraper,
 )
+from cisticola.transformer import (ETLController, TelegramTelethonTransformer)
 
 
 def sync_channels(args):
@@ -59,10 +60,16 @@ def sync_channels(args):
             channel = (
                 session.query(Channel)
                 .filter_by(
-                    platform_id=str(platform_id), platform=c["platform"], url=c["url"]
+                    platform_id=str(platform_id), platform=str(c["platform"])
                 )
                 .first()
             )
+
+            if not channel:
+                channel = session.query(Channel).filter_by(platform=str(c["platform"]), url=str(c["url"])).first()
+
+            if not channel and c["screenname"] != '' and c["screenname"] is not None:
+                channel = session.query(Channel).filter_by(platform=str(c["platform"]), screenname=str(c["screenname"])).first()
 
             if not channel:
                 channel = Channel(**c, source="researcher")
@@ -73,6 +80,26 @@ def sync_channels(args):
 
                 wks.update_cell(row, 1, channel.id)
                 time.sleep(1)
+            else:
+                logger.info(f"Channel found, updating channel {channel}")
+                channel.name = c["name"]
+                channel.category = c["category"]
+                channel.platform = c["platform"]
+                channel.url = c["url"]
+                channel.screenname = c["screenname"]
+                channel.country = c["country"]
+                channel.influencer = c["influencer"]
+                channel.public = c["public"]
+                channel.chat = c["chat"]
+                channel.notes = c["notes"]
+                channel.source = "researcher"
+
+                session.flush()
+                session.commit()
+
+                wks.update_cell(row, 1, channel.id)
+                time.sleep(1)
+
         else:
             channel = session.query(Channel).filter_by(id=int(c["id"])).first()
 
@@ -87,6 +114,7 @@ def sync_channels(args):
             channel.public = c["public"]
             channel.chat = c["chat"]
             channel.notes = c["notes"]
+            channel.source = "researcher"
 
             session.flush()
             session.commit()
@@ -122,6 +150,18 @@ def get_scraper_controller():
 
     return controller
 
+def get_transformer_controller():
+    engine = create_engine(os.environ["DB"])
+
+    controller = ETLController()
+    controller.connect_to_db(engine)
+
+    transformers = [TelegramTelethonTransformer()]
+
+    controller.register_transformers(transformers)
+
+    return controller
+
 
 def scrape_channels(args):
     logger.info(f"Scraping channels, media: {args.media}")
@@ -142,6 +182,12 @@ def archive_media(args):
 
     controller = get_scraper_controller()
     controller.archive_unarchived_media()
+
+def transform(args):
+    logger.info(f"Transforming untransformed media")
+
+    controller = get_transformer_controller()
+    controller.transform_all_untransformed()
 
 
 def init_db():
@@ -182,5 +228,8 @@ if __name__ == "__main__":
     elif args.command == "channel-info":
         logger.add("logs/channel-info.log", level="TRACE", rotation="100 MB")
         scrape_channel_info(args)
+    elif args.command == "transform":
+        logger.add("logs/transform.log", level="TRACE", rotation="100 MB")
+        transform(args)
     else:
         logger.error(f"Unrecognized command {args.command}")

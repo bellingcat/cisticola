@@ -1,5 +1,5 @@
 from typing import List
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 import tempfile 
 import json
@@ -10,6 +10,11 @@ from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKe
 import pytesseract
 import PIL
 import exiftool
+import re
+from langdetect import detect, DetectorFactory
+from langdetect.lang_detect_exception import LangDetectException
+from loguru import logger
+import spacy
 
 from .utils import make_request
 
@@ -109,6 +114,14 @@ class RawChannelInfo:
     #: Datetime (relative to UTC) that the scraped post was archived at.
     date_archived: datetime
 
+nlp_en = spacy.load('en_core_web_sm', disable=['parser', 'tok2vec', 'attribute_ruler'])
+nlp_de = spacy.load('de_core_news_sm', disable=['parser', 'tok2vec', 'attribute_ruler'])
+nlp_it = spacy.load('it_core_news_sm', disable=['parser', 'tok2vec', 'attribute_ruler'])
+nlp_fr = spacy.load('fr_core_news_sm', disable=['parser', 'tok2vec', 'attribute_ruler'])
+nlp_ru = spacy.load('ru_core_news_sm', disable=['parser', 'tok2vec', 'attribute_ruler'])
+nlp_nl = spacy.load('nl_core_news_sm', disable=['parser', 'tok2vec', 'attribute_ruler'])
+nlp_xx = spacy.load('xx_ent_wiki_sm')
+
 @dataclass
 class Post:
     """An object with fields for columns in the analysis table"""
@@ -136,6 +149,9 @@ class Post:
 
     #: Datetime (relative to UTC) that the scraped post was archived at.
     date_archived: datetime
+
+    #: Datetime (UTC) that the scraped post was transformed at.
+    date_transformed: datetime
     
     #: URL of the original post
     url: str
@@ -149,6 +165,24 @@ class Post:
     #: Text of the original post
     content: str
 
+    #: Named entities detected in post
+    named_entities: list = field(default_factory=list)
+
+    #: Any cryptocurrency addresses in post
+    cryptocurrency_addresses: list = field(default_factory=list)
+
+    #: Hashtags in post
+    hashtags: list = field(default_factory=list)
+
+    #: Links to any other websites
+    outlinks: list = field(default_factory=list)
+
+    #: Detected language of post
+    detected_language: str = ""
+
+    #: Normalized post content
+    normalized_content: str = ""
+
     #: The ID of the Channel that the post was forwarded or quoted from
     forwarded_from: int = None
       
@@ -156,7 +190,60 @@ class Post:
     reply_to: int = None
 
     def hydrate(self):
-        pass
+        URL_REGEX = r"""(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:\'\".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))"""
+
+        # replace is here in order to prevent catastrophic backtracking
+        urls = re.findall(URL_REGEX, self.content.replace("::::::::", ""))
+        self.outlinks = urls
+
+        HASHTAG_REGEX = r"(?:^|\s)[＃#]{1}(\w+)"
+        
+        hashtags = re.findall(HASHTAG_REGEX, self.content)
+        self.hashtags = hashtags
+
+        # regex patterns for finding crypto addresses
+        BTC_REGEX = r'\b(bc(0([ac-hj-np-z02-9]{39}|[ac-hj-np-z02-9]{59})|1[ac-hj-np-z02-9]{8,87})|[13][a-km-zA-HJ-NP-Z1-9]{25,35})\b'
+        ETHER_REGEX = r'(0x[a-fA-F0-9]{40})'
+        
+        self.cryptocurrency_addresses = [m[0] for m in re.findall(BTC_REGEX, self.content)] + re.findall(ETHER_REGEX, self.content)
+
+        try:
+            self.detected_language = detect(self.content)
+        except LangDetectException:
+            self.detected_language = ""
+
+        self.hydrate_spacy()
+
+    def hydrate_spacy(self):
+        ner_only = False
+        
+        if self.detected_language == 'en':
+            nlp = nlp_en
+        elif self.detected_language == 'de':
+            nlp = nlp_de
+        elif self.detected_language == 'it':
+            nlp = nlp_it
+        elif self.detected_language == 'fr':
+            nlp = nlp_fr
+        elif self.detected_language == 'ru':
+            nlp = nlp_ru
+        elif self.detected_language == 'nl':
+            nlp = nlp_nl
+        else:
+            logger.info(f"No language model for {self.detected_language}")
+            nlp = nlp_xx
+            ner_only = True
+
+        doc = nlp(self.content)
+        
+        if not ner_only:
+            punctuation = ['?',':','!',',','.',';','|','(',')','--','#','=','+']
+            tokens = [t.lemma_ for t in doc if not t.is_stop and t.lemma_ not in punctuation]
+            self.normalized_content = ' '.join(tokens)
+        else:
+            self.normalized_content = ''
+
+        self.named_entities = [{'text': ent.text, 'type': ent.label_} for ent in doc.ents]
 
 
 @dataclass
@@ -247,7 +334,7 @@ raw_posts_table = Table('raw_posts', mapper_registry.metadata,
                        Column('scraper', String),
                        Column('platform', String),
                        Column('channel', Integer, ForeignKey('channels.id'), index=True),
-                       Column('platform_id', String),
+                       Column('platform_id', String, index=True),
                        Column('date', DateTime, index=True),
                        Column('raw_data', String),
                        Column('date_archived', DateTime, index=True),
@@ -282,19 +369,26 @@ post_table = Table('posts', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
                               autoincrement=True),
                        Column('raw_id', Integer, ForeignKey('raw_posts.id'), index=True),
-                       Column('platform_id', Integer),
+                       Column('platform_id', Integer, index=True),
                        Column('scraper', String),
                        Column('transformer', String),
                        Column('platform', String),
                        Column('channel', Integer, ForeignKey('channels.id'), index=True),
                        Column('date', DateTime, index=True),
                        Column('date_archived', DateTime, index=True),
+                       Column('date_transformed', DateTime, index=True),
                        Column('url', String),
                        Column('author_id', String),
                        Column('author_username', String),
                        Column('content', String),
                        Column('forwarded_from', Integer, ForeignKey('channels.id'), index=True),
-                       Column('reply_to', Integer, ForeignKey('posts.id'), index=True)
+                       Column('reply_to', Integer, ForeignKey('posts.id', ondelete="CASCADE"), index=True),
+                       Column('named_entities', JSON),
+                       Column('cryptocurrency_addresses', JSON),
+                       Column('hashtags', JSON),
+                       Column('outlinks', JSON),
+                       Column('detected_language', String),
+                       Column('normalized_content', String)
                        )
 
 media_table = Table('media', mapper_registry.metadata,
