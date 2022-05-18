@@ -16,7 +16,7 @@ from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Ima
 
 
 class TelegramTelethonTransformer(Transformer):
-    __version__ = 'TelegramTelethonTransformer 0.0.1'
+    __version__ = 'TelegramTelethonTransformer 0.0.2'
 
     bad_channels = {}
 
@@ -99,7 +99,7 @@ class TelegramTelethonTransformer(Transformer):
             platform_id=raw['full_chat']['id'],
             platform=data.platform,
             scraper=data.scraper,
-            transformer=data.transformer,
+            transformer=self.__version__,
             screenname=chat_raw['username'],
             name=chat_raw['title'],
             description=raw['full_chat']['about'],

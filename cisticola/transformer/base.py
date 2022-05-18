@@ -223,16 +223,16 @@ class ETLController:
                     handled = False
 
                     if transformer.can_handle(result):
-                        logger.trace(f"{transformer} is handling raw info result {result.id} ({result.date})")
+                        logger.trace(f"{transformer} is handling raw info result {result.id} ({result.date_archived})")
                         handled = True
 
-                        transformer.transform(result, lambda obj: self.insert_or_select(obj, session, False), session)
+                        transformer.transform_info(result, lambda obj: self.insert_or_select(obj, session, False), session)
 
                         session.commit()
                         break
 
                     if handled == False:
-                        logger.warning(f"No Transformer could handle raw channel info ID {result.id} with platform {result.platform} ({result.date})")
+                        logger.warning(f"No Transformer could handle raw channel info ID {result.id} with platform {result.platform} ({result.date_archived})")
 
 
     @logger.catch(reraise=True)
