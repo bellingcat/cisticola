@@ -189,6 +189,11 @@ def transform(args):
     controller = get_transformer_controller()
     controller.transform_all_untransformed()
 
+def transform_info(args):
+    logger.info(f"Transforming untransformed channel info")
+
+    controller = get_transformer_controller()
+    controller.transform_all_untransformed_info()
 
 def init_db():
     engine = create_engine(os.environ["DB"])
@@ -231,5 +236,8 @@ if __name__ == "__main__":
     elif args.command == "transform":
         logger.add("logs/transform.log", level="TRACE", rotation="100 MB")
         transform(args)
+    elif args.command == "transform-info":
+        logger.add("logs/transform-info.log", level="TRACE", rotation="100 MB")
+        transform_info(args)
     else:
         logger.error(f"Unrecognized command {args.command}")
