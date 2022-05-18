@@ -6,7 +6,7 @@ from sqlalchemy.sql.expression import func
 from collections import defaultdict
 from datetime import datetime
 
-from cisticola.base import ScraperResult, Post, Media, Channel, mapper_registry
+from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Media, Channel, mapper_registry
 
 
 class Transformer:
@@ -194,27 +194,71 @@ class ETLController:
         batch = []
 
         query = (session.query(ScraperResult)
-            # .filter_by(platform="Telegram")
-            # .filter(ScraperResult.raw_data.notlike("%MessageService%"))
             .join(Post, isouter=True)
             .where(Post.raw_id == None)
-            # .order_by(func.random())
             .order_by(ScraperResult.date.asc())
         )
 
         while len(batch) > 0 or offset == 0:
-            logger.info(f"Fetching untransformed batch of {BATCH_SIZE}, offset {offset}")
+            logger.info(f"Fetching untransformed posts batch of {BATCH_SIZE}, offset {offset}")
 
             batch = query.slice(offset, offset + BATCH_SIZE).all()
-            # untransformed = (
-                
-            #     .limit(BATCH_SIZE)
-            #     .offset(offset)
-            #     .all()
-            # )
-            
             offset += BATCH_SIZE
 
             logger.info(f"Found {len(batch)} items to ETL ({offset} already processed)")
 
             self.transform_results(batch, hydrate=hydrate)
+
+    @logger.catch(reraise=True)
+    def transform_info(self, results: List[ChannelInfo]):
+        if self.session is None:
+            logger.error("No DB session")
+            return
+
+        session = self.session()
+
+        for result in results:
+            if result.scraper is not None and result.platform is not None:
+                for transformer in self.transformers:
+                    handled = False
+
+                    if transformer.can_handle(result):
+                        logger.trace(f"{transformer} is handling raw info result {result.id} ({result.date})")
+                        handled = True
+
+                        transformer.transform(result, lambda obj: self.insert_or_select(obj, session, False), session)
+
+                        session.commit()
+                        break
+
+                    if handled == False:
+                        logger.warning(f"No Transformer could handle raw channel info ID {result.id} with platform {result.platform} ({result.date})")
+
+
+    @logger.catch(reraise=True)
+    def transform_all_untransformed_info(self):
+        if self.session is None:
+            logger.error("No DB session")
+            return
+
+        session = self.session()
+
+        BATCH_SIZE = 50000
+        offset = 0
+        batch = []
+
+        query = (session.query(RawChannelInfo)
+            .join(ChannelInfo, isouter=True)
+            .where(ChannelInfo.raw_channel_info_id == None)
+            .order_by(RawChannelInfo.date_archived.asc())
+        )
+
+        while len(batch) > 0 or offset == 0:
+            logger.info(f"Fetching untransformed info batch of {BATCH_SIZE}, offset {offset}")
+
+            batch = query.slice(offset, offset + BATCH_SIZE).all()
+            offset += BATCH_SIZE
+
+            logger.info(f"Found {len(batch)} info items to ETL ({offset} already processed)")
+
+            self.transform_info(batch)

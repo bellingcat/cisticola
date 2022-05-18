@@ -12,7 +12,7 @@ import os
 from datetime import datetime, timezone
 
 from cisticola.transformer.base import Transformer 
-from cisticola.base import ScraperResult, Post, Image, Video, Media, Channel
+from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Image, Video, Media, Channel
 
 
 class TelegramTelethonTransformer(Transformer):
@@ -87,6 +87,33 @@ class TelegramTelethonTransformer(Transformer):
                 name = fwd_tag[0].text
 
         return name
+
+    def transform_info(self, data: RawChannelInfo, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+        raw = json.loads(data.raw_data)
+
+        chat_raw = raw['chats'][0]
+
+        transformed = ChannelInfo(
+            raw_channel_info_id=data.id,
+            channel=data.channel,
+            platform_id=raw['full_chat']['id'],
+            platform=data.platform,
+            scraper=data.scraper,
+            transformer=data.transformer,
+            screenname=chat_raw['username'],
+            name=chat_raw['title'],
+            description=raw['full_chat']['about'],
+            description_url='', # does not exist for Telegram
+            description_location='', # does not exist for Telegram
+            followers=raw['full_chat']['participants_count'],
+            following=-1, # does not exist for Telegram
+            verified=False, #does not exist for Telegram
+            date_created=dateutil.parser.parse(chat_raw['date']),
+            date_archived=data.date_archived,
+            date_transformed=datetime.now(timezone.utc)
+        )
+
+        transformed = insert(transformed)
 
     def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)

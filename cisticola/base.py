@@ -114,6 +114,49 @@ class RawChannelInfo:
     #: Datetime (relative to UTC) that the scraped post was archived at.
     date_archived: datetime
 
+@dataclass
+class ChannelInfo:
+    """A processed set of information about a channel.
+    """
+
+    # Foreign key from the raw_channel_info table
+    raw_channel_info_id: int
+
+    # Foreign ckey from the channels table
+    channel: int
+
+    # platform specific ID of the channel
+    platform_id: str
+
+    #: Name of platform from which result was scraped, e.g. ``"Twitter"``.
+    platform: str
+
+    #: String specifying name and version of scraper used to generate result, e.g. ``"TwitterScraper 0.0.1"``.
+    scraper: str
+
+    #: String specifying name and version of transformer used to tranform result, e.g. ``"TwitterTransformer 0.0.1"``.
+    transformer: str
+
+    #: attributes extracted from the raw channel info object
+    screenname: str
+    name: str
+    description: str
+    description_url: str
+    description_location: str
+    followers: int
+    following: int
+    verified: bool
+    date_created: datetime
+
+    #: Datetime (relative to UTC) that the scraped channel info was archived at.
+    date_archived: datetime
+    
+    #: Datetime (UTC) that the scraped channel info was transformed at.
+    date_transformed: datetime
+
+    def hydrate(self):
+        pass
+
 nlp_en = spacy.load('en_core_web_sm', disable=['parser', 'tok2vec', 'attribute_ruler'])
 nlp_de = spacy.load('de_core_news_sm', disable=['parser', 'tok2vec', 'attribute_ruler'])
 nlp_it = spacy.load('it_core_news_sm', disable=['parser', 'tok2vec', 'attribute_ruler'])
@@ -349,6 +392,23 @@ raw_channel_info_table = Table('raw_channel_info', mapper_registry.metadata,
                     Column('raw_data', String),
                     Column('date_archived', DateTime, index=True))
 
+channel_info_table = Table('channel_info', mapper_registry.metadata,
+                    Column('id', Integer, primary_key=True, autoincrement=True),
+                    Column('raw_channel_info_id', Integer, ForeignKey('raw_channel_info.id'), index=True),
+                    Column('channel', Integer, ForeignKey('channels.id'), index=True),
+                    Column('screenname', String),
+                    Column('name', String),
+                    Column('description', String),
+                    Column('description_url', String),
+                    Column('description_location', String),
+                    Column('followers', Integer),
+                    Column('following', Integer),
+                    Column('verified', Boolean),
+                    Column('date_created', DateTime),
+                    Column('date_archived', DateTime, index=True),
+                    Column('date_transformed', DateTime, index=True)
+                    )
+
 channel_table = Table('channels', mapper_registry.metadata,
                     Column('id', Integer, primary_key=True, autoincrement=True),
                     Column('name', String),
@@ -406,6 +466,7 @@ mapper_registry.map_imperatively(Post, post_table)
 mapper_registry.map_imperatively(Channel, channel_table)
 mapper_registry.map_imperatively(ScraperResult, raw_posts_table)
 mapper_registry.map_imperatively(RawChannelInfo, raw_channel_info_table)
+mapper_registry.map_imperatively(ChannelInfo, channel_info_table)
 mapper_registry.map_imperatively(Media, media_table, polymorphic_on='type', polymorphic_identity='media')
 mapper_registry.map_imperatively(Image, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='image')
 mapper_registry.map_imperatively(Video, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='video')
