@@ -1,4 +1,4 @@
-from sqlalchemy.orm import sessionmaker, with_polymorphic
+from sqlalchemy.orm import sessionmaker
 import json
 
 import pytest
@@ -18,6 +18,7 @@ def test_scrape_etl_twitter(engine, controller, etl_controller, channel_kwargs):
 
     etl_controller.register_transformer(TwitterTransformer())
     etl_controller.transform_all_untransformed()
+    etl_controller.transform_all_untransformed_info()
 
     sessionfactory = sessionmaker()
     sessionfactory.configure(bind=engine)
@@ -26,8 +27,8 @@ def test_scrape_etl_twitter(engine, controller, etl_controller, channel_kwargs):
     posts = session.query(Post).all()
     media = session.query(Media).all()
 
-    assert len(posts) == 10
-    assert len(media) == 7
+    assert len(posts) == 12
+    assert len(media) == 4
 
-    assert posts[-1].content == "BARN"
-    assert json.loads(media[-1].exif)['Composite:ImageSize'] == "826 728"
+    assert posts[2].content == "BARN"
+    assert json.loads(media[0].exif)['Composite:ImageSize'] == "826 728"
