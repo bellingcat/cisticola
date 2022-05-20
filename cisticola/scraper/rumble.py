@@ -14,7 +14,7 @@ BASE_URL = 'https://rumble.com'
 
 class RumbleScraper(Scraper):
     """An implementation of a Scraper for Rumble, using custom functions"""
-    __version__ = "RumbleScraper 0.0.1"
+    __version__ = "RumbleScraper 0.0.2"
 
     cookiestring = os.environ["YOUTUBE_COOKIESTRING"].replace(r'\n', '\n').replace(r'\t', '\t')
     cookiefilename = 'cookiefile.txt'
