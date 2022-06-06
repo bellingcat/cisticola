@@ -24,6 +24,10 @@ ratelimit = "*"
 pytz = "*"
 langdetect = "*"
 spacy = "==3.2.4"
+PyExifTool = {git = "https://github.com/smarnach/pyexiftool.git"}
+gabber = {git = "https://github.com/stanfordio/gabber.git"}
+snscrape = {git = "https://github.com/bellingcat/snscrape"}
+polyphemus = {git = "https://github.com/bellingcat/polyphemus"}
 
 [dev-packages]
 pytest = "*"
@@ -39,15 +43,3 @@ python_version = "3.9"
 
 [pipenv]
 allow_prereleases = true
-
-[packages.polyphemus]
-git = "https://github.com/bellingcat/polyphemus.git"
-
-[packages.PyExifTool]
-git = "https://github.com/smarnach/pyexiftool.git"
-
-[packages.gabber]
-git = "https://github.com/stanfordio/gabber.git"
-
-[packages.snscrape]
-git = "https://github.com/bellingcat/snscrape"
