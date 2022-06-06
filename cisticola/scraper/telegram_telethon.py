@@ -20,11 +20,23 @@ class TelegramTelethonScraper(Scraper):
     """An implementation of a Scraper for Telegram, using Telethon library"""
     __version__ = "TelegramTelethonScraper 0.0.2"
 
-    def get_username_from_url(self, url):
+    def get_username_from_url(url):
         username = url.split('https://t.me/')[1]
         if username.startswith('s/'):
             username = username.split('s/')[1]
         return username
+
+    def get_channel_identifier(channel: Channel):
+        identifier = channel.platform_id
+        
+        if identifier is None:
+            identifier = channel.screenname
+            if identifier is None:
+                identifier = TelegramTelethonScraper.get_username_from_url(channel.url)
+        else:
+            identifier = int(identifier)
+
+        return identifier
 
     @logger.catch
     def archive_files(self, result: ScraperResult, client : TelegramClient = None) -> ScraperResult:
@@ -108,14 +120,12 @@ class TelegramTelethonScraper(Scraper):
                 return (blob, output_file_with_ext)
 
     def can_handle(self, channel):
-        if channel.platform == "Telegram" and channel.public:
+        if channel.platform == "Telegram":
             return True
 
     @logger.catch
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
-        username = channel.screenname
-        if username is None:
-            username = self.get_username_from_url(channel.url)
+        username = TelegramTelethonScraper.get_channel_identifier(channel)
 
         api_id = os.environ['TELEGRAM_API_ID']
         api_hash = os.environ['TELEGRAM_API_HASH']
@@ -156,9 +166,7 @@ class TelegramTelethonScraper(Scraper):
 
     @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
-        username = channel.screenname
-        if username is None:
-            username = self.get_username_from_url(channel.url)
+        username = TelegramTelethonScraper.get_channel_identifier(channel)
 
         api_id = os.environ['TELEGRAM_API_ID']
         api_hash = os.environ['TELEGRAM_API_HASH']

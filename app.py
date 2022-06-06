@@ -1,13 +1,11 @@
 import argparse
 from loguru import logger
-import gspread
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
-import time
 import sys
 
-from cisticola.base import Channel, mapper_registry
+from cisticola.base import mapper_registry
 from cisticola.scraper import (
     ScraperController,
     VkontakteScraper,
@@ -17,112 +15,7 @@ from cisticola.scraper import (
     RumbleScraper,
 )
 from cisticola.transformer import (ETLController, TelegramTelethonTransformer)
-
-
-def sync_channels(args):
-    logger.info("Synchronizing channels")
-
-    session = get_db_session()
-
-    gc = gspread.service_account(filename="service_account.json")
-
-    # Open a sheet from a spreadsheet in one go
-    wks = gc.open_by_url(args.gsheet).worksheet("channels")
-    channels = wks.get_all_records()
-    row = 2
-
-    for c in channels:
-        if c["public"] == "":
-            c["public"] = False
-        if c["chat"] == "":
-            c["chat"] = False
-
-        for k in c.keys():
-            if c[k] == "TRUE" or c[k] == "yes":
-                c[k] = True
-            if c[k] == "FALSE" or c[k] == "no":
-                c[k] = False
-
-            if c[k] == "":
-                c[k] = None
-
-        del c["followers"]
-
-        # add new channel
-        if c["id"] == "" or c["id"] is None:
-            del c["id"]
-
-            # check to see if this already exists,
-            platform_id = None
-            if c["platform_id"] != "":
-                platform_id = c["platform_id"]
-
-            channel = (
-                session.query(Channel)
-                .filter_by(
-                    platform_id=str(platform_id), platform=str(c["platform"])
-                )
-                .first()
-            )
-
-            if not channel:
-                channel = session.query(Channel).filter_by(platform=str(c["platform"]), url=str(c["url"])).first()
-
-            if not channel and c["screenname"] != '' and c["screenname"] is not None:
-                channel = session.query(Channel).filter_by(platform=str(c["platform"]), screenname=str(c["screenname"])).first()
-
-            if not channel:
-                channel = Channel(**c, source="researcher")
-                logger.debug(f"{channel} does not exist, adding")
-                session.add(channel)
-                session.flush()
-                session.commit()
-
-                wks.update_cell(row, 1, channel.id)
-                time.sleep(1)
-            else:
-                logger.info(f"Channel found, updating channel {channel}")
-                channel.name = c["name"]
-                channel.category = c["category"]
-                channel.platform = c["platform"]
-                channel.url = c["url"]
-                channel.screenname = c["screenname"]
-                channel.country = c["country"]
-                channel.influencer = c["influencer"]
-                channel.public = c["public"]
-                channel.chat = c["chat"]
-                channel.notes = c["notes"]
-                channel.source = "researcher"
-
-                session.flush()
-                session.commit()
-
-                wks.update_cell(row, 1, channel.id)
-                time.sleep(1)
-
-        else:
-            channel = session.query(Channel).filter_by(id=int(c["id"])).first()
-
-            logger.info(f"Updating channel {channel}")
-            channel.name = c["name"]
-            channel.category = c["category"]
-            channel.platform = c["platform"]
-            channel.url = c["url"]
-            channel.screenname = c["screenname"]
-            channel.country = c["country"]
-            channel.influencer = c["influencer"]
-            channel.public = c["public"]
-            channel.chat = c["chat"]
-            channel.notes = c["notes"]
-            channel.source = "researcher"
-
-            session.flush()
-            session.commit()
-
-        row += 1
-
-    session.commit()
-
+from sync_with_gsheet import sync_channels
 
 def get_db_session():
     engine = create_engine(os.environ["DB"])
@@ -223,7 +116,7 @@ if __name__ == "__main__":
         init_db()
     elif args.command == "sync-channels":
         logger.add("logs/sync-channels.log", level="TRACE", rotation="100 MB")
-        sync_channels(args)
+        sync_channels(args, get_db_session())
     elif args.command == "scrape-channels":
         logger.add("logs/scrape-channels.log", level="TRACE", rotation="100 MB")
         scrape_channels(args)
