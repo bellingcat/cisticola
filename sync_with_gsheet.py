@@ -15,11 +15,13 @@ def sync_channels(args, session):
     row = 2
 
     for c in channels:
+        # defaults for unset values
         if c["public"] == "":
-            c["public"] = False
+            c["public"] = True
         if c["chat"] == "":
             c["chat"] = False
 
+        # normalize the values slightly from the Google Sheet
         for k in c.keys():
             if c[k] == "TRUE" or c[k] == "yes":
                 c[k] = True
@@ -84,6 +86,8 @@ def sync_channels(args, session):
 
                 # this likely means that the channel was duplicated in the Google Sheet, so add a red highlight
                 if was_researcher:
+                    logger.warning(f"This channel (ID {channel.id}) is possibly a duplicate.")
+                    
                     wks.format(f"A{str(row)}:A{str(row)}", {
                         "backgroundColor": {
                             "red": 1.0,
