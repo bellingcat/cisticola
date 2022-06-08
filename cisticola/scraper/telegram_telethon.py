@@ -73,6 +73,10 @@ class TelegramTelethonScraper(Scraper):
                     result.archived_urls[key] = archived_url
                     result.media_archived = datetime.now(timezone.utc)
                 else:
+                    if output_file_with_ext == 'largefile':
+                        logger.info("Because this was a large file, not clearing media data")
+                        return result
+
                     logger.warning("Downloaded blob was None")
                     result.archived_urls = {}
                     result.media_archived = datetime.now(timezone.utc)
@@ -95,7 +99,7 @@ class TelegramTelethonScraper(Scraper):
         if type(post.media) == types.MessageMediaDocument:
             if post.media.document.size/(1024*1024) > 50:
                 logger.info(f"Skipping archive of large {type(post.media)} with size {post.media.document.size/(1024*1024)} MB")
-                return None, None
+                return (None, "largefile")
 
             logger.debug(f"Archiving {type(post.media)} with size {post.media.document.size/(1024*1024)} MB")
         else:
@@ -146,12 +150,12 @@ class TelegramTelethonScraper(Scraper):
                 if post.media is not None:                    
                     archived_urls[post_url] = None
 
-                    if archive_media:
-                        blob, output_file_with_ext = self.archive_post_media(post, client)
-                        if blob is not None:
-                            # TODO specify Content-Type
-                            archived_url = self.archive_blob(blob = blob, content_type = '', key = output_file_with_ext)
-                            archived_urls[post_url] = archived_url
+                    # if archive_media:
+                    #     blob, output_file_with_ext = self.archive_post_media(post, client)
+                    #     if blob is not None:
+                    #         # TODO specify Content-Type
+                    #         archived_url = self.archive_blob(blob = blob, content_type = '', key = output_file_with_ext)
+                    #         archived_urls[post_url] = archived_url
 
                 yield ScraperResult(
                     scraper=self.__version__,
