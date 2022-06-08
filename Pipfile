@@ -24,7 +24,7 @@ ratelimit = "*"
 pytz = "*"
 langdetect = "*"
 spacy = "==3.2.4"
-PyExifTool = {git = "https://github.com/smarnach/pyexiftool.git"}
+ocrd-pyexiftool = "*"
 gabber = {git = "https://github.com/stanfordio/gabber.git"}
 snscrape = {git = "https://github.com/bellingcat/snscrape"}
 polyphemus = {git = "https://github.com/bellingcat/polyphemus"}
