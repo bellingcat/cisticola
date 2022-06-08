@@ -103,27 +103,28 @@ class ETLController:
             # instance = session.query(Post).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
 
         elif issubclass(type(obj), Media):
-            instance = session.query(type(obj)).filter_by(original_url=obj.original_url, post=obj.post).first()
-            if instance:
-                logger.info(f"Found matching DB entry for {obj}: {instance}")
-                return instance
+            instance = None
+            # instance = session.query(type(obj)).filter_by(original_url=obj.original_url, post=obj.post).first()
+            # if instance:
+            #     logger.info(f"Found matching DB entry for {obj}: {instance}")
+            #     return instance
 
-            instance = session.query(type(obj)).filter_by(original_url=obj.original_url).first()
+            # instance = session.query(type(obj)).filter_by(original_url=obj.original_url).first()
             
-            # For Media objects we want to duplicate the entry to preserve the relationship with the post.
-            # However, we also want to avoid rehydration, hence the code below:
-            if instance:
-                logger.info(f"Found matching media record, duplicating and inserting for new post")
+            # # For Media objects we want to duplicate the entry to preserve the relationship with the post.
+            # # However, we also want to avoid rehydration, hence the code below:
+            # if instance:
+            #     logger.info(f"Found matching media record, duplicating and inserting for new post")
 
-                session.expunge(instance) 
-                make_transient(instance) 
-                instance.id = None 
-                instance.post = obj.post
-                instance.raw_id = obj.raw_id
+            #     session.expunge(instance) 
+            #     make_transient(instance) 
+            #     instance.id = None 
+            #     instance.post = obj.post
+            #     instance.raw_id = obj.raw_id
 
-                session.add(instance)
-                session.flush()
-                return instance
+            #     session.add(instance)
+            #     session.flush()
+            #     return instance
 
         if instance:
             logger.info(f"Found matching DB entry for {obj}: {instance}")
@@ -324,7 +325,8 @@ class ETLController:
 
         query = (session.query(ScraperResult, Post)
             .join(Post)
-            .filter((ScraperResult.media_archived != None) & (ScraperResult.archived_urls != '{}'))
+            .join(Media, isouter=True)
+            .filter((ScraperResult.media_archived != None) & (ScraperResult.archived_urls != '{}') & (Media.id == None))
             .order_by(ScraperResult.date.asc())
         )
 
