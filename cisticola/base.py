@@ -384,7 +384,14 @@ class Image(Media):
 
 @dataclass
 class Video(Media):
-    """Class for organizing information about an image file. 
+    """Class for organizing information about an video file. 
+    """
+    
+    pass
+
+@dataclass
+class Audio(Media):
+    """Class for organizing information about an audio file. 
     """
     
     pass
@@ -500,3 +507,4 @@ mapper_registry.map_imperatively(ChannelInfo, channel_info_table)
 mapper_registry.map_imperatively(Media, media_table, polymorphic_on='type', polymorphic_identity='media')
 mapper_registry.map_imperatively(Image, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='image')
 mapper_registry.map_imperatively(Video, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='video')
+mapper_registry.map_imperatively(Audio, media_table, inherits=Media, polymorphic_on='type', polymorphic_identity='audio')

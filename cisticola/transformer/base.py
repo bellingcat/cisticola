@@ -264,3 +264,76 @@ class ETLController:
             logger.info(f"Found {len(batch)} info items to ETL ({offset} already processed)")
 
             self.transform_info(batch)
+
+    @logger.catch(reraise=True)
+    def transform_media(self, results: List, hydrate: bool = True):
+        """Transforms raw ScraperResults objects into Post objects and
+        Media objects. Then, adds them to the database.
+
+        Parameters
+        ----------
+        results : List[ScraperResult]
+            A list of ScraperResult objects to be transformed
+        hydrate : bool
+            Whether or not to fully hydrate transformed media. Default True.
+        """
+        if self.session is None:
+            logger.error("No DB session")
+            return
+
+        session = self.session()
+
+        for total_result in results:
+            result = total_result.ScraperResult
+            if result.scraper is not None and result.platform is not None:
+                for transformer in self.transformers:
+                    handled = False
+
+                    if transformer.can_handle(result):
+                        logger.trace(f"{transformer} is handling result {result.id} ({result.date})")
+                        handled = True
+
+                        transformer.transform_media(result, total_result.Post, lambda obj: self.insert_or_select(obj, session, hydrate), session)
+
+                        session.commit()
+                        break
+
+                    if handled == False:
+                        logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
+
+    @logger.catch(reraise=True)
+    def transform_all_untransformed_media(self, hydrate=True):
+        """Transform all ScraperResult objects in the database that do not have an
+        equivalent Post object stored.
+
+        Parameters
+        ----------
+        hydrate : bool
+            Whether or not to fully hydrate transformed media. Default True.
+        """
+
+        if self.session is None:
+            logger.error("No DB session")
+            return
+
+        session = self.session()
+
+        BATCH_SIZE = 50000
+        offset = 0
+        batch = []
+
+        query = (session.query(ScraperResult, Post)
+            .join(Post)
+            .filter((ScraperResult.media_archived != None) & (ScraperResult.archived_urls != '{}'))
+            .order_by(ScraperResult.date.asc())
+        )
+
+        while len(batch) > 0 or offset == 0:
+            logger.info(f"Fetching untransformed post media batch of {BATCH_SIZE}, offset {offset}")
+
+            batch = query.slice(offset, offset + BATCH_SIZE).all()
+            offset += BATCH_SIZE
+
+            logger.info(f"Found {len(batch)} items to ETL ({offset} already processed)")
+
+            self.transform_media(batch, hydrate=hydrate)
