@@ -18,7 +18,7 @@ MEDIA_TYPES = ['photo', 'video', 'document', 'webpage']
 
 class TelegramTelethonScraper(Scraper):
     """An implementation of a Scraper for Telegram, using Telethon library"""
-    __version__ = "TelegramTelethonScraper 0.0.2"
+    __version__ = "TelegramTelethonScraper 0.0.3"
     client = None
 
     def __init__(self):
