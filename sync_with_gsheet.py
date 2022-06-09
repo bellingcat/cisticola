@@ -83,6 +83,7 @@ def sync_channels(args, session):
                 session.commit()
 
                 wks.update_cell(row, 1, channel.id)
+                time.sleep(1)
 
                 # this likely means that the channel was duplicated in the Google Sheet, so add a red highlight
                 if was_researcher:
@@ -94,8 +95,8 @@ def sync_channels(args, session):
                             "green": 0.0,
                             "blue": 0.0
                     }})
+                    time.sleep(1)
 
-                time.sleep(1)
 
         # channel has ID
         else:
@@ -105,7 +106,7 @@ def sync_channels(args, session):
             channel_info = session.query(ChannelInfo).filter_by(channel=cid).order_by(ChannelInfo.date_archived.desc()).first()
 
             logger.info(f"Updating channel {channel}")
-            logger.info(channel_info)
+            logger.info(f"Found info {channel_info}")
 
             channel.name = c["name"]
             channel.category = c["category"]
@@ -119,12 +120,15 @@ def sync_channels(args, session):
             channel.notes = c["notes"]
             channel.source = "researcher"
 
-            if channel_info:
+            if channel_info and channel.screenname != channel_info.screenname:
                 channel.screenname = channel_info.screenname
                 wks.update_cell(row, 7, channel_info.screenname)
+                time.sleep(1)
 
+            if channel_info and str(channel.platform_id) != str(channel_info.platform_id):
                 channel.platform_id = channel_info.platform_id
                 wks.update_cell(row, 3, channel_info.platform_id)
+                time.sleep(1)
 
             session.flush()
             session.commit()
