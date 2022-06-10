@@ -14,7 +14,7 @@ BASE_URL = 'https://rumble.com'
 
 class RumbleScraper(Scraper):
     """An implementation of a Scraper for Rumble, using custom functions"""
-    __version__ = "RumbleScraper 0.0.1"
+    __version__ = "RumbleScraper 0.0.2"
 
     cookiestring = os.environ["YOUTUBE_COOKIESTRING"].replace(r'\n', '\n').replace(r'\t', '\t')
     cookiefilename = 'cookiefile.txt'
@@ -105,19 +105,37 @@ def process_video(video):
         views = None
     else:
         views = view_span.get('data-value')
-
+        
+    author_a = video.find('a', {'rel': 'author'})
+    if author_a is None:
+        author_id = None
+        author_name = None
+    else:
+        author_id = author_a['href'].split('/')[-1]
+        author_name = author_a.text
+    
+    video_link = BASE_URL + video.find('a', href = True)['href']
+    r = make_request(url = video_link)
+    soup = BeautifulSoup(r.content, features = 'html.parser')
+    
+    content_div = soup.find('div', {'class': 'container content media-description'})
+    
     info = {
         'title' : video.find('h3').text,
         'thumbnail' : video.find('img')['src'],
-        'link' : BASE_URL + video.find('a', href = True)['href'],
+        'link' : video_link,
         'views' : views,
         'rumbles' : rumbles,
+        'content': '' if content_div is None else content_div.get_text('\n'),
         'duration' : video.find('span', {'class' : 'video-item--duration'})['data-value'],
-        'datetime' : datetime.fromisoformat(video.find('time')['datetime'])}
+        'datetime' : datetime.fromisoformat(video.find('time')['datetime']),
+        'author_id': author_id,
+        'author_name': author_name}
     
     info['media_url'] = get_media_url(info['link'])
     
     return info
+
 
 def get_channel_videos(url):
     
@@ -150,8 +168,15 @@ def get_channel_profile(url):
     thumbnail_soup = soup.find('img', {'class' : 'listing-header--thumb'})
     cover_soup = soup.find('img', {'class' : 'listing-header--backsplash-img'})
 
+    author_a = soup.find('a', {'rel': 'author'})
+    if author_a is None:
+        author_id = None
+    else:
+        author_id = author_a['href'].split('/')[-1]
+
     profile = {
         'name': soup.find('h1').text,
+        'id': author_id,
         'verified': verified_svg is not None,
         'thumbnail': thumbnail_soup.get('src') if thumbnail_soup else None,
         'cover':  cover_soup.get('src') if cover_soup else None,

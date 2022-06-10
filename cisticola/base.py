@@ -237,12 +237,12 @@ class Post:
 
         # replace is here in order to prevent catastrophic backtracking
         urls = re.findall(URL_REGEX, self.content.replace("::::::::", ""))
-        self.outlinks = urls
+        self.outlinks += urls
 
         HASHTAG_REGEX = r"(?:^|\s)[＃#]{1}(\w+)"
         
         hashtags = re.findall(HASHTAG_REGEX, self.content)
-        self.hashtags = hashtags
+        self.hashtags += hashtags
 
         # regex patterns for finding crypto addresses
         BTC_REGEX = r'\b(bc(0([ac-hj-np-z02-9]{39}|[ac-hj-np-z02-9]{59})|1[ac-hj-np-z02-9]{8,87})|[13][a-km-zA-HJ-NP-Z1-9]{25,35})\b'

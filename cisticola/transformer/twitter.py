@@ -2,9 +2,10 @@ import json
 from loguru import logger
 from typing import Generator, Union, Callable
 import dateutil.parser
+from datetime import datetime, timezone
 
 from cisticola.transformer.base import Transformer 
-from cisticola.base import ScraperResult, Post, Image, Video, Media, Channel
+from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Image, Video, Media, Channel
 
 class TwitterTransformer(Transformer):
     """A Twitter specific ScraperResult, with a method ETL/transforming"""
@@ -45,8 +46,33 @@ class TwitterTransformer(Transformer):
 
                     yield m
 
+    def transform_info(self, data: RawChannelInfo, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+        raw = json.loads(data.raw_data)
 
-    def transform(self, data: ScraperResult, insert: Callable) -> Generator[Union[Post, Channel, Media], None, None]:
+        transformed = ChannelInfo(
+            raw_channel_info_id=data.id,
+            channel=data.channel,
+            platform_id=raw['id'],
+            platform=data.platform,
+            scraper=data.scraper,
+            transformer=self.__version__,
+            screenname=raw['username'],
+            name=raw['displayname'],
+            description=raw['rawDescription'],
+            description_url=raw['linkUrl'],
+            description_location=raw['location'],
+            followers=raw['followersCount'],
+            following=raw['friendsCount'],
+            verified=raw['verified'],
+            date_created=dateutil.parser.parse(raw['created']),
+            date_archived=data.date_archived,
+            date_transformed=datetime.now(timezone.utc)
+        )
+
+        transformed = insert(transformed)
+
+
+    def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         transformed = Post(
@@ -58,6 +84,7 @@ class TwitterTransformer(Transformer):
             channel=data.channel,
             date=dateutil.parser.parse(raw['date']),
             date_archived=data.date_archived,
+            date_transformed=datetime.now(timezone.utc),
             url=raw['url'],
             content=raw['content'],
             author_id=raw['user']['id'],
@@ -85,6 +112,7 @@ class TwitterTransformer(Transformer):
                 channel=channel.id,
                 date=dateutil.parser.parse(tweet['date']),
                 date_archived=data.date_archived,
+                date_transformed=datetime.now(timezone.utc),
                 url=tweet['url'],
                 content=tweet['content'],
                 author_id=tweet['user']['id'],
@@ -110,6 +138,3 @@ class TwitterTransformer(Transformer):
         media = self.process_media(raw, transformed.id, data)
         for m in media:
             insert(m)
-
-
-        

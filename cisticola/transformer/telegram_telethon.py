@@ -61,7 +61,7 @@ class TelegramTelethonTransformer(Transformer):
             self.bad_channels[orig_screenname] = True
             return ""
 
-        soup = BeautifulSoup(r.content)
+        soup = BeautifulSoup(r.content, features = 'lxml')
         post = soup.findAll("div", {"data-post" : orig_screenname + "/" + str(id)})
         name = ""
 
@@ -181,14 +181,14 @@ class TelegramTelethonTransformer(Transformer):
 
         transformed = insert(transformed)
 
-        # for k in data.archived_urls:
-        #     if data.archived_urls[k]:
-        #         archived_url = data.archived_urls[k]
-        #         ext = archived_url.split('.')[-1]
+        for k in data.archived_urls:
+            if data.archived_urls[k]:
+                archived_url = data.archived_urls[k]
+                ext = archived_url.split('.')[-1]
 
-        #         if ext == 'mp4' or ext == 'mov' or ext == 'avi' or ext =='mkv':
-        #             insert(Video(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
-        #         else:
-        #             insert(Image(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
+                if ext == 'mp4' or ext == 'mov' or ext == 'avi' or ext =='mkv':
+                    insert(Video(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
+                else:
+                    insert(Image(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
 
         
