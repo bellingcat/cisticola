@@ -421,9 +421,6 @@ class ScraperController:
                         session.commit()
                         added += 1
 
-                    profile = scraper.get_profile(channel)
-                    session.add(profile)
-
                     session.commit()
                     logger.info(
                         f"{scraper} found {added} new posts from {channel}")
