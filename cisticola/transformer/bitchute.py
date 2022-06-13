@@ -2,7 +2,7 @@ import json
 from loguru import logger
 from typing import Generator, Union, Callable
 from datetime import datetime, timezone
-import dateutil.parser
+from dateutil.relativedelta import relativedelta
 
 from bs4 import BeautifulSoup 
 
@@ -12,7 +12,7 @@ from cisticola.base import RawChannelInfo, ScraperResult, Post, Image, Video, Me
 class BitchuteTransformer(Transformer):
     """A Bitchute specific ScraperResult, with a method ETL/transforming"""
 
-    __version__ = "BitchuteTransformer 0.0.1"
+    __version__ = "BitchuteTransformer 0.0.2"
 
     def can_handle(self, data: ScraperResult) -> bool:
         scraper = data.scraper.split(' ')
@@ -49,7 +49,7 @@ class BitchuteTransformer(Transformer):
             followers=raw['subscribers'],
             following=-1, # does not exist for Bitchute
             verified=False, # does not exist for Bitchute
-            date_created=dateutil.parser.parse(raw['created']),
+            date_created=parse_created(raw['created'], data.date_archived),
             date_archived=data.date_archived,
             date_transformed=datetime.now(timezone.utc)
         )
@@ -78,3 +78,19 @@ class BitchuteTransformer(Transformer):
             author_username=raw['author'])
 
         transformed = insert(transformed)
+
+def parse_created(created: str, date_archived: datetime) -> datetime:
+    """Convert a created string (e.g. ``"1 year, 10 months ago"``) to a datetime 
+    object relative to the specified ``date_archived``.
+    """
+    try:
+        # handle case where `created` string has already been parsed into a datetime
+        return datetime.fromisoformat(created)
+    except ValueError:
+        period_list = ['year', 'month', 'week', 'day']
+
+        periods = [period.strip() for period in created.split('ago')[0].strip().split(',')]
+        _kwargs = {period : int(number) for period, number in dict(reversed(p.split(' ')) for p in periods).items()}
+        kwargs = {(k + 's' if k in period_list else k) : v for k, v in _kwargs.items()} 
+
+        return date_archived - relativedelta(**kwargs)

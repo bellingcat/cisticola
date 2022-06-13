@@ -8,15 +8,19 @@ import requests
 import time
 from telethon.sync import TelegramClient
 from telethon.errors.rpcerrorlist import ChannelPrivateError, ChannelInvalidError
+from telethon.tl import types
+from telethon.helpers import add_surrogate
+
 import os
 from datetime import datetime, timezone
+from sqlalchemy import func
 
 from cisticola.transformer.base import Transformer 
 from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Image, Video, Media, Channel
 
 
 class TelegramTelethonTransformer(Transformer):
-    __version__ = 'TelegramTelethonTransformer 0.0.2'
+    __version__ = 'TelegramTelethonTransformer 0.0.3'
 
     bad_channels = {}
 
@@ -34,8 +38,10 @@ class TelegramTelethonTransformer(Transformer):
         try:
             with TelegramClient("transform.session", api_id, api_hash) as client:
                 data = client.get_entity(channel_id)
-
-                return (data.username, data.title, "")
+                if isinstance(data, types.User):
+                    return (data.username, str(data.first_name or "") + " " + str(data.last_name or ""), "")
+                else:
+                    return (data.username, data.title, "")
         except ChannelPrivateError:
             logger.info("ChannelPrivateError")
             return ("", "", "ChannelPrivateError")
@@ -161,6 +167,43 @@ class TelegramTelethonTransformer(Transformer):
             else:
                 reply_to = post.id
 
+        mentions = []
+
+        for mention_entity in [entity for entity in raw['entities'] if entity['_'] == 'MessageEntityMention']:
+
+            offset = mention_entity['offset']
+            length = mention_entity['length']
+
+            screenname = add_surrogate(raw['message'])[offset:offset+length].strip('@').strip()
+
+            channel = session.query(Channel).filter(func.lower(Channel.screenname)==func.lower(screenname)).first()
+
+            if channel is None:
+
+                channel = Channel(
+                    name = None,
+                    platform_id = None,
+                    platform = 'Telegram',
+                    url="https://t.me/s/" + screenname,
+                    screenname=screenname,
+                    category='mentioned',
+                    source=self.__version__,
+                    )
+
+                channel = insert(channel)
+                logger.info(f"Added {channel}")
+
+            mentions.append(channel.id)
+
+        channel = session.query(Channel).filter_by(id=int(data.channel)).first()
+
+        if channel is not None:
+            url = channel.url.strip('/') + f"/{raw['id']}"
+            author_username = channel.screenname
+        else:
+            url = ""
+            author_username = ""
+
         transformed = Post(
             raw_id = data.id,
             platform_id = raw['id'],
@@ -171,24 +214,45 @@ class TelegramTelethonTransformer(Transformer):
             date=dateutil.parser.parse(raw['date']),
             date_archived=data.date_archived,
             date_transformed=datetime.now(timezone.utc),
-            url="",
-            content=raw['message'],
-            author_id=raw['post_author'],
-            author_username="",
+            url=url,
+            content=add_markdown_links(raw),
+            author_id=raw.get('peer_id', {}).get('channel_id'),
+            author_username=author_username,
             forwarded_from=fwd_from,
-            reply_to=reply_to
+            reply_to=reply_to,
+            mentions = mentions
         )
 
         transformed = insert(transformed)
 
-        for k in data.archived_urls:
-            if data.archived_urls[k]:
-                archived_url = data.archived_urls[k]
-                ext = archived_url.split('.')[-1]
+        # for k in data.archived_urls:
+        #     if data.archived_urls[k]:
+        #         archived_url = data.archived_urls[k]
+        #         ext = archived_url.split('.')[-1]
 
-                if ext == 'mp4' or ext == 'mov' or ext == 'avi' or ext =='mkv':
-                    insert(Video(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
-                else:
-                    insert(Image(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
+        #         if ext == 'mp4' or ext == 'mov' or ext == 'avi' or ext =='mkv':
+        #             insert(Video(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
+        #         else:
+        #             insert(Image(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
 
+def add_markdown_links(raw_post):
+
+    global_offset = 0
+    transformed_content = raw_post['message']
+    links = [entity for entity in raw_post['entities'] if entity['_'] == 'MessageEntityTextUrl']
+
+    for link in links:
+        offset = global_offset + link['offset']
+        length = link['length']
+        url = link['url']
+
+        before_link = transformed_content[:offset]
+        link_text = f"[{transformed_content[offset:offset+length].strip()}]"
+        trailing_whitespace = ''.join([c for c in transformed_content[offset:offset+length] if c.isspace()])
+        link_href = f"({url})"
+        after_link = transformed_content[offset+length:]
+
+        transformed_content = before_link + link_text + link_href + trailing_whitespace + after_link
+        global_offset += (4 + len(url))
         
+    return transformed_content

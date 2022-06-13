@@ -96,7 +96,7 @@ class ETLController:
 
         # This is using some adhoc unique constraints that might be worth formalizing at some point
         if type(obj) == Channel:
-            instance = session.query(Channel).filter_by(url=obj.url, platform_id=str(obj.platform_id), platform=obj.platform).first()
+            instance = session.query(Channel).filter_by(url=obj.url, platform_id=str(obj.platform_id or '') or obj.platform_id, platform=obj.platform).first()
             
         elif type(obj) == Post:
             instance = None
@@ -133,6 +133,8 @@ class ETLController:
             obj.hydrate()
 
         session.add(obj)
+        session.flush()
+
         logger.trace(f"Inserted new object {obj}")
 
         return obj

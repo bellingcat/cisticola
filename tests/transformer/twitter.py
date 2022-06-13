@@ -15,6 +15,7 @@ def test_scrape_etl_twitter(engine, controller, etl_controller, channel_kwargs):
     channels = [Channel(**channel_kwargs['twitter'])]
     controller.register_scraper(scraper = TwitterScraper())
     controller.scrape_channels(channels = channels, archive_media = True)
+    controller.scrape_all_channel_info()
 
     etl_controller.register_transformer(TwitterTransformer())
     etl_controller.transform_all_untransformed()
@@ -28,7 +29,7 @@ def test_scrape_etl_twitter(engine, controller, etl_controller, channel_kwargs):
     media = session.query(Media).all()
 
     assert len(posts) == 12
-    assert len(media) == 4
+    assert len(media) == 8
 
     assert posts[2].content == "BARN"
     assert json.loads(media[0].exif)['Composite:ImageSize'] == "826 728"

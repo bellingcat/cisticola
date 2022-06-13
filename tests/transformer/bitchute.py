@@ -15,7 +15,8 @@ def test_scrape_etl_bitchute(engine, controller, etl_controller, channel_kwargs)
     channels = [Channel(**channel_kwargs['bitchute'])]
     controller.register_scraper(scraper = BitchuteScraper())
     controller.scrape_channels(channels = channels, archive_media = True)
-
+    controller.scrape_all_channel_info()
+    
     etl_controller.register_transformer(BitchuteTransformer())
     etl_controller.transform_all_untransformed()
     etl_controller.transform_all_untransformed_info()
