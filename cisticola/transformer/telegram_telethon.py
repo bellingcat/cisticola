@@ -220,7 +220,9 @@ class TelegramTelethonTransformer(Transformer):
             author_username=author_username,
             forwarded_from=fwd_from,
             reply_to=reply_to,
-            mentions = mentions
+            mentions = mentions,
+            forwards = raw.get('forwards'),
+            views = raw.get('views')
         )
 
         transformed = insert(transformed)

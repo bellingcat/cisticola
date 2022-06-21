@@ -171,8 +171,8 @@ class ETLController:
                         session.commit()
                         break
 
-                    if handled == False:
-                        logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
+                if handled == False:
+                    logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
 
     @logger.catch(reraise=True)
     def transform_all_untransformed(self, hydrate: bool = True):

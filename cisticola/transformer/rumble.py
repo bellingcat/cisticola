@@ -61,10 +61,19 @@ class RumbleTransformer(Transformer):
             url=raw['link'],
             content=raw['content'],
             author_id=raw['author_id'],
-            author_username=raw['author_name'])
+            author_username=raw['author_name'],
+            views = _process_number(raw.get('views')),
+            likes = _process_number(raw.get('rumbles')))
 
         insert(transformed)
 
         # media = self.process_media(raw, transformed.id, data)
         # for m in media:
         #     insert(m)
+
+def _process_number(s):
+
+    if s is None:
+        return None
+    else:
+        return int(s.replace(',', ''))

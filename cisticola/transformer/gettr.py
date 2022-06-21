@@ -3,6 +3,8 @@ from loguru import logger
 from typing import Generator, Union, Callable
 import dateutil.parser
 from datetime import datetime, timezone
+from gogettr import PublicClient
+from gogettr.api import GettrApiError
 
 from cisticola.transformer.base import Transformer 
 from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Image, Video, Media, Channel
@@ -49,7 +51,34 @@ class GettrTransformer(Transformer):
         raw = json.loads(data.raw_data)
 
         if raw["activity"]["action"] == "shares_pst":
-            forwarded_from = raw["activity"]["uid"]
+            fwd_from = str(raw["activity"]["uid"])
+            channel = session.query(Channel).filter_by(platform_id=str(fwd_from)).first()
+            if channel is None:
+                try:
+                    client = PublicClient()
+                    profile = client.user_info(fwd_from.lower())
+                    screenname = profile.get('_id')
+                    channel = Channel(
+                        name=profile.get('nickname'),
+                        platform_id=screenname,
+                        platform=data.platform,
+                        url="https://gettr.com/user/" + screenname,
+                        screenname=screenname,
+                        category='forwarded',
+                        source=self.__version__,
+                        )
+                except GettrApiError:
+                     channel = Channel(
+                        name=None,
+                        platform_id=fwd_from,
+                        platform=data.platform,
+                        url="https://gettr.com/user/" + fwd_from,
+                        screenname=fwd_from,
+                        category='forwarded',
+                        source=self.__version__,
+                        )
+                channel = insert(channel)
+            forwarded_from = channel.id
         else:
             forwarded_from = None
 
@@ -69,7 +98,11 @@ class GettrTransformer(Transformer):
             author_username=raw["uid"],
             hashtags=raw.get("htgs", []),
             outlinks = list(filter(None, [raw.get("prevsrc")])),
-            forwarded_from = forwarded_from)
+            forwarded_from = forwarded_from,
+            likes = raw.get('lkbpst'),
+            forwards = raw.get("shbpst"),
+            views = raw.get('vfpst')
+            )
 
         insert(transformed)
 
