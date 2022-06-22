@@ -69,7 +69,10 @@ class BitchuteTransformer(Transformer):
                 if raw['parent_id'] is not None:
                     # this block is for comments whose parent_ids correspond to deleted comments 
                     post = session.query(Post).filter_by(channel=data.channel, platform_id=raw['thread_id']).first()
-                    reply_to = post.id
+                    if post is None:
+                        reply_to = -1
+                    else:
+                        reply_to = post.id
                 else:
                     reply_to = -1
             else:
@@ -102,7 +105,7 @@ class BitchuteTransformer(Transformer):
             likes = raw['likes'],
             views = int(raw['views']) if raw.get('views') else None,
             video_title = raw['subject'],
-            video_duration = parse_duration_str(raw['length']))
+            video_duration = _parse_duration_str(raw['length']))
 
         transformed = insert(transformed)
         session.flush()
@@ -123,7 +126,9 @@ def parse_created(created: str, date_archived: datetime) -> datetime:
 
         return date_archived - relativedelta(**kwargs)
 
-def parse_duration_str(duration_str: str) -> int:
+def _parse_duration_str(duration_str: str) -> int:
+    """Convert duration string (e.g. '2:27:04') to the number of seconds (e.g. 8824).
+    """
     if not duration_str:
         return None
     else:

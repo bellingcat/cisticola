@@ -256,6 +256,7 @@ class Post:
         # replace is here in order to prevent catastrophic backtracking
         urls = re.findall(URL_REGEX, self.content.replace("::::::::", ""))
         self.outlinks += urls
+        self.outlinks =  list(set(outlink for outlink in self.outlinks))
 
         HASHTAG_REGEX = r"(?:^|\s)[＃#]{1}(\w+)"
         

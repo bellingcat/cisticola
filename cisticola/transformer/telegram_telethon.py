@@ -131,7 +131,7 @@ class TelegramTelethonTransformer(Transformer):
         fwd_from = None
 
         if raw['fwd_from'] and raw['fwd_from']['from_id'] and 'channel_id' in raw['fwd_from']['from_id']:
-            channel = session.query(Channel).filter_by(platform_id=str(raw['fwd_from']['from_id']['channel_id'])).first()
+            channel = session.query(Channel).filter_by(platform_id=str(raw['fwd_from']['from_id']['channel_id']), platform = 'Telegram').first()
 
             if channel is None:
                 (screenname, name, notes) = self.get_screenname_from_id(raw['fwd_from']['from_id']['channel_id'])

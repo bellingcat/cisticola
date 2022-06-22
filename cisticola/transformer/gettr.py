@@ -3,6 +3,7 @@ from loguru import logger
 from typing import Generator, Union, Callable
 import dateutil.parser
 from datetime import datetime, timezone
+from sqlalchemy import func
 from gogettr import PublicClient
 from gogettr.api import GettrApiError
 
@@ -46,42 +47,55 @@ class GettrTransformer(Transformer):
 
         transformed = insert(transformed)
 
+    def _get_channel_id(self, username: str, category: str, insert: Callable, session):
+
+        channel = session.query(Channel).filter(func.lower(Channel.screenname)==func.lower(username), platform = 'Gettr').first()
+
+        if channel is None:
+            try:
+                client = PublicClient()
+                profile = client.user_info(username.lower())
+                screenname = profile.get('_id')
+                channel = Channel(
+                    name=profile.get('nickname'),
+                    platform_id=screenname,
+                    platform='Gettr',
+                    url="https://gettr.com/user/" + screenname,
+                    screenname=screenname,
+                    category=category,
+                    source=self.__version__,
+                    )
+            except GettrApiError:
+                channel = Channel(
+                    name = None,
+                    platform_id = None,
+                    platform = 'Gettr',
+                    url = None,
+                    screenname=username,
+                    category=category,
+                    source=self.__version__,
+                    notes='GettrApiError'
+                    )
+
+            channel = insert(channel)
+
+        return channel.id
 
     def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         if raw["activity"]["action"] == "shares_pst":
-            fwd_from = str(raw["activity"]["uid"])
-            channel = session.query(Channel).filter_by(platform_id=str(fwd_from)).first()
-            if channel is None:
-                try:
-                    client = PublicClient()
-                    profile = client.user_info(fwd_from.lower())
-                    screenname = profile.get('_id')
-                    channel = Channel(
-                        name=profile.get('nickname'),
-                        platform_id=screenname,
-                        platform=data.platform,
-                        url="https://gettr.com/user/" + screenname,
-                        screenname=screenname,
-                        category='forwarded',
-                        source=self.__version__,
-                        )
-                except GettrApiError:
-                     channel = Channel(
-                        name=None,
-                        platform_id=fwd_from,
-                        platform=data.platform,
-                        url="https://gettr.com/user/" + fwd_from,
-                        screenname=fwd_from,
-                        category='forwarded',
-                        source=self.__version__,
-                        )
-                channel = insert(channel)
-            forwarded_from = channel.id
+            forwarded_from = self._get_channel_id(
+                username = str(raw["activity"]["uid"]), category = 'forwarded', insert = insert, session = session)
         else:
             forwarded_from = None
 
+        mentions = []
+        for mentioned_user in raw.get("utgs", []):
+            mentioned_id = self._get_channel_id(
+                username = mentioned_user, category = 'mentioned', insert = insert, session = session)
+            mentions.append(mentioned_id)
+            
         transformed = Post(
             raw_id=data.id,
             platform_id=raw["_id"],
@@ -99,6 +113,7 @@ class GettrTransformer(Transformer):
             hashtags=raw.get("htgs", []),
             outlinks = list(filter(None, [raw.get("prevsrc")])),
             forwarded_from = forwarded_from,
+            mentions = mentions,
             likes = raw.get('lkbpst'),
             forwards = raw.get("shbpst"),
             views = raw.get('vfpst')

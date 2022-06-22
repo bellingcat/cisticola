@@ -14,7 +14,13 @@ from cisticola.scraper import (
     BitchuteScraper,
     RumbleScraper,
 )
-from cisticola.transformer import (ETLController, TelegramTelethonTransformer)
+from cisticola.transformer import (
+    ETLController, 
+    TelegramTelethonTransformer,
+    GettrTransformer, 
+    RumbleTransformer, 
+    BitchuteTransformer)
+
 from sync_with_gsheet import sync_channels
 
 def get_db_session():
@@ -49,7 +55,10 @@ def get_transformer_controller():
     controller = ETLController()
     controller.connect_to_db(engine)
 
-    transformers = [TelegramTelethonTransformer()]
+    transformers = [TelegramTelethonTransformer(), 
+        BitchuteTransformer(), 
+        GettrTransformer(), 
+        RumbleTransformer()]
 
     controller.register_transformers(transformers)
 
