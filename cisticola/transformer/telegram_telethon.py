@@ -160,7 +160,7 @@ class TelegramTelethonTransformer(Transformer):
 
         reply_to = None
         if raw['reply_to']:
-            reply_to_id = raw['reply_to']['reply_to_msg_id']
+            reply_to_id = str(raw['reply_to']['reply_to_msg_id'])
             post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
             if post is None:
                 reply_to = -1
@@ -197,7 +197,7 @@ class TelegramTelethonTransformer(Transformer):
 
         channel = session.query(Channel).filter_by(id=int(data.channel)).first()
 
-        if channel is not None:
+        if channel is not None and channel.url:
             url = channel.url.strip('/') + f"/{raw['id']}"
             author_username = channel.screenname
         else:

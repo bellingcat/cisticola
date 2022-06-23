@@ -19,7 +19,8 @@ from cisticola.transformer import (
     TelegramTelethonTransformer,
     GettrTransformer, 
     RumbleTransformer, 
-    BitchuteTransformer)
+    BitchuteTransformer,
+    VkontakteTransformer)
 
 from sync_with_gsheet import sync_channels
 
@@ -55,9 +56,10 @@ def get_transformer_controller():
     controller = ETLController()
     controller.connect_to_db(engine)
 
-    transformers = [TelegramTelethonTransformer(), 
-        BitchuteTransformer(), 
-        GettrTransformer(), 
+    transformers = [VkontakteTransformer(),
+        TelegramTelethonTransformer(),
+        GettrTransformer(),
+        BitchuteTransformer(),
         RumbleTransformer()]
 
     controller.register_transformers(transformers)
