@@ -18,7 +18,8 @@ BITCHUTE_CHANNEL_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': False,
-    'notes': ''}
+    'notes': '',
+    'source': 'researcher'}
 
 GAB_CHANNEL_KWARGS = {
     'name': 'Capt. Marc Simon (test)',
@@ -31,7 +32,8 @@ GAB_CHANNEL_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': False,
-    'notes': ''}
+    'notes': '',
+    'source': 'researcher'}
 
 GAB_GROUP_KWARGS = {
     'name': 'iran group (test)',
@@ -44,7 +46,8 @@ GAB_GROUP_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': True,
-    'notes': ''}
+    'notes': '',
+    'source': 'researcher'}
 
 GETTR_CHANNEL_KWARGS = {
     'name': 'LizardRepublic (test)',
@@ -57,7 +60,8 @@ GETTR_CHANNEL_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': False,
-    'notes': ''}
+    'notes': '',
+    'source': 'researcher'}
 
 INSTAGRAM_CHANNEL_KWARGS = {
     'name': 'borland.88 (test)',
@@ -70,7 +74,8 @@ INSTAGRAM_CHANNEL_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': False,
-    'notes': ''}
+    'notes': '',
+    'source': 'researcher'}
 
 ODYSEE_CHANNEL_KWARGS = {
     'name': "Mak1n' Bacon (test)",
@@ -83,7 +88,8 @@ ODYSEE_CHANNEL_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': False,
-    'notes': ''}
+    'notes': '',
+    'source': 'researcher'}
 
 RUMBLE_CHANNEL_KWARGS = {
     'name': 'we are uploading videos wow products',
@@ -96,7 +102,8 @@ RUMBLE_CHANNEL_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': False,
-    'notes': ''}
+    'notes': '',
+    'source': 'researcher'}
 
 TELEGRAM_CHANNEL_KWARGS = {
     'name': 'South West Ohio Proud Boys (test)',
@@ -109,8 +116,9 @@ TELEGRAM_CHANNEL_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': False,
-    'notes': ''}
-
+    'notes': '',
+    'source': 'researcher'}
+    
 TWITTER_CHANNEL_KWARGS = {
     'name': 'L Weber (test)',
     'platform_id': 1424979017749442595,
@@ -122,7 +130,8 @@ TWITTER_CHANNEL_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': False,
-    'notes': ''}
+    'notes': '',
+    'source': 'researcher'}
 
 VKONTAKTE_CHANNEL_KWARGS = {
     'name': 'Wwg1wgA (test)',
@@ -135,7 +144,8 @@ VKONTAKTE_CHANNEL_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': False,
-    'notes': ''}
+    'notes': '',
+    'source': 'researcher'}
 
 YOUTUBE_CHANNEL_KWARGS = {
     'name': 'AnEs87 (test)',
@@ -148,7 +158,8 @@ YOUTUBE_CHANNEL_KWARGS = {
     'influencer': None,
     'public': True,
     'chat': False,
-    'notes': ''}
+    'notes': '',
+    'source': 'researcher'}
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 

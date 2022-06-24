@@ -105,7 +105,7 @@ class BitchuteScraper(Scraper):
         profile = {
             'description' : description_soup.text.strip(),
             'description_links' : [a['href'] for a in description_soup.find_all('a', href = True)],
-            'created': parse_created(re.sub(r'\s', ' ', info_list[0].text.split('Created')[1].strip('. '))),
+            'created': re.sub(r'\s', ' ', info_list[0].text.split('Created')[1].strip('. ')),
             'videos' : int(info_list[1].text.split('videos')[0].strip()),
             'owner_url' : soup.find('p', {'class' : 'owner'}).find('a', href = True)['href'],
             'owner_name' : owner_name,
@@ -484,15 +484,3 @@ def decode_cfemail(cfemail):
         email += chr(int(cfemail[i:i+2], 16)^k)
 
     return email
-
-#---------------------------------------------------------------------------#
-
-def parse_created(created):
-
-    period_list = ['year', 'month', 'week', 'day']
-    
-    periods = [period.strip() for period in created.split('ago')[0].strip().split(',')]
-    _kwargs = {period : int(number) for period, number in dict(reversed(p.split(' ')) for p in periods).items()}
-    kwargs = {(k + 's' if k in period_list else k) : v for k, v in _kwargs.items()} 
-    
-    return datetime.now() - relativedelta(**kwargs)

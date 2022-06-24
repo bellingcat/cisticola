@@ -2,7 +2,7 @@ import json
 from loguru import logger
 from typing import Generator, Union, Callable
 from datetime import datetime, timezone
-import dateutil.parser
+from dateutil.relativedelta import relativedelta
 
 from bs4 import BeautifulSoup 
 
@@ -12,7 +12,7 @@ from cisticola.base import RawChannelInfo, ScraperResult, Post, Image, Video, Me
 class BitchuteTransformer(Transformer):
     """A Bitchute specific ScraperResult, with a method ETL/transforming"""
 
-    __version__ = "BitchuteTransformer 0.0.1"
+    __version__ = "BitchuteTransformer 0.0.2"
 
     def can_handle(self, data: ScraperResult) -> bool:
         scraper = data.scraper.split(' ')
@@ -49,7 +49,7 @@ class BitchuteTransformer(Transformer):
             followers=raw['subscribers'],
             following=-1, # does not exist for Bitchute
             verified=False, # does not exist for Bitchute
-            date_created=dateutil.parser.parse(raw['created']),
+            date_created=parse_created(raw['created'], data.date_archived),
             date_archived=data.date_archived,
             date_transformed=datetime.now(timezone.utc)
         )
@@ -59,8 +59,32 @@ class BitchuteTransformer(Transformer):
     def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
-        soup = BeautifulSoup(raw['body'], features = 'html.parser')
-        content = soup.find_all('p')[-1].text
+        if raw['category'] == 'comment':
+            if raw['parent_id'] is None:
+                reply_to_id = raw['thread_id']
+            else:
+                reply_to_id = raw['parent_id']
+            post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
+            if post is None:
+                if raw['parent_id'] is not None:
+                    # this block is for comments whose parent_ids correspond to deleted comments 
+                    post = session.query(Post).filter_by(channel=data.channel, platform_id=raw['thread_id']).first()
+                    if post is None:
+                        reply_to = -1
+                    else:
+                        reply_to = post.id
+                else:
+                    reply_to = -1
+            else:
+                reply_to = post.id
+            content = raw['body'].strip()
+        else:
+            reply_to = -1
+            soup = BeautifulSoup(raw['body'], features = 'html.parser')
+            soup.find('div', {'class': 'teaser'}).decompose()
+            soup.find('span', {'class': 'more'}).decompose()
+            soup.find('span', {'class': 'less hidden'}).decompose()
+            content = soup.text.strip()
 
         transformed = Post(
             raw_id=data.id,
@@ -72,9 +96,41 @@ class BitchuteTransformer(Transformer):
             date=data.date,
             date_archived=data.date_archived,
             date_transformed=datetime.now(timezone.utc),
-            url=raw['url'],
+            url=raw['url'] if raw['url'] else None,
             content=content,
             author_id=raw['author_id'],
-            author_username=raw['author'])
+            author_username=raw['author'],
+            reply_to=reply_to,
+            hashtags = list(filter(None, [h.strip('#') for h in raw['hashtags'].split(',')])),
+            likes = raw['likes'],
+            views = int(raw['views']) if raw.get('views') else None,
+            video_title = raw['subject'],
+            video_duration = _parse_duration_str(raw['length']))
 
         transformed = insert(transformed)
+        session.flush()
+
+def parse_created(created: str, date_archived: datetime) -> datetime:
+    """Convert a created string (e.g. ``"1 year, 10 months ago"``) to a datetime 
+    object relative to the specified ``date_archived``.
+    """
+    try:
+        # handle case where `created` string has already been parsed into a datetime
+        return datetime.fromisoformat(created)
+    except ValueError:
+        period_list = ['year', 'month', 'week', 'day']
+
+        periods = [period.strip() for period in created.split('ago')[0].strip().split(',')]
+        _kwargs = {period : int(number) for period, number in dict(reversed(p.split(' ')) for p in periods).items()}
+        kwargs = {(k + 's' if k in period_list else k) : v for k, v in _kwargs.items()} 
+
+        return date_archived - relativedelta(**kwargs)
+
+def _parse_duration_str(duration_str: str) -> int:
+    """Convert duration string (e.g. '2:27:04') to the number of seconds (e.g. 8824).
+    """
+    if not duration_str:
+        return None
+    else:
+        duration_list = duration_str.split(':')
+        return sum([int(s) * int(g) for s, g in zip([1, 60, 3600], reversed(duration_list))])
