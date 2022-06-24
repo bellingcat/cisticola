@@ -3,6 +3,9 @@ from loguru import logger
 from typing import Generator, Union, Callable
 import dateutil.parser
 from datetime import datetime, timezone
+from sqlalchemy import func
+from gogettr import PublicClient
+from gogettr.api import GettrApiError
 
 from cisticola.transformer.base import Transformer 
 from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Image, Video, Media, Channel
@@ -31,28 +34,68 @@ class GettrTransformer(Transformer):
             transformer=self.__version__,
             screenname=raw['username'],
             name=raw['nickname'],
-            description=raw['dsc'],
-            description_url=raw['website'],
-            description_location=raw['location'],
-            followers=raw['flg'],
-            following=raw['flw'],
+            description=raw.get('dsc'),
+            description_url=raw.get('website'),
+            description_location=raw.get('location'),
+            followers=int(raw['flg']),
+            following=int(raw['flw']),
             verified=True if raw.get('infl') else False,
-            date_created=datetime.fromtimestamp(raw['cdate']*0.001),
+            date_created=datetime.fromtimestamp(int(raw['cdate'])*0.001),
             date_archived=data.date_archived,
             date_transformed=datetime.now(timezone.utc)
         )
 
         transformed = insert(transformed)
 
+    def _get_channel_id(self, username: str, category: str, insert: Callable, session):
+
+        channel = session.query(Channel).filter(func.lower(Channel.screenname)==func.lower(username), platform = 'Gettr').first()
+
+        if channel is None:
+            try:
+                client = PublicClient()
+                profile = client.user_info(username.lower())
+                screenname = profile.get('_id')
+                channel = Channel(
+                    name=profile.get('nickname'),
+                    platform_id=screenname,
+                    platform='Gettr',
+                    url="https://gettr.com/user/" + screenname,
+                    screenname=screenname,
+                    category=category,
+                    source=self.__version__,
+                    )
+            except GettrApiError:
+                channel = Channel(
+                    name = None,
+                    platform_id = None,
+                    platform = 'Gettr',
+                    url = None,
+                    screenname=username,
+                    category=category,
+                    source=self.__version__,
+                    notes='GettrApiError'
+                    )
+
+            channel = insert(channel)
+
+        return channel.id
 
     def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         if raw["activity"]["action"] == "shares_pst":
-            forwarded_from = raw["activity"]["uid"]
+            forwarded_from = self._get_channel_id(
+                username = str(raw["activity"]["uid"]), category = 'forwarded', insert = insert, session = session)
         else:
             forwarded_from = None
 
+        mentions = []
+        for mentioned_user in raw.get("utgs", []):
+            mentioned_id = self._get_channel_id(
+                username = mentioned_user, category = 'mentioned', insert = insert, session = session)
+            mentions.append(mentioned_id)
+            
         transformed = Post(
             raw_id=data.id,
             platform_id=raw["_id"],
@@ -69,7 +112,12 @@ class GettrTransformer(Transformer):
             author_username=raw["uid"],
             hashtags=raw.get("htgs", []),
             outlinks = list(filter(None, [raw.get("prevsrc")])),
-            forwarded_from = forwarded_from)
+            forwarded_from = forwarded_from,
+            mentions = mentions,
+            likes = raw.get('lkbpst'),
+            forwards = raw.get("shbpst"),
+            views = raw.get('vfpst')
+            )
 
         insert(transformed)
 

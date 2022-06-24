@@ -166,13 +166,7 @@ class TelegramTelethonScraper(Scraper):
     @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
         username = TelegramTelethonScraper.get_channel_identifier(channel)
-
-        api_id = os.environ['TELEGRAM_API_ID']
-        api_hash = os.environ['TELEGRAM_API_HASH']
-        phone = os.environ['TELEGRAM_PHONE']
-
-        with TelegramClient(phone, api_id, api_hash) as client:
-            full_channel = client(GetFullChannelRequest(channel = username))
+        full_channel = self.client(GetFullChannelRequest(channel = username))
         profile = full_channel.to_dict()
 
         return RawChannelInfo(scraper=self.__version__,
