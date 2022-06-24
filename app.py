@@ -14,7 +14,10 @@ from cisticola.scraper import (
     BitchuteScraper,
     RumbleScraper,
 )
-from cisticola.transformer import (ETLController, TelegramTelethonTransformer)
+from cisticola.transformer import (
+    ETLController,
+    TelegramTelethonTransformer
+)
 from sync_with_gsheet import sync_channels
 
 def get_db_session():
@@ -77,7 +80,7 @@ def archive_media(args):
     controller.archive_unarchived_media()
 
 def transform(args):
-    logger.info(f"Transforming untransformed media")
+    logger.info(f"Transforming untransformed posts")
 
     controller = get_transformer_controller()
     controller.transform_all_untransformed()
