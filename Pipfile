@@ -27,7 +27,7 @@ langdetect = "*"
 spacy = "==3.2.4"
 ocrd-pyexiftool = "*"
 gabber = {git = "https://github.com/stanfordio/gabber.git"}
-snscrape = {git = "https://github.com/bellingcat/snscrape"}
+snscrape = {path = "/home/work/Documents/Bellingcat/qanon_project/snscrape", editable = true}
 polyphemus = {git = "https://github.com/bellingcat/polyphemus"}
 
 [dev-packages]

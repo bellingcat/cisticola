@@ -40,11 +40,7 @@ def get_scraper_controller():
     controller = ScraperController()
     controller.connect_to_db(engine)
 
-    scrapers = [VkontakteScraper(),
-        TelegramTelethonScraper(),
-        GettrScraper(),
-        BitchuteScraper(),
-        RumbleScraper()]
+    scrapers = [TelegramTelethonScraper(),]
 
     controller.register_scrapers(scrapers)
 
@@ -73,6 +69,14 @@ def scrape_channels(args):
     controller = get_scraper_controller()
     controller.scrape_all_channels(archive_media=args.media)
 
+def import_paths(args):
+    logger.info(f"Importing paths, media: {args.media}")
+    if len(args.paths) == 0:
+        logger.warning(f"No paths specified")
+    offset = args.offset or 0
+
+    controller = get_scraper_controller()
+    controller.import_all_paths(paths=args.paths, offset = offset, archive_media=args.media)
 
 def scrape_channel_info(args):
     logger.info(f"Scraping channel info")
@@ -121,6 +125,14 @@ if __name__ == "__main__":
         "--media", action="store_true", help="[scrape-channels] Add this flag to media"
     )
 
+    parser.add_argument(
+        "--paths", nargs = '+', help="[import-paths] Add this flag to specify paths of exported posts to be imported"
+    )
+
+    parser.add_argument(
+        "--offset", type = int, help="[import-paths] Add this flag to specify the file number in the specified paths to start importing"
+    )
+
     args = parser.parse_args()
 
     if args.command == "init-db":
@@ -131,6 +143,9 @@ if __name__ == "__main__":
     elif args.command == "scrape-channels":
         logger.add("logs/scrape-channels.log", level="TRACE", rotation="100 MB")
         scrape_channels(args)
+    elif args.command == "import-paths":
+        logger.add("logs/import-paths.log", level="TRACE", rotation="100 MB")
+        import_paths(args)
     elif args.command == "archive-media":
         logger.add("logs/archive-media.log", level="TRACE", rotation="100 MB")
         archive_media(args)

@@ -24,6 +24,17 @@ class TelegramTelethonTransformer(Transformer):
 
     bad_channels = {}
 
+    def __init__(self):
+        super().__init__()
+
+        api_id = os.environ['TELEGRAM_API_ID']
+        api_hash = os.environ['TELEGRAM_API_HASH']
+        phone = os.environ['TELEGRAM_PHONE']
+
+        # set up a persistent client for Telethon
+        self.client =  TelegramClient(phone, api_id, api_hash)
+        self.client.connect()
+
     def can_handle(self, data: ScraperResult) -> bool:
         scraper = data.scraper.split(' ')
         if scraper[0] == "TelegramTelethonScraper":
@@ -32,16 +43,13 @@ class TelegramTelethonTransformer(Transformer):
         return False   
 
     def get_screenname_from_id(self, channel_id):
-        api_id = os.environ['TELEGRAM_API_ID']
-        api_hash = os.environ['TELEGRAM_API_HASH']
 
         try:
-            with TelegramClient("transform.session", api_id, api_hash) as client:
-                data = client.get_entity(channel_id)
-                if isinstance(data, types.User):
-                    return (data.username, str(data.first_name or "") + " " + str(data.last_name or ""), "")
-                else:
-                    return (data.username, data.title, "")
+            data = self.client.get_entity(channel_id)
+            if isinstance(data, types.User):
+                return (data.username, str(data.first_name or "") + " " + str(data.last_name or ""), "")
+            else:
+                return (data.username, data.title, "")
         except ChannelPrivateError:
             logger.info("ChannelPrivateError")
             return ("", "", "ChannelPrivateError")
@@ -125,75 +133,94 @@ class TelegramTelethonTransformer(Transformer):
         raw = json.loads(data.raw_data)
 
         if raw['_'] != 'Message':
-            logger.warning(f"Cannot convert type {raw['_']} to post")
+            # DEBUG
+            # logger.warning(f"Cannot convert type {raw['_']} to post")
             return
 
         fwd_from = None
 
-        if raw['fwd_from'] and raw['fwd_from']['from_id'] and 'channel_id' in raw['fwd_from']['from_id']:
-            channel = session.query(Channel).filter_by(platform_id=str(raw['fwd_from']['from_id']['channel_id']), platform = 'Telegram').first()
+        # channel = True
+        
+        # if raw.get('fwd_from') is not None:
+        #     if raw['fwd_from'].get('from_id'):
+        #         if isinstance(raw['fwd_from']['from_id'], int):
+        #             channel_id = str(raw['fwd_from']['from_id'])
+        #         else:
+        #             if 'channel_id' in raw['fwd_from']['from_id']:
+        #                 channel_id = str(raw['fwd_from']['from_id']['channel_id'])
+        #             elif 'user_id' in raw['fwd_from']['from_id']:
+        #                 channel_id = str(raw['fwd_from']['from_id']['user_id'])
+        #     elif raw['fwd_from'].get('channel_id'):
+        #         channel_id = str(raw['fwd_from']['channel_id'])
+        #     elif raw['fwd_from'].get('user_id'):
+        #         channel_id = str(raw['fwd_from']['user_id'])
+        #     channel = session.query(Channel).filter_by(platform_id=channel_id, platform = 'Telegram').first()
 
-            if channel is None:
-                (screenname, name, notes) = self.get_screenname_from_id(raw['fwd_from']['from_id']['channel_id'])
+        #     if channel is None:
+        #         (screenname, name, notes) = self.get_screenname_from_id(channel_id)
 
-                if name == "":
-                    logger.info("Trying fallback web interface")
-                    orig_channel = session.query(Channel).filter_by(id=data.channel).first()
-                    if orig_channel.screenname is not None:
-                        name = self.get_name_from_web_interface(orig_channel.screenname, raw['id'])
+        #         # if name == "":
+        #         #     logger.info("Trying fallback web interface")
+        #         #     orig_channel = session.query(Channel).filter_by(id=data.channel).first()
+        #         #     if orig_channel.screenname is not None:
+        #         #         name = self.get_name_from_web_interface(orig_channel.screenname, raw['id'])
 
-                channel = Channel(
-                    name=name,
-                    platform_id=raw['fwd_from']['from_id']['channel_id'],
-                    platform=data.platform,
-                    url="https://t.me/s/" + screenname if screenname is not None else "",
-                    screenname=screenname,
-                    category='forwarded',
-                    source=self.__version__,
-                    notes=notes
-                    )
+        #         channel = Channel(
+        #             name=name,
+        #             platform_id=channel_id,
+        #             platform=data.platform,
+        #             url="https://t.me/s/" + screenname if screenname not in (None, "") else "",
+        #             screenname=screenname,
+        #             category='forwarded',
+        #             source=self.__version__,
+        #             notes=notes
+        #             )
 
-                channel = insert(channel)
-                logger.info(f"Added {channel}")
+        #         channel = insert(channel)
+        #         logger.info(f"Added {channel}")
 
-            fwd_from = channel.id
+        #     fwd_from = channel.id
 
         reply_to = None
-        if raw['reply_to']:
-            reply_to_id = str(raw['reply_to']['reply_to_msg_id'])
-            post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
-            if post is None:
-                reply_to = -1
-            else:
-                reply_to = post.id
+        # reply_to_id = None
+        # if raw.get('reply_to'):
+        #     reply_to_id = str(raw['reply_to']['reply_to_msg_id'])
+        # elif raw.get('reply_to_msg_id'):
+        #     reply_to_id = str(raw['reply_to_msg_id'])
+        # if reply_to_id:
+        #     post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
+        #     if post is None:
+        #         reply_to = -1
+        #     else:
+        #         reply_to = post.id
 
         mentions = []
 
-        for mention_entity in [entity for entity in raw['entities'] if entity['_'] == 'MessageEntityMention']:
+        # for mention_entity in [entity for entity in raw['entities'] if entity['_'] == 'MessageEntityMention']:
 
-            offset = mention_entity['offset']
-            length = mention_entity['length']
+        #     offset = mention_entity['offset']
+        #     length = mention_entity['length']
 
-            screenname = add_surrogate(raw['message'])[offset:offset+length].strip('@').strip()
+        #     screenname = add_surrogate(raw['message'])[offset:offset+length].strip('@').strip()
 
-            channel = session.query(Channel).filter(func.lower(Channel.screenname)==func.lower(screenname)).first()
+        #     channel = session.query(Channel).filter(func.lower(Channel.screenname)==func.lower(screenname)).first()
 
-            if channel is None:
+        #     if channel is None:
 
-                channel = Channel(
-                    name = None,
-                    platform_id = None,
-                    platform = 'Telegram',
-                    url="https://t.me/s/" + screenname,
-                    screenname=screenname,
-                    category='mentioned',
-                    source=self.__version__,
-                    )
+        #         channel = Channel(
+        #             name = None,
+        #             platform_id = None,
+        #             platform = 'Telegram',
+        #             url="https://t.me/s/" + screenname,
+        #             screenname=screenname,
+        #             category='mentioned',
+        #             source=self.__version__,
+        #             )
 
-                channel = insert(channel)
-                logger.info(f"Added {channel}")
+        #         channel = insert(channel)
+        #         logger.info(f"Added {channel}")
 
-            mentions.append(channel.id)
+        #     mentions.append(channel.id)
 
         channel = session.query(Channel).filter_by(id=int(data.channel)).first()
 
@@ -225,7 +252,8 @@ class TelegramTelethonTransformer(Transformer):
             views = raw.get('views')
         )
 
-        transformed = insert(transformed)
+        # transformed = insert(transformed)
+        return transformed
 
         # for k in data.archived_urls:
         #     if data.archived_urls[k]:

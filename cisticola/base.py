@@ -11,7 +11,7 @@ import pytesseract
 import PIL
 import exiftool
 import re
-from langdetect import detect, DetectorFactory
+from langdetect import PROFILES_DIRECTORY, DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
 from loguru import logger
 import spacy
@@ -165,6 +165,15 @@ nlp_ru = spacy.load('ru_core_news_sm', disable=['parser', 'tok2vec', 'attribute_
 nlp_nl = spacy.load('nl_core_news_sm', disable=['parser', 'tok2vec', 'attribute_ruler'])
 nlp_xx = spacy.load('xx_ent_wiki_sm')
 
+factory = DetectorFactory()
+factory.load_profile(PROFILES_DIRECTORY)
+detector = factory.create()
+
+def detect(text, detector=detector):
+    detector.text = ""
+    detector.append(text)
+    return detector.detect()
+    
 @dataclass
 class Post:
     """An object with fields for columns in the analysis table"""

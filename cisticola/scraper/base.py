@@ -16,6 +16,7 @@ from sqlalchemy import nullsfirst
 
 from cisticola.base import Channel, RawChannelInfo, ScraperResult, mapper_registry
 from cisticola.utils import make_request
+from cisticola.transformer.base import insert_or_select
 
 class Scraper:
     """Base class for defining platform-specific scrapers for scraping all posts 
@@ -428,6 +429,34 @@ class ScraperController:
 
             if not handled:
                 logger.warning(f"No handler found for Channel {channel}")
+
+        session.close()        
+
+    def import_all_paths(self, paths: List[Path], offset: int = 0, archive_media: bool = False):
+        if self.session is None:
+            logger.error("No DB session")
+            return
+
+        scraper = None
+        for _scraper in self.scrapers:
+            if 'Telegram' in _scraper.__version__:
+                scraper = _scraper
+                break
+        if scraper is None:
+            raise ValueError('Only Telegram scraper is currently able to import posts')
+
+        session = self.session()
+        for path in paths:
+            files = sorted(os.listdir(path))
+            for i, file in enumerate(files[offset :]):
+                logger.info(f"Starting import of posts from channel {file}, [{i + offset}/{len(files)}]")
+                posts = list(scraper.import_posts(os.path.join(path, file), session = session, insert = lambda obj: insert_or_select(obj, session, False), archive_media=archive_media))
+
+                session.bulk_save_objects(posts)
+                session.commit()
+
+                logger.info(
+                    f"{scraper} found {len(posts)} new posts from {file}")
 
         session.close()
 

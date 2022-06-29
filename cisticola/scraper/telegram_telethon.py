@@ -5,7 +5,9 @@ import json
 import tempfile
 from pathlib import Path
 import time
+import pickle
 
+from sqlalchemy import func
 from loguru import logger
 from telethon.sync import TelegramClient 
 from telethon.tl.functions.channels import GetFullChannelRequest
@@ -160,6 +162,63 @@ class TelegramTelethonScraper(Scraper):
                 date=post.date.replace(tzinfo=timezone.utc),
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post.to_dict(), default=str),
+                archived_urls=archived_urls,
+                media_archived=datetime.now(timezone.utc) if archive_media else None)
+
+    @logger.catch(reraise = True)
+    def import_posts(self, file: str, session, insert, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+
+        with open(file, 'rb') as f:
+            posts = pickle.load(f)
+        screenname = file.split('/')[-1].split('.')[0]
+        logger.info(f"Loaded posts from channel {screenname}")
+        platform_ids = list(set([p.get('to_id', {}).get('channel_id') for p in posts if p['_'] == 'Message'])) or list(set([p.get('peer_id', {}).get('channel_id') for p in posts if p['_'] == 'Message']))
+        if len(platform_ids) > 0:
+            platform_id = platform_ids[0]
+        else:
+            return []
+        channel = session.query(Channel).filter_by(platform_id=str(platform_id), platform = 'Telegram').first()
+        if channel is None:
+            channel = Channel(
+                name=None,
+                platform_id=platform_id,
+                platform='Telegram',
+                url="https://t.me/s/" + screenname,
+                screenname=screenname,
+                category='imported',
+                source=self.__version__
+                )
+            channel = insert(channel)
+        else:
+            num_posts = session.query(func.count('*')).select_from(ScraperResult).filter(ScraperResult.channel==channel.id).scalar()
+            if num_posts != 0:
+                logger.info(f"Found {num_posts} already imported for channel {screenname}, skipping")
+                return []
+        for post in posts:
+            post_url = f'{channel.url}/{post["id"]}'
+
+            logger.trace(f"Archiving post {post_url} from {post['date']}")
+
+            archived_urls = {}
+
+            if post.get('media') is not None:           
+                archived_urls[post_url] = None
+
+                # if archive_media:
+                #     blob, output_file_with_ext = self.archive_post_media(post, client)
+                #     if blob is not None:
+                #         # TODO specify Content-Type
+                #         archived_url = self.archive_blob(blob = blob, content_type = '', key = output_file_with_ext)
+                #         archived_urls[post_url] = archived_url
+
+            yield ScraperResult(
+                scraper=self.__version__,
+                platform="Telegram",
+                channel=channel.id,
+                platform_id=post_url,
+                date=post['date'].replace(tzinfo=timezone.utc),
+                date_archived=datetime.now(timezone.utc),
+                raw_data=json.dumps(post, default=str),
                 archived_urls=archived_urls,
                 media_archived=datetime.now(timezone.utc) if archive_media else None)
 

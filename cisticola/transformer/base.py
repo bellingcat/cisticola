@@ -5,6 +5,8 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.sql.expression import func
 from collections import defaultdict
 from datetime import datetime
+#DEBUG
+import time
 
 from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Media, Channel, mapper_registry
 
@@ -88,57 +90,6 @@ class ETLController:
         self.session = sessionmaker()
         self.session.configure(bind=engine)
 
-    def insert_or_select(self, obj, session, hydrate: bool = True):
-        """Inserts an object into the database or returns an existing object from the database.
-        Regardless, the resulting object has an `id` attribute that can be referenced later."""
-
-        instance = None
-
-        # This is using some adhoc unique constraints that might be worth formalizing at some point
-        if type(obj) == Channel:
-            instance = session.query(Channel).filter_by(url=obj.url, platform_id=str(obj.platform_id or '') or obj.platform_id, platform=obj.platform).first()
-            
-        elif type(obj) == Post:
-            instance = None
-            # instance = session.query(Post).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
-
-        elif issubclass(type(obj), Media):
-            instance = session.query(type(obj)).filter_by(original_url=obj.original_url, post=obj.post).first()
-            if instance:
-                logger.info(f"Found matching DB entry for {obj}: {instance}")
-                return instance
-
-            instance = session.query(type(obj)).filter_by(original_url=obj.original_url).first()
-            
-            # For Media objects we want to duplicate the entry to preserve the relationship with the post.
-            # However, we also want to avoid rehydration, hence the code below:
-            if instance:
-                logger.info(f"Found matching media record, duplicating and inserting for new post")
-
-                session.expunge(instance) 
-                make_transient(instance) 
-                instance.id = None 
-                instance.post = obj.post
-                instance.raw_id = obj.raw_id
-
-                session.add(instance)
-                session.flush()
-                return instance
-
-        if instance:
-            logger.info(f"Found matching DB entry for {obj}: {instance}")
-            return instance
-
-        if hydrate:
-            obj.hydrate()
-
-        session.add(obj)
-        session.flush()
-
-        logger.trace(f"Inserted new object {obj}")
-
-        return obj
-
     @logger.catch(reraise=True)
     def transform_results(self, results: List[ScraperResult], hydrate: bool = True):
         """Transforms raw ScraperResults objects into Post objects and
@@ -157,6 +108,10 @@ class ETLController:
 
         session = self.session()
 
+        transformed_results = []
+        # DEBUG
+        start_time = time.time()
+
         for result in results:
             if result.scraper is not None and result.platform is not None:
                 for transformer in self.transformers:
@@ -166,13 +121,22 @@ class ETLController:
                         logger.trace(f"{transformer} is handling result {result.id} ({result.date})")
                         handled = True
 
-                        transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate), session)
-
-                        session.commit()
+                        transformed_results.append(transformer.transform(result, lambda obj: insert_or_select(obj, session, hydrate), session))
+                        
+                        # count += 1
                         break
 
                 if handled == False:
                     logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
+            # # DEBUG
+            # if count == 10000:
+            #     import sys; sys.exit()
+
+        to_transform = list(filter(None, transformed_results))
+        session.bulk_save_objects(to_transform)
+        session.commit()
+        total_time = time.time() - start_time
+        logger.info(f'Transformed {len(to_transform)} posts out of {len(results)} ScraperResults in {total_time:.1f} seconds')
 
     @logger.catch(reraise=True)
     def transform_all_untransformed(self, hydrate: bool = True):
@@ -192,22 +156,31 @@ class ETLController:
         session = self.session()
 
         BATCH_SIZE = 50000
-        offset = 0
-        batch = []
+        batch = (session.query(ScraperResult)
+                .join(Post, isouter=True)
+                .where(Post.raw_id == None)
+                .order_by(ScraperResult.date.asc())
+                .limit(BATCH_SIZE)
+            ).all()
 
-        query = (session.query(ScraperResult)
-            .join(Post, isouter=True)
-            .where(Post.raw_id == None)
-            .order_by(ScraperResult.date.asc())
-        )
+        while len(batch) > 0:
+            # logger.info(f"Fetching untransformed posts batch of {BATCH_SIZE}, offset {offset}")
 
-        while len(batch) > 0 or offset == 0:
-            logger.info(f"Fetching untransformed posts batch of {BATCH_SIZE}, offset {offset}")
+            # DEBUG
+            # import pdb; pdb.set_trace()
 
-            batch = query.slice(offset, offset + BATCH_SIZE).all()
-            offset += BATCH_SIZE
+            start_time = time.time()
+            batch = (session.query(ScraperResult)
+                    .join(Post, isouter=True)
+                    .where(Post.raw_id == None)
+                    .where(ScraperResult.date > max(batch, key=lambda v: v.date).date)
+                    .order_by(ScraperResult.date.asc())
+                    .limit(BATCH_SIZE)
+                ).all()
+            total_time = time.time() - start_time
+            logger.info(f'Retrieved {BATCH_SIZE} ScraperResults in {total_time:.1f} seconds')
 
-            logger.info(f"Found {len(batch)} items to ETL ({offset} already processed)")
+            # logger.info(f"Found {len(batch)} items to ETL ({offset} already processed)")
 
             self.transform_results(batch, hydrate=hydrate)
 
@@ -259,8 +232,58 @@ class ETLController:
             logger.info(f"Fetching untransformed info batch of {BATCH_SIZE}, offset {offset}")
 
             batch = query.slice(offset, offset + BATCH_SIZE).all()
+            logger.info(f"Found {len(batch)} info items to ETL ({offset} already processed)")
+            
+            self.transform_info(batch)
             offset += BATCH_SIZE
 
-            logger.info(f"Found {len(batch)} info items to ETL ({offset} already processed)")
+def insert_or_select(obj, session, hydrate: bool = True):
+    """Inserts an object into the database or returns an existing object from the database.
+    Regardless, the resulting object has an `id` attribute that can be referenced later."""
 
-            self.transform_info(batch)
+    instance = None
+
+    # This is using some adhoc unique constraints that might be worth formalizing at some point
+    if type(obj) == Channel:
+        instance = session.query(Channel).filter_by(url=obj.url, platform_id=str(obj.platform_id or '') or obj.platform_id, platform=obj.platform).first()
+        
+    elif type(obj) == Post:
+        instance = None
+        # instance = session.query(Post).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
+
+    elif issubclass(type(obj), Media):
+        instance = session.query(type(obj)).filter_by(original_url=obj.original_url, post=obj.post).first()
+        if instance:
+            logger.info(f"Found matching DB entry for {obj}: {instance}")
+            return instance
+
+        instance = session.query(type(obj)).filter_by(original_url=obj.original_url).first()
+        
+        # For Media objects we want to duplicate the entry to preserve the relationship with the post.
+        # However, we also want to avoid rehydration, hence the code below:
+        if instance:
+            logger.info(f"Found matching media record, duplicating and inserting for new post")
+
+            session.expunge(instance) 
+            make_transient(instance) 
+            instance.id = None 
+            instance.post = obj.post
+            instance.raw_id = obj.raw_id
+
+            session.add(instance)
+            session.flush()
+            return instance
+
+    if instance:
+        logger.info(f"Found matching DB entry for {obj}: {instance}")
+        return instance
+
+    if hydrate:
+        obj.hydrate()
+
+    session.add(obj)
+    session.flush()
+
+    logger.trace(f"Inserted new object {obj}")
+
+    return obj
