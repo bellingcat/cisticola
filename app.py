@@ -16,8 +16,6 @@ from cisticola.scraper import (
 )
 from cisticola.transformer import (
     ETLController,
-    TelegramTelethonTransformer
-    ETLController,
     TelegramTelethonTransformer,
     GettrTransformer,
     RumbleTransformer,
