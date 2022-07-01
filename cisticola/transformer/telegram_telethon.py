@@ -32,7 +32,7 @@ class TelegramTelethonTransformer(Transformer):
         phone = os.environ['TELEGRAM_PHONE']
 
         # set up a persistent client for Telethon
-        self.client =  TelegramClient(phone, api_id, api_hash)
+        self.client =  TelegramClient('transform.session', api_id, api_hash)
         self.client.connect()
 
     def can_handle(self, data: ScraperResult) -> bool:
@@ -122,7 +122,7 @@ class TelegramTelethonTransformer(Transformer):
             followers=raw['full_chat']['participants_count'],
             following=-1, # does not exist for Telegram
             verified=False, #does not exist for Telegram
-            date_created=dateutil.parser.parse(chat_raw['date']),
+            date_created=dateutil.parser.parse(chat_raw['date']) if chat_raw['date'] else None,
             date_archived=data.date_archived,
             date_transformed=datetime.now(timezone.utc)
         )

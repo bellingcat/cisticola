@@ -7,11 +7,16 @@ from pathlib import Path
 import time
 import pickle
 
+import requests
+from bs4 import BeautifulSoup
+
 from sqlalchemy import func
 from loguru import logger
 from telethon.sync import TelegramClient 
 from telethon.tl.functions.channels import GetFullChannelRequest
 from telethon.tl import types
+
+from snscrape.modules.telegram import TelegramChannelScraper
 
 from cisticola.base import Channel, ScraperResult, RawChannelInfo
 from cisticola.scraper.base import Scraper
@@ -31,7 +36,7 @@ class TelegramTelethonScraper(Scraper):
         phone = os.environ['TELEGRAM_PHONE']
 
         # set up a persistent client for Telethon
-        self.client =  TelegramClient(phone, api_id, api_hash)
+        self.client =  TelegramClient('transform.session', api_id, api_hash)
         self.client.connect()
 
     def __del__(self):
@@ -222,11 +227,61 @@ class TelegramTelethonScraper(Scraper):
                 archived_urls=archived_urls,
                 media_archived=datetime.now(timezone.utc) if archive_media else None)
 
+    def get_full_channel_tgstat(self, channel):
+
+        username = TelegramTelethonScraper.get_username_from_url(channel.url)
+        url = f'https://tgstat.com/channel/@{username}/stat'
+        r = requests.get(url, headers = {
+            'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'})
+        if 'Channel not found' in r.text:
+            raise ValueError(f'Channel information not archived')
+        
+        soup = BeautifulSoup(r.content, features = 'lxml')
+
+        raw_data = {
+            'full_chat': {
+                'id': channel.platform_id,
+                'about':  soup.find('div', class_ = 'col-12 col-sm-7 col-md-8 col-lg-6').text.strip().split('\n')[-1].strip(),
+                'participants_count': int(soup.find('h2', class_ = 'text-dark').text.strip().replace(' ', ''))
+            },
+            'chats': [{
+                'username':soup.find('a', {'target': '_blank'}).text.strip().strip('@'),
+                'title': soup.find('h1').text.strip(),
+                'date': None,
+            }],
+        }
+        
+        return raw_data
+
+    def get_full_channel_snscrape(self, channel):
+        username = TelegramTelethonScraper.get_username_from_url(channel.url)
+        scraper = TelegramChannelScraper(name = username)
+        entity = scraper._get_entity()
+        raw_data = {
+            'full_chat': {
+                'id': channel.platform_id,
+                'about': entity.description,
+                'participants_count': entity.members
+            },
+            'chats': [{
+                'username': entity.username,
+                'title': entity.title,
+                'date': None,
+            }],
+        }
+        return raw_data
+
     @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
         username = TelegramTelethonScraper.get_channel_identifier(channel)
-        full_channel = self.client(GetFullChannelRequest(channel = username))
-        profile = full_channel.to_dict()
+        try:
+            full_channel = self.client(GetFullChannelRequest(channel = username))
+            profile = full_channel.to_dict()
+        except:
+            try:
+                profile = self.get_full_channel_snscrape(channel)
+            except:
+                profile = self.get_full_channel_tgstat(channel)
 
         return RawChannelInfo(scraper=self.__version__,
             platform=channel.platform,
