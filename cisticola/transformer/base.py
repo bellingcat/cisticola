@@ -192,22 +192,25 @@ class ETLController:
         session = self.session()
 
         BATCH_SIZE = 50000
-        offset = 0
-        batch = []
+        batch = (session.query(ScraperResult)
+                    .join(Post, isouter=True)
+                    .where(Post.raw_id == None)
+                    .order_by(ScraperResult.date.asc())
+                    .limit(BATCH_SIZE)
+                ).all()
 
-        query = (session.query(ScraperResult)
-            .join(Post, isouter=True)
-            .where(Post.raw_id == None)
-            .order_by(ScraperResult.date.asc())
-        )
+        while len(batch) > 0:
+            logger.info(f"Fetching untransformed posts batch of {BATCH_SIZE}")
 
-        while len(batch) > 0 or offset == 0:
-            logger.info(f"Fetching untransformed posts batch of {BATCH_SIZE}, offset {offset}")
+            batch = (session.query(ScraperResult)
+                    .join(Post, isouter=True)
+                    .where(Post.raw_id == None)
+                    .where(ScraperResult.date >= max(batch, key=lambda v: v.date).date)
+                    .order_by(ScraperResult.date.asc())
+                    .limit(BATCH_SIZE)
+                ).all()
 
-            batch = query.slice(offset, offset + BATCH_SIZE).all()
-            offset += BATCH_SIZE
-
-            logger.info(f"Found {len(batch)} items to ETL ({offset} already processed)")
+            logger.info(f"Found {len(batch)} items to ETL")
 
             self.transform_results(batch, hydrate=hydrate)
 
@@ -233,8 +236,8 @@ class ETLController:
                         session.commit()
                         break
 
-                    if handled == False:
-                        logger.warning(f"No Transformer could handle raw channel info ID {result.id} with platform {result.platform} ({result.date_archived})")
+                if handled == False:
+                    logger.warning(f"No Transformer could handle raw channel info ID {result.id} with platform {result.platform} ({result.date_archived})")
 
 
     @logger.catch(reraise=True)
