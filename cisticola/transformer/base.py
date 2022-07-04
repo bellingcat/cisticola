@@ -191,25 +191,35 @@ class ETLController:
 
         session = self.session()
 
-        BATCH_SIZE = 50000
+        BATCH_SIZE = 5000
         offset = 0
         batch = []
 
-        query = (session.query(ScraperResult)
+        logger.info(f"Fetching first untransformed post batch of {BATCH_SIZE}")
+
+        batch = (session.query(ScraperResult)
             .join(Post, isouter=True)
             .where(Post.raw_id == None)
             .order_by(ScraperResult.date.asc())
-        )
+            .limit(BATCH_SIZE)
+        ).all()
 
-        while len(batch) > 0 or offset == 0:
-            logger.info(f"Fetching untransformed posts batch of {BATCH_SIZE}, offset {offset}")
-
-            batch = query.slice(offset, offset + BATCH_SIZE).all()
-            offset += BATCH_SIZE
-
-            logger.info(f"Found {len(batch)} items to ETL ({offset} already processed)")
+        while len(batch) > 0:
+            logger.info(f"Found {len(batch)} items to ETL")
 
             self.transform_results(batch, hydrate=hydrate)
+
+            logger.info(f"Fetching untransformed posts batch of {BATCH_SIZE}, offset {max(batch, key=lambda v: v.date).date}")
+
+            batch = (session.query(ScraperResult)
+                    .join(Post, isouter=True)
+                    .where(Post.raw_id == None)
+                    .where(ScraperResult.date >= max(batch, key=lambda v: v.date).date)
+                    .order_by(ScraperResult.date.asc())
+                    .limit(BATCH_SIZE)
+                ).all()
+
+
 
     @logger.catch(reraise=True)
     def transform_info(self, results: List[ChannelInfo]):
@@ -221,9 +231,9 @@ class ETLController:
 
         for result in results:
             if result.scraper is not None and result.platform is not None:
-                for transformer in self.transformers:
-                    handled = False
+                handled = False
 
+                for transformer in self.transformers:
                     if transformer.can_handle(result):
                         logger.trace(f"{transformer} is handling raw info result {result.id} ({result.date_archived})")
                         handled = True
@@ -245,7 +255,7 @@ class ETLController:
 
         session = self.session()
 
-        BATCH_SIZE = 50000
+        BATCH_SIZE = 10000
         offset = 0
         batch = []
 
