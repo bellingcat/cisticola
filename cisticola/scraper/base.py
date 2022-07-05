@@ -24,6 +24,9 @@ class Scraper:
 
     __version__ = "Scraper 0.0.0"
 
+    cookiestring = os.environ["YOUTUBE_COOKIESTRING"].replace(r'\n', '\n').replace(r'\t', '\t')
+    cookiefilename = 'cookiefile.txt'
+
     def __init__(self):
 
         # Initialize client to transfer files to the storage archive

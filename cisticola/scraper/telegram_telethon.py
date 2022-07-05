@@ -70,7 +70,7 @@ class TelegramTelethonScraper(Scraper):
                 message = self.client.get_messages(raw['peer_id']['channel_id'], ids=[raw['id']])
 
                 blob = None
-                if len(message) > 0:
+                if len(message) > 0 and message[0] is not None:
                     blob, output_file_with_ext = self.archive_post_media(message[0])
                 else:
                     logger.warning("No message retrieved")
