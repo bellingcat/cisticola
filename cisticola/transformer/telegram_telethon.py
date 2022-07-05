@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from sqlalchemy import func
 
 from cisticola.transformer.base import Transformer 
-from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Image, Video, Media, Channel
+from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Image, Video, Audio, Media, Channel
 
 
 class TelegramTelethonTransformer(Transformer):
@@ -226,16 +226,6 @@ class TelegramTelethonTransformer(Transformer):
         )
 
         transformed = insert(transformed)
-
-        # for k in data.archived_urls:
-        #     if data.archived_urls[k]:
-        #         archived_url = data.archived_urls[k]
-        #         ext = archived_url.split('.')[-1]
-
-        #         if ext == 'mp4' or ext == 'mov' or ext == 'avi' or ext =='mkv':
-        #             insert(Video(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
-        #         else:
-        #             insert(Image(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
 
 def add_markdown_links(raw_post):
 

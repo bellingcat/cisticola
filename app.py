@@ -100,6 +100,12 @@ def transform_info(args):
     controller = get_transformer_controller()
     controller.transform_all_untransformed_info()
 
+def transform_media(args):
+    logger.info(f"Transforming untransformed channel media")
+
+    controller = get_transformer_controller()
+    controller.transform_all_untransformed_media()
+
 def init_db():
     engine = create_engine(os.environ["DB"])
     mapper_registry.metadata.create_all(bind=engine)
@@ -144,5 +150,8 @@ if __name__ == "__main__":
     elif args.command == "transform-info":
         logger.add("logs/transform-info.log", level="TRACE", rotation="100 MB")
         transform_info(args)
+    elif args.command == "transform-media":
+        logger.add("logs/transform-media.log", level="TRACE", rotation="100 MB")
+        transform_media(args)
     else:
         logger.error(f"Unrecognized command {args.command}")

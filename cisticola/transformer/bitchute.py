@@ -21,13 +21,13 @@ class BitchuteTransformer(Transformer):
 
         return False        
 
-    def transform_media(self, data: ScraperResult, insert: Callable, transformed: Post) -> Generator[Media, None, None]:
+    def transform_media(self, data: ScraperResult, transformed: Post, insert: Callable) -> Generator[Media, None, None]:
         raw = json.loads(data.raw_data)
 
         orig = raw['video_url']
         new = data.archived_urls[orig]
 
-        m = Video(url=new, post=transformed.id, raw_id=data.id, original_url=orig)
+        m = Video(url=new, post=transformed.id, raw_id=data.id, original_url=orig, date=data.date, date_archived=data.date_archived, date_transformed=datetime.now(timezone.utc), transformer=self.__version__, scraper=data.scraper, platform=data.platform)
 
         insert(m)
 
