@@ -29,6 +29,7 @@ ocrd-pyexiftool = "*"
 gabber = {git = "https://github.com/stanfordio/gabber.git"}
 snscrape = {git = "https://github.com/bellingcat/snscrape"}
 polyphemus = {git = "https://github.com/bellingcat/polyphemus"}
+filelock = "*"
 
 [dev-packages]
 pytest = "*"

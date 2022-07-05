@@ -90,7 +90,7 @@ def _process_number(s):
     if s is None:
         return None
     else:
-        s = s.replace(' ', '')
+        s = s.replace(' ', '').replace(',','')
         if s.endswith('M'):
             return int(float(s[:-1]) * 1e6)
         elif s.endswith('K'):

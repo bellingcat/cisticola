@@ -49,7 +49,7 @@ class GettrTransformer(Transformer):
 
     def _get_channel_id(self, username: str, category: str, insert: Callable, session):
 
-        channel = session.query(Channel).filter(func.lower(Channel.screenname)==func.lower(username), platform = 'Gettr').first()
+        channel = session.query(Channel).where((func.lower(Channel.screenname)==func.lower(username)) & (Channel.platform == 'Gettr')).first()
 
         if channel is None:
             try:

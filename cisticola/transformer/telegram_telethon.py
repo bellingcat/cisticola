@@ -121,23 +121,6 @@ class TelegramTelethonTransformer(Transformer):
 
         transformed = insert(transformed)
 
-    def transform_media(self, data: ScraperResult, transformed: Post, insert: Callable, session):
-        for k in data.archived_urls:
-            if data.archived_urls[k]:
-                archived_url = data.archived_urls[k]
-                filename = archived_url.split('/')[-1]
-                ext = None if '.' not in filename else filename.split('.')[-1].lower()
-
-                if ext == 'mp4' or ext == 'mov' or ext == 'avi' or ext =='mkv':
-                    insert(Video(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
-                elif ext == 'oga' or ext == 'mp3' or ext == "wav" or ext == 'aif' or ext == 'aiff' or ext == 'aac':
-                    insert(Audio(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
-                elif ext == 'jpg' or ext == 'jpeg' or ext == 'png' or ext == 'gif' or ext == 'bmp' or ext == 'heic' or ext == 'tiff':
-                    insert(Image(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
-                else:
-                    logger.warning(f"Unknown file extension {ext}")
-                    insert(Media(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k))
-
     def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 

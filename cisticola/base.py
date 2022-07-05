@@ -326,6 +326,24 @@ class Media:
     #: Original URL of the media from the the original post.
     original_url: str
 
+    #: String specifying name and version of scraper used to generate result, e.g. ``"TwitterScraper 0.0.1"``.
+    scraper: str
+
+    #: String specifying name and version of transformer used to tranform result, e.g. ``"TwitterTransformer 0.0.1"``.
+    transformer: str
+
+    #: Name of platform from which result was scraped, e.g. ``"Twitter"``.
+    platform: str
+
+    #: Datetime (relative to UTC) that the scraped post was created at.
+    date: datetime
+
+    #: Datetime (relative to UTC) that the scraped post was archived at.
+    date_archived: datetime
+
+    #: Datetime (UTC) that the scraped post was transformed at.
+    date_transformed: datetime
+
     #: JSON dump of the dict containing metadata information for the media file.
     exif: str = None
 
@@ -497,7 +515,13 @@ media_table = Table('media', mapper_registry.metadata,
                        Column('url', String),
                        Column('original_url', String),
                        Column('exif', String),
-                       Column('ocr', String))
+                       Column('ocr', String),
+                       Column('date', DateTime, index=True),
+                       Column('date_archived', DateTime, index=True),
+                       Column('date_transformed', DateTime, index=True),
+                       Column('scraper', String),
+                       Column('transformer', String)
+                       )
 
 mapper_registry.map_imperatively(Post, post_table)
 mapper_registry.map_imperatively(Channel, channel_table)

@@ -4,9 +4,9 @@ from sqlalchemy.orm import sessionmaker, make_transient
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.sql.expression import func
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 
-from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Media, Channel, mapper_registry
+from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Media, Channel, mapper_registry, Image, Video, Audio
 
 
 class Transformer:
@@ -49,6 +49,24 @@ class Transformer:
         """
 
         pass
+
+    def transform_media(self, data: ScraperResult, transformed: Post, insert: Callable):
+        '''Transform media'''
+        for k in data.archived_urls:
+            if data.archived_urls[k]:
+                archived_url = data.archived_urls[k]
+                filename = archived_url.split('/')[-1]
+                ext = None if '.' not in filename else filename.split('.')[-1].lower()
+
+                if ext == 'mp4' or ext == 'mov' or ext == 'avi' or ext =='mkv':
+                    insert(Video(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k, date=data.date, date_archived=data.date_archived, date_transformed=datetime.now(timezone.utc), transformer=self.__version__, scraper=data.scraper, platform=data.platform))
+                elif ext == 'oga' or ext == 'mp3' or ext == "wav" or ext == 'aif' or ext == 'aiff' or ext == 'aac':
+                    insert(Audio(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k, date=data.date, date_archived=data.date_archived, date_transformed=datetime.now(timezone.utc), transformer=self.__version__, scraper=data.scraper, platform=data.platform))
+                elif ext == 'jpg' or ext == 'jpeg' or ext == 'png' or ext == 'gif' or ext == 'bmp' or ext == 'heic' or ext == 'tiff':
+                    insert(Image(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k, date=data.date, date_archived=data.date_archived, date_transformed=datetime.now(timezone.utc), transformer=self.__version__, scraper=data.scraper, platform=data.platform))
+                else:
+                    logger.warning(f"Unknown file extension {ext}")
+                    insert(Media(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k, date=data.date, date_archived=data.date_archived, date_transformed=datetime.now(timezone.utc), transformer=self.__version__, scraper=data.scraper, platform=data.platform))
 
 
 class ETLController:
@@ -130,7 +148,8 @@ class ETLController:
             logger.info(f"Found matching DB entry for {obj}: {instance}")
             return instance
 
-        if hydrate:
+        # Don't hydrate videos, because they can be quite large and this is time consuming
+        if hydrate and type(obj) != Video:
             obj.hydrate()
 
         session.add(obj)
@@ -294,13 +313,13 @@ class ETLController:
                         logger.trace(f"{transformer} is handling result {result.id} ({result.date})")
                         handled = True
 
-                        transformer.transform_media(result, total_result.Post, lambda obj: self.insert_or_select(obj, session, hydrate), session)
+                        transformer.transform_media(result, total_result.Post, lambda obj: self.insert_or_select(obj, session, hydrate))
 
                         session.commit()
                         break
 
-                    if handled == False:
-                        logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
+                if handled == False:
+                    logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
 
     @logger.catch(reraise=True)
     def transform_all_untransformed_media(self, hydrate=True):
