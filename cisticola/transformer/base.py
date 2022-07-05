@@ -1,5 +1,6 @@
 from typing import List, Generator, Union, Callable
 from loguru import logger
+from sqlalchemy import cast, String
 from sqlalchemy.orm import sessionmaker, make_transient
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.sql.expression import func
@@ -338,14 +339,14 @@ class ETLController:
 
         session = self.session()
 
-        BATCH_SIZE = 50000
+        BATCH_SIZE = 5000
         offset = 0
         batch = []
 
         query = (session.query(ScraperResult, Post)
             .join(Post)
             .join(Media, isouter=True)
-            .filter((ScraperResult.media_archived != None) & (ScraperResult.archived_urls != '{}') & (Media.id == None))
+            .filter((ScraperResult.media_archived != None) & (cast(ScraperResult.archived_urls, String) != '{}') & (Media.id == None))
             .order_by(ScraperResult.date.asc())
         )
 
