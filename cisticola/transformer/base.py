@@ -128,11 +128,12 @@ class ETLController:
 
                 if handled == False:
                     logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
-            # # DEBUG
-            # if count == 10000:
-            #     import sys; sys.exit()
 
         to_transform = list(filter(None, transformed_results))
+        if hydrate:
+            for obj in to_transform:
+                obj.hydrate()
+            
         session.bulk_save_objects(to_transform)
         session.commit()
         total_time = time.time() - start_time
@@ -178,7 +179,7 @@ class ETLController:
                     .limit(BATCH_SIZE)
                 ).all()
             total_time = time.time() - start_time
-            logger.info(f'Retrieved {BATCH_SIZE} ScraperResults in {total_time:.1f} seconds')
+            logger.info(f'Retrieved {len(batch)} ScraperResults in {total_time:.1f} seconds')
 
             # logger.info(f"Found {len(batch)} items to ETL ({offset} already processed)")
 
