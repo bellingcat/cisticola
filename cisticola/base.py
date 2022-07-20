@@ -354,6 +354,7 @@ class Media:
         blob = make_request(self.url)
         return blob.content
 
+    @logger.catch
     def hydrate(self, blob = None):
         """Download media file as bytes blob and extract data from content.
         """
@@ -382,6 +383,7 @@ class Image(Media):
     #: Extracted OCR content from image
     ocr: str = None
 
+    @logger.catch
     def hydrate(self, blob=None):
         """Download image file as bytes blob and extract Exif and OCR content 
         from the image.
@@ -510,7 +512,7 @@ media_table = Table('media', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
                               autoincrement=True),
                        Column('type', String),
-                       Column('raw_id', Integer, ForeignKey('raw_posts.id')),
+                       Column('raw_id', Integer, ForeignKey('raw_posts.id'), index=True),
                        Column('post', Integer, ForeignKey('posts.id')),
                        Column('url', String),
                        Column('original_url', String),

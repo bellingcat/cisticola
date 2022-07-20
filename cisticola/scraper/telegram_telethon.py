@@ -21,15 +21,18 @@ class TelegramTelethonScraper(Scraper):
     __version__ = "TelegramTelethonScraper 0.0.3"
     client = None
 
-    def __init__(self):
+    def __init__(self, telethon_session_name = None):
         super().__init__()
 
         api_id = os.environ['TELEGRAM_API_ID']
         api_hash = os.environ['TELEGRAM_API_HASH']
         phone = os.environ['TELEGRAM_PHONE']
 
+        if telethon_session_name is None:
+            telethon_session_name = phone
+
         # set up a persistent client for Telethon
-        self.client =  TelegramClient(phone, api_id, api_hash)
+        self.client =  TelegramClient(telethon_session_name, api_id, api_hash)
         self.client.connect()
 
     def __del__(self):
@@ -70,6 +73,7 @@ class TelegramTelethonScraper(Scraper):
                 message = self.client.get_messages(raw['peer_id']['channel_id'], ids=[raw['id']])
 
                 blob = None
+                output_file_with_ext = None
                 if len(message) > 0 and message[0] is not None:
                     blob, output_file_with_ext = self.archive_post_media(message[0])
                 else:

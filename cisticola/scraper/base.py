@@ -408,11 +408,14 @@ class ScraperController:
                     added = 0
 
                     # get most recent post
+                    # Note: a "bug" in Postgres can cause this query to hang for a really long time
+                    # when searching for a single row, hence the limit(10).all() when we really just need
+                    # the first row.
                     rows = session.query(ScraperResult).where(
                         ScraperResult.channel == channel.id).order_by(
-                        ScraperResult.date.desc()).limit(1).all()
+                        ScraperResult.date.desc()).limit(10).all()
 
-                    if len(rows) == 1:
+                    if len(rows) > 0:
                         since = rows[0]
                     else:
                         since = None
@@ -423,9 +426,6 @@ class ScraperController:
                         session.add(post)
                         session.commit()
                         added += 1
-
-                        if added > 100:
-                            break
 
                     session.commit()
                     logger.info(
@@ -438,39 +438,44 @@ class ScraperController:
         session.close()
 
     @logger.catch(reraise = True)
-    def archive_unarchived_media(self):
+    def archive_unarchived_media(self, chronological=False):
         if self.session is None:
             logger.error("No DB session")
             return
 
         session = self.session()
 
-        # this query is really slow (~2.5 minutes) because of the shuffle. shuffling is so that multiple media archivers could work
-        # simultaneously with low risk of collision (at least while the number of unarchived items is very large)
-        posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).order_by(func.random()).limit(4000).all()
+        while True:
+            if chronological:
+                posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).order_by(ScraperResult.date.desc()).limit(5000).all()
+            else:
+                # this query is really slow (~2.5 minutes) because of the shuffle. shuffling is so that multiple media archivers could work
+                # simultaneously with low risk of collision (at least while the number of unarchived items is very large)
+                posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).order_by(func.random()).limit(5000).all()
 
-        logger.info(f"Found {len(posts)} posts without media. Archiving now")
+            logger.info(f"Found {len(posts)} posts without media. Archiving now")
 
-        for post in posts:
-            handled = False
+            for post in posts:
+                handled = False
 
-            for scraper in self.scrapers:
-                # compare major versions
-                if scraper.__version__.split('.')[0] == post.scraper.split('.')[0]:
-                    handled = True
-                    logger.debug(f"{scraper} is archiving media for ID {post.id}")
-                    post = scraper.archive_files(post)
+                for scraper in self.scrapers:
+                    # compare major versions
+                    if scraper.__version__.split('.')[0] == post.scraper.split('.')[0]:
+                        handled = True
+                        logger.debug(f"{scraper} is archiving media for ID {post.id}")
+                        post = scraper.archive_files(post)
 
-                    if post:
-                        session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': post.media_archived})
-                        session.commit()
+                        if post:
+                            session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': post.media_archived})
+                            session.commit()
 
-                    break
+                        break
+                
+                if not handled:
+                    logger.warning(f"No handler found for post scraped with {post.scraper}")
+
+            session.commit()
             
-            if not handled:
-                logger.warning(f"No handler found for post scraped with {post.scraper}")
-
-        session.commit()
         session.close()
 
     @logger.catch(reraise = True)

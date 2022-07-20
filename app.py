@@ -35,14 +35,14 @@ def get_db_session():
     return session
 
 
-def get_scraper_controller():
+def get_scraper_controller(telethon_session_name = None):
     engine = create_engine(os.environ["DB"])
 
     controller = ScraperController()
     controller.connect_to_db(engine)
 
     scrapers = [VkontakteScraper(),
-        TelegramTelethonScraper(),
+        TelegramTelethonScraper(telethon_session_name = telethon_session_name),
         GettrScraper(),
         BitchuteScraper(),
         RumbleScraper()]
@@ -85,8 +85,15 @@ def scrape_channel_info(args):
 def archive_media(args):
     logger.info(f"Archiving unarchived media")
 
-    controller = get_scraper_controller()
-    controller.archive_unarchived_media()
+    if args.telethon_session:
+        controller = get_scraper_controller(telethon_session_name=args.telethon_session)
+    else:
+        controller = get_scraper_controller()
+    
+    if args.chronological:
+        controller.archive_unarchived_media(chronological=True)
+    else:
+        controller.archive_unarchived_media()
 
 def transform(args):
     logger.info(f"Transforming untransformed posts")
@@ -127,6 +134,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--media", action="store_true", help="[scrape-channels] Add this flag to media"
     )
+    parser.add_argument("--chronological", action="store_true")
+    parser.add_argument("--telethon_session", type=str)
 
     args = parser.parse_args()
 
