@@ -349,23 +349,30 @@ class ETLController:
 
         session = self.session()
 
-        BATCH_SIZE = 5000
-        offset = 0
-        batch = []
+        BATCH_SIZE = 50000
 
-        query = (session.query(ScraperResult, Post)
+        logger.info(f"Fetching first untransformed post media batch of {BATCH_SIZE}")
+
+        batch = (session.query(ScraperResult, Post)
             .join(Post)
             .join(Media, isouter=True)
             .filter((ScraperResult.media_archived != None) & (cast(ScraperResult.archived_urls, String) != '{}') & (Media.id == None))
-            .order_by(ScraperResult.date.asc())
-        )
+            .order_by(ScraperResult.date.desc())
+            .limit(BATCH_SIZE)
+        ).all()
 
-        while len(batch) > 0 or offset == 0:
-            logger.info(f"Fetching untransformed post media batch of {BATCH_SIZE}, offset {offset}")
-
-            batch = query.slice(offset, offset + BATCH_SIZE).all()
-            offset += BATCH_SIZE
-
-            logger.info(f"Found {len(batch)} items to ETL ({offset} already processed)")
+        while len(batch) > 0:
+            logger.info(f"Found {len(batch)} items to ETL")
 
             self.transform_media(batch, hydrate=hydrate)
+
+            logger.info(f"Fetching untransformed post media batch of {BATCH_SIZE}, offset {min(batch, key=lambda v: v.ScraperResult.date).ScraperResult.date}")
+
+            batch = (session.query(ScraperResult, Post)
+                .join(Post)
+                .join(Media, isouter=True)
+                .where(ScraperResult.date <= min(batch, key=lambda v: v.ScraperResult.date).ScraperResult.date)
+                .filter((ScraperResult.media_archived != None) & (cast(ScraperResult.archived_urls, String) != '{}') & (Media.id == None))
+                .order_by(ScraperResult.date.desc())
+                .limit(BATCH_SIZE)
+            ).all()

@@ -18,6 +18,9 @@ import spacy
 
 from .utils import make_request
 
+# Disable decompression bomb check
+PIL.Image.MAX_IMAGE_PIXELS = 1024 * 1024 * 256
+
 @dataclass
 class ScraperResult:
     """A minimally processed result from a scraper
@@ -275,6 +278,10 @@ class Post:
         except LangDetectException:
             self.detected_language = ""
 
+        # Dutch (NL) is often misdetected as Afrikaans (af)
+        if self.detected_language == "af":
+            self.detected_language = "nl"
+
         self.hydrate_spacy()
 
     def hydrate_spacy(self):
@@ -493,7 +500,7 @@ post_table = Table('posts', mapper_registry.metadata,
                        Column('author_username', String),
                        Column('content', String),
                        Column('forwarded_from', Integer, ForeignKey('channels.id'), index=True),
-                       Column('reply_to', Integer, ForeignKey('posts.id', ondelete="CASCADE"), index=True),
+                       Column('reply_to', Integer, ForeignKey('posts.id'), index=True),
                        Column('named_entities', JSON),
                        Column('cryptocurrency_addresses', JSON),
                        Column('hashtags', JSON),
@@ -513,7 +520,7 @@ media_table = Table('media', mapper_registry.metadata,
                               autoincrement=True),
                        Column('type', String),
                        Column('raw_id', Integer, ForeignKey('raw_posts.id'), index=True),
-                       Column('post', Integer, ForeignKey('posts.id')),
+                       Column('post', Integer, ForeignKey('posts.id'), index=True),
                        Column('url', String),
                        Column('original_url', String),
                        Column('exif', String),

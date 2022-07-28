@@ -32,7 +32,7 @@ class TelegramTelethonScraper(Scraper):
             telethon_session_name = phone
 
         # set up a persistent client for Telethon
-        self.client =  TelegramClient(telethon_session_name, api_id, api_hash)
+        self.client = TelegramClient(telethon_session_name, api_id, api_hash)
         self.client.connect()
 
     def __del__(self):
@@ -145,9 +145,11 @@ class TelegramTelethonScraper(Scraper):
                 break
 
             archived_urls = {}
+            media_archived = datetime(1970, 1, 1, 0, 0, 0, 0, tzinfo=timezone.utc)
 
             if post.media is not None:                    
                 archived_urls[post_url] = None
+                media_archived = None
 
                 # if archive_media:
                 #     blob, output_file_with_ext = self.archive_post_media(post, client)
@@ -165,7 +167,7 @@ class TelegramTelethonScraper(Scraper):
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post.to_dict(), default=str),
                 archived_urls=archived_urls,
-                media_archived=datetime.now(timezone.utc) if archive_media else None)
+                media_archived=media_archived)
 
     @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
