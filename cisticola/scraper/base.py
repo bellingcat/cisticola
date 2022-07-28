@@ -447,7 +447,7 @@ class ScraperController:
 
         while True:
             if chronological:
-                posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).order_by(ScraperResult.date.desc()).limit(5000).all()
+                posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).where(ScraperResult.id >= 0).order_by(ScraperResult.date.desc()).limit(5000).all()
             else:
                 # this query is really slow (~2.5 minutes) because of the shuffle. shuffling is so that multiple media archivers could work
                 # simultaneously with low risk of collision (at least while the number of unarchived items is very large)
