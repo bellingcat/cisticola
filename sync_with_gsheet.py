@@ -34,6 +34,7 @@ def sync_channels(args, session):
         # add new channel
         if c["id"] == "" or c["id"] is None:
             del c["id"]
+            del c["normalized_url"]
 
             # check to see if this already exists,
             platform_id = None
