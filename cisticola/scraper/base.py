@@ -342,7 +342,7 @@ class ScraperController:
 
         session = self.session()
 
-        channels = session.query(Channel).where(Channel.source=='researcher').all()
+        channels = session.query(Channel).filter((Channel.source=='researcher')|(Channel.source=='snowball_it')).all()
 
         session.close()
 
@@ -359,7 +359,7 @@ class ScraperController:
         # This will sort the channels by the least recently scraped.
         most_recently_archived = session.query(func.max(RawChannelInfo.date_archived).label("date"), RawChannelInfo.channel.label("channel")).group_by(RawChannelInfo.channel).subquery()
         channels = session.query(Channel).\
-            where(Channel.source=='researcher').\
+            filter((Channel.source=='researcher')|(Channel.source=='snowball_it')).\
             outerjoin(most_recently_archived, Channel.id == most_recently_archived.c.channel).\
             order_by(nullsfirst(most_recently_archived.c.date.asc())).all()
 
