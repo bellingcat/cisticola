@@ -71,7 +71,7 @@ class BitchuteScraper(Scraper):
         if channel.platform == "Bitchute" and self.get_username_from_url(channel.url) is not None:
             return True
 
-    @logger.catch(reraise = True)
+    @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:
 
         base_url = channel.url

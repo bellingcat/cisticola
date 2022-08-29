@@ -6,7 +6,7 @@ import json
 import io
 
 from sqlalchemy.orm import registry
-from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey, Boolean
+from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey, Boolean, Index
 import pytesseract
 import PIL
 import exiftool
@@ -514,6 +514,8 @@ post_table = Table('posts', mapper_registry.metadata,
                        Column('detected_language', String),
                        Column('normalized_content', String)
                        )
+
+posts_forwarded_from_channel_index = Index('posts_channel_forwarded_from_idx', post_table.c.channel, post_table.c.forwarded_from)
 
 media_table = Table('media', mapper_registry.metadata,
                        Column('id', Integer, primary_key=True,
