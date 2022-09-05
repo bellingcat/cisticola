@@ -74,6 +74,11 @@ def scrape_channels(args):
     controller = get_scraper_controller()
     controller.scrape_all_channels(archive_media=args.media)
 
+def scrape_channels_old(args):
+    logger.info(f"Scraping old posts from channels, media: {args.media}")
+
+    controller = get_scraper_controller()
+    controller.scrape_all_channels(archive_media=args.media, fetch_old=True)
 
 def scrape_channel_info(args):
     logger.info(f"Scraping channel info")
@@ -147,6 +152,9 @@ if __name__ == "__main__":
     elif args.command == "scrape-channels":
         logger.add("logs/scrape-channels.log", level="TRACE", rotation="100 MB")
         scrape_channels(args)
+    elif args.command == "scrape-channels-old":
+        logger.add("logs/scrape-channels-old.log", level="TRACE", rotation="100 MB")
+        scrape_channels_old(args)
     elif args.command == "archive-media":
         logger.add("logs/archive-media.log", level="TRACE", rotation="100 MB")
         archive_media(args)

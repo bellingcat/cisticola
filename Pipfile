@@ -26,10 +26,8 @@ pytz = "*"
 langdetect = "*"
 spacy = "==3.2.4"
 ocrd-pyexiftool = "*"
-gabber = {git = "https://github.com/stanfordio/gabber.git"}
-snscrape = {git = "https://github.com/bellingcat/snscrape"}
-polyphemus = {git = "https://github.com/bellingcat/polyphemus"}
 filelock = "*"
+telethon = "*"
 
 [dev-packages]
 pytest = "*"
@@ -45,3 +43,12 @@ python_version = "3.9"
 
 [pipenv]
 allow_prereleases = true
+
+[packages.gabber]
+git = "https://github.com/stanfordio/gabber.git"
+
+[packages.snscrape]
+git = "https://github.com/bellingcat/snscrape"
+
+[packages.polyphemus]
+git = "https://github.com/bellingcat/polyphemus"
