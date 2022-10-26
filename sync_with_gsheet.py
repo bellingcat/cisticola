@@ -4,6 +4,11 @@ from loguru import logger
 
 from cisticola.base import Channel, ChannelInfo
 
+def standardize_country(s):
+    _s = s.split('(')[0].split('?')[0]
+    return _s.strip()
+        
+        
 def sync_channels(args, session):
     logger.info("Synchronizing channels")
 
@@ -73,7 +78,7 @@ def sync_channels(args, session):
                 channel.platform = c["platform"]
                 channel.url = c["url"]
                 channel.screenname = c["screenname"]
-                channel.country = c["country"]
+                channel.country = list(map(standardize_country, c["country"].split('/')))
                 channel.influencer = c["influencer"]
                 channel.public = c["public"]
                 channel.chat = c["chat"]
@@ -114,7 +119,7 @@ def sync_channels(args, session):
             channel.platform = c["platform"]
             channel.url = c["url"]
             channel.screenname = c["screenname"]
-            channel.country = c["country"]
+            channel.country = list(map(standardize_country, c["country"].split('/')))
             channel.influencer = c["influencer"]
             channel.public = c["public"]
             channel.chat = c["chat"]
