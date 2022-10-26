@@ -342,7 +342,7 @@ class ScraperController:
 
         session = self.session()
 
-        channels = session.query(Channel).where(Channel.source=='researcher').all()
+        channels = session.query(Channel).filter((Channel.source=='researcher')|(Channel.source=='snowball_it')).all()
 
         session.close()
 
@@ -359,7 +359,7 @@ class ScraperController:
         # This will sort the channels by the least recently scraped.
         most_recently_archived = session.query(func.max(RawChannelInfo.date_archived).label("date"), RawChannelInfo.channel.label("channel")).group_by(RawChannelInfo.channel).subquery()
         channels = session.query(Channel).\
-            where(Channel.source=='researcher').\
+            filter((Channel.source=='researcher')|(Channel.source=='snowball_it')).\
             outerjoin(most_recently_archived, Channel.id == most_recently_archived.c.channel).\
             order_by(nullsfirst(most_recently_archived.c.date.asc())).all()
 
@@ -460,7 +460,7 @@ class ScraperController:
 
                 for scraper in self.scrapers:
                     # compare major versions
-                    if scraper.__version__.split('.')[0] == post.scraper.split('.')[0]:
+                    if post.scraper is not None and scraper.__version__.split('.')[0] == post.scraper.split('.')[0]:
                         handled = True
                         logger.debug(f"{scraper} is archiving media for ID {post.id}")
                         post = scraper.archive_files(post)

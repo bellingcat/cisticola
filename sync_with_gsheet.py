@@ -34,6 +34,7 @@ def sync_channels(args, session):
         # add new channel
         if c["id"] == "" or c["id"] is None:
             del c["id"]
+            del c["normalized_url"]
 
             # check to see if this already exists,
             platform_id = None
@@ -55,7 +56,7 @@ def sync_channels(args, session):
                 channel = session.query(Channel).filter_by(platform=str(c["platform"]), screenname=str(c["screenname"])).first()
 
             if not channel:
-                channel = Channel(**c, source="researcher")
+                channel = Channel(**c)
                 logger.debug(f"{channel} does not exist, adding")
                 session.add(channel)
                 session.flush()
@@ -77,7 +78,7 @@ def sync_channels(args, session):
                 channel.public = c["public"]
                 channel.chat = c["chat"]
                 channel.notes = c["notes"]
-                channel.source = "researcher"
+                channel.source = c["source"]
 
                 session.flush()
                 session.commit()
@@ -118,7 +119,7 @@ def sync_channels(args, session):
             channel.public = c["public"]
             channel.chat = c["chat"]
             channel.notes = c["notes"]
-            channel.source = "researcher"
+            channel.source = c["source"]
 
             if channel_info and channel.screenname != channel_info.screenname:
                 channel.screenname = channel_info.screenname
