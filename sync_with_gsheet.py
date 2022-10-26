@@ -6,10 +6,7 @@ from cisticola.base import Channel, ChannelInfo
 
 def standardize_country(s):
     _s = s.split('(')[0].split('?')[0]
-    if _s == 'AUS':
-        return 'AU'
-    else:
-        return _s.strip()
+    return _s.strip()
         
         
 def sync_channels(args, session):
