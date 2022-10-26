@@ -475,7 +475,7 @@ channel_table = Table('channels', mapper_registry.metadata,
                     Column('platform', String),
                     Column('url', String),
                     Column('screenname', String),
-                    Column('country', String),
+                    Column('country', JSON),
                     Column('influencer', String),
                     Column('public', Boolean),
                     Column('chat', Boolean),
@@ -511,7 +511,7 @@ post_table = Table('posts', mapper_registry.metadata,
                        Column('views', Integer),
                        Column('video_title', String),
                        Column('video_duration', Integer),
-                       Column('detected_language', String),
+                       Column('detected_language', String, index = True),
                        Column('normalized_content', String)
                        )
 

@@ -123,7 +123,7 @@ class TelegramTelethonTransformer(Transformer):
 
         transformed = insert(transformed)
 
-    def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+    def get_transformed_post(self, data: ScraperResult, insert: Callable, session) -> Post:
         raw = json.loads(data.raw_data)
 
         if raw['_'] != 'Message':
@@ -206,7 +206,7 @@ class TelegramTelethonTransformer(Transformer):
             url = ""
             author_username = ""
 
-        transformed = Post(
+        return Post(
             raw_id = data.id,
             platform_id = raw['id'],
             scraper = data.scraper,
@@ -226,8 +226,6 @@ class TelegramTelethonTransformer(Transformer):
             forwards = raw.get('forwards'),
             views = raw.get('views')
         )
-
-        transformed = insert(transformed)
 
 def stripped(s):
     """https://stackoverflow.com/a/29933716"""
