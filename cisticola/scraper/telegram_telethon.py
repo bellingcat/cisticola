@@ -18,7 +18,7 @@ MEDIA_TYPES = ['photo', 'video', 'document', 'webpage']
 
 class TelegramTelethonScraper(Scraper):
     """An implementation of a Scraper for Telegram, using Telethon library"""
-    __version__ = "TelegramTelethonScraper 0.0.3"
+    __version__ = "TelegramTelethonScraper 0.0.4"
     client = None
 
     def __init__(self, telethon_session_name = None):
@@ -132,10 +132,16 @@ class TelegramTelethonScraper(Scraper):
             return True
 
     @logger.catch
-    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None, until: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
         username = TelegramTelethonScraper.get_channel_identifier(channel)
+        if until is not None:
+            logger.info(f"Only getting old posts, up to ID {until.platform_id.split('/')[-1]}")
+            iterator = self.client.iter_messages(username, max_id=int(until.platform_id.split('/')[-1]), wait_time=0, limit=None)
+        else:
+            iterator = self.client.iter_messages(username)
 
-        for post in self.client.iter_messages(username):
+        post = None
+        for post in iterator:
             post_url = f'{channel.url}/{post.id}'
 
             logger.trace(f"Archiving post {post_url} from {post.date}")
@@ -168,6 +174,22 @@ class TelegramTelethonScraper(Scraper):
                 raw_data=json.dumps(post.to_dict(), default=str),
                 archived_urls=archived_urls,
                 media_archived=media_archived)
+
+        if (post is not None and post.id > 1 and since is None) or (post is not None and since is not None and post.date.replace(tzinfo=timezone.utc) > since.date.replace(tzinfo=timezone.utc)):
+            logger.info(f"Last post ID is {post.id} / {post.date}, since is {since.date if since is not None else None}, until is {until.platform_id if until is not None else None}, starting again")
+            new_until = ScraperResult(
+                scraper=self.__version__,
+                platform="Telegram",
+                channel=channel.id,
+                platform_id=post_url,
+                date=post.date.replace(tzinfo=timezone.utc),
+                date_archived=datetime.now(timezone.utc),
+                raw_data=json.dumps(post.to_dict(), default=str),
+                archived_urls=archived_urls,
+                media_archived=media_archived)
+            for p in self.get_posts(channel, since=since, until=new_until, archive_media=archive_media):
+                yield p  
+            
 
     @logger.catch
     def get_profile(self, channel: Channel) -> RawChannelInfo:

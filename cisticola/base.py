@@ -7,6 +7,7 @@ import io
 
 from sqlalchemy.orm import registry
 from sqlalchemy import Table, Column, Integer, String, JSON, DateTime, ForeignKey, Boolean, Index
+from sqlalchemy.dialects.postgresql import JSONB
 import pytesseract
 import PIL
 import exiftool
@@ -475,7 +476,7 @@ channel_table = Table('channels', mapper_registry.metadata,
                     Column('platform', String),
                     Column('url', String),
                     Column('screenname', String),
-                    Column('country', JSON),
+                    Column('country', JSONB, index = True),
                     Column('influencer', String),
                     Column('public', Boolean),
                     Column('chat', Boolean),

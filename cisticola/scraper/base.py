@@ -335,18 +335,19 @@ class ScraperController:
     def remove_all_scrapers(self):
         self.scrapers = []
 
-    def scrape_all_channels(self, archive_media: bool = True):
+    def scrape_all_channels(self, archive_media: bool = True, fetch_old: bool = False):
         if self.session is None:
             logger.error("No DB session")
             return
 
         session = self.session()
 
-        channels = session.query(Channel).filter((Channel.source=='researcher')|(Channel.source=='snowball_it')).all()
+        # TODO there should be a better/more generic way of selecting scrapeable channels
+        channels = session.query(Channel).filter((Channel.source=='researcher')|(Channel.source=='snowball_it')|(Channel.source=='snowball_complete')).all()
 
         session.close()
 
-        return self.scrape_channels(channels, archive_media=archive_media)
+        return self.scrape_channels(channels, archive_media=archive_media, fetch_old=fetch_old)
 
     def scrape_all_channel_info(self):
         if self.session is None:
@@ -359,14 +360,14 @@ class ScraperController:
         # This will sort the channels by the least recently scraped.
         most_recently_archived = session.query(func.max(RawChannelInfo.date_archived).label("date"), RawChannelInfo.channel.label("channel")).group_by(RawChannelInfo.channel).subquery()
         channels = session.query(Channel).\
-            filter((Channel.source=='researcher')|(Channel.source=='snowball_it')).\
+            filter((Channel.source=='researcher')|(Channel.source=='snowball_it')|(Channel.source=='snowball_complete')).\
             outerjoin(most_recently_archived, Channel.id == most_recently_archived.c.channel).\
             order_by(nullsfirst(most_recently_archived.c.date.asc())).all()
 
         session.close()
         return self.scrape_channel_info(channels)
     
-    def scrape_channels(self, channels: List[Channel], archive_media: bool = True):
+    def scrape_channels(self, channels: List[Channel], archive_media: bool = True, fetch_old: bool = False):
         """Scrape all posts for all specified channels. 
 
         Parameters
@@ -407,20 +408,36 @@ class ScraperController:
                     handled = True
                     added = 0
 
-                    # get most recent post
-                    # Note: a "bug" in Postgres can cause this query to hang for a really long time
-                    # when searching for a single row, hence the limit(10).all() when we really just need
-                    # the first row.
-                    rows = session.query(ScraperResult).where(
-                        ScraperResult.channel == channel.id).order_by(
-                        ScraperResult.date.desc()).limit(10).all()
+                    if fetch_old and channel.platform == 'Telegram':
+                        # get oldest post (currently only for Telegram)
+                        # TODO fix this so that it doesn't have an explicit check on channel.platform (should be generic)
+                        # TODO implement until on all scrapers
+                        rows = session.query(ScraperResult).where(
+                            ScraperResult.channel == channel.id).order_by(
+                            ScraperResult.date.asc(), ScraperResult.id.desc()).limit(10).all()
 
-                    if len(rows) > 0:
-                        since = rows[0]
+                        if len(rows) > 0:
+                            until = rows[0]
+                        else:
+                            until = None
+
+                        posts = scraper.get_posts(channel, until=until, archive_media=archive_media)
+
                     else:
-                        since = None
+                        # get most recent post
+                        # Note: a "bug" in Postgres can cause this query to hang for a really long time
+                        # when searching for a single row, hence the limit(10).all() when we really just need
+                        # the first row.
+                        rows = session.query(ScraperResult).where(
+                            ScraperResult.channel == channel.id).order_by(
+                            ScraperResult.date.desc(), ScraperResult.id.asc()).limit(10).all()
 
-                    posts = scraper.get_posts(channel, since=since, archive_media=archive_media)
+                        if len(rows) > 0:
+                            since = rows[0]
+                        else:
+                            since = None
+
+                        posts = scraper.get_posts(channel, since=since, archive_media=archive_media)
 
                     for post in posts:
                         session.add(post)
