@@ -4,11 +4,28 @@ from loguru import logger
 
 from cisticola.base import Channel, ChannelInfo
 
+expected_headers = [
+    "id",
+    "name",
+    "platform_id",
+    "category",
+    "platform",
+    "url",
+    "screenname",
+    "country",
+    "source",
+    "influencer",
+    "public",
+    "chat",
+    "notes",
+    "normalized_url",
+    "to_remove"]
+
 def standardize_country(s):
     _s = s.split('(')[0].split('?')[0]
     return _s.strip()
-        
-        
+
+
 def sync_channels(args, session):
     logger.info("Synchronizing channels")
 
@@ -16,7 +33,7 @@ def sync_channels(args, session):
 
     # Open a sheet from a spreadsheet in one go
     wks = gc.open_by_url(args.gsheet).worksheet("channels")
-    channels = wks.get_all_records()
+    channels = wks.get_all_records(expected_headers = expected_headers)
     row = 2
 
     for c in channels:
@@ -61,7 +78,9 @@ def sync_channels(args, session):
                 channel = session.query(Channel).filter_by(platform=str(c["platform"]), screenname=str(c["screenname"])).first()
 
             if not channel:
-                channel = Channel(**c)
+                if all([k in [None, True, False, ''] for k in c.values()]):
+                    # end sync if completely empty row is encountered
+                    break
                 logger.debug(f"{channel} does not exist, adding")
                 session.add(channel)
                 session.flush()
@@ -78,7 +97,7 @@ def sync_channels(args, session):
                 channel.platform = c["platform"]
                 channel.url = c["url"]
                 channel.screenname = c["screenname"]
-                channel.country = list(map(standardize_country, c["country"].split('/')))
+                channel.country = None if c["country"] is None else list(map(standardize_country, c["country"].split('/')))
                 channel.influencer = c["influencer"]
                 channel.public = c["public"]
                 channel.chat = c["chat"]
@@ -119,7 +138,7 @@ def sync_channels(args, session):
             channel.platform = c["platform"]
             channel.url = c["url"]
             channel.screenname = c["screenname"]
-            channel.country = list(map(standardize_country, c["country"].split('/')))
+            channel.country = None if c["country"] is None else list(map(standardize_country, c["country"].split('/')))
             channel.influencer = c["influencer"]
             channel.public = c["public"]
             channel.chat = c["chat"]
