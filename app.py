@@ -52,11 +52,7 @@ def get_transformer_controller():
     controller = ETLController()
     controller.connect_to_db(engine)
 
-    transformers = [VkontakteTransformer(),
-        TelegramTelethonTransformer(),
-        GettrTransformer(),
-        BitchuteTransformer(),
-        RumbleTransformer()]
+    transformers = [TelegramTelethonTransformer(),]
 
     controller.register_transformers(transformers)
 
