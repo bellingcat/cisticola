@@ -161,7 +161,7 @@ class TelegramTelethonTransformer(Transformer):
             fwd_from = channel.id
 
         reply_to = None
-        if raw['reply_to']:
+        if raw.get('reply_to'):
             reply_to_id = str(raw['reply_to']['reply_to_msg_id'])
             post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
             if post is None:
