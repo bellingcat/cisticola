@@ -307,7 +307,7 @@ class ETLController:
 
         session = self.session()
 
-        BATCH_SIZE = 5000
+        BATCH_SIZE = 50000
         batch = []
 
         logger.info(f"Fetching first post batch of {BATCH_SIZE} to re-transform")
@@ -324,12 +324,14 @@ class ETLController:
 
             self.retransform_results(batch, hydrate=hydrate, columns=columns)
 
-            logger.info(f"Fetching posts batch of {BATCH_SIZE} to re-transform, offset {max([raw.date for raw, _ in batch])}")
+            max_date = max([raw.date for raw, _ in batch])
+
+            logger.info(f"Fetching posts batch of {BATCH_SIZE} to re-transform, offset {max_date}")
 
             batch = (session.query(ScraperResult, Post)
                 .filter(Post.raw_id == ScraperResult.id)
                 .filter_by(**query_kwargs)
-                .where(ScraperResult.date >= max([raw.date for raw, _ in batch]))
+                .where(ScraperResult.date >= max_date)
                 .order_by(ScraperResult.date.asc())
                 .limit(BATCH_SIZE)
             ).all()
