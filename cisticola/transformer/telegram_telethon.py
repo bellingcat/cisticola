@@ -132,79 +132,79 @@ class TelegramTelethonTransformer(Transformer):
 
         fwd_from = None
 
-        if raw['fwd_from'] and raw['fwd_from']['from_id'] and 'channel_id' in raw['fwd_from']['from_id']:
-            channel = session.query(Channel).filter_by(platform_id=str(raw['fwd_from']['from_id']['channel_id']), platform = 'Telegram').first()
+        # if raw['fwd_from'] and raw['fwd_from']['from_id'] and 'channel_id' in raw['fwd_from']['from_id']:
+        #     channel = session.query(Channel).filter_by(platform_id=str(raw['fwd_from']['from_id']['channel_id']), platform = 'Telegram').first()
 
-            if channel is None:
-                (screenname, name, notes) = self.get_screenname_from_id(raw['fwd_from']['from_id']['channel_id'])
+        #     if channel is None:
+        #         (screenname, name, notes) = self.get_screenname_from_id(raw['fwd_from']['from_id']['channel_id'])
 
-                if name == "":
-                    logger.info("Trying fallback web interface")
-                    orig_channel = session.query(Channel).filter_by(id=data.channel).first()
-                    if orig_channel.screenname is not None:
-                        name = self.get_name_from_web_interface(orig_channel.screenname, raw['id'])
+        #         if name == "":
+        #             logger.info("Trying fallback web interface")
+        #             orig_channel = session.query(Channel).filter_by(id=data.channel).first()
+        #             if orig_channel.screenname is not None:
+        #                 name = self.get_name_from_web_interface(orig_channel.screenname, raw['id'])
 
-                channel = Channel(
-                    name=name,
-                    platform_id=raw['fwd_from']['from_id']['channel_id'],
-                    platform=data.platform,
-                    url="https://t.me/s/" + screenname if screenname is not None else "",
-                    screenname=screenname,
-                    category='forwarded',
-                    source=self.__version__,
-                    notes=notes
-                    )
+        #         channel = Channel(
+        #             name=name,
+        #             platform_id=raw['fwd_from']['from_id']['channel_id'],
+        #             platform=data.platform,
+        #             url="https://t.me/s/" + screenname if screenname is not None else "",
+        #             screenname=screenname,
+        #             category='forwarded',
+        #             source=self.__version__,
+        #             notes=notes
+        #             )
 
-                channel = insert(channel)
-                logger.info(f"Added {channel}")
+        #         channel = insert(channel)
+        #         logger.info(f"Added {channel}")
 
-            fwd_from = channel.id
+        #     fwd_from = channel.id
 
         reply_to = None
-        if raw.get('reply_to'):
-            reply_to_id = str(raw['reply_to']['reply_to_msg_id'])
-            post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
-            if post is None:
-                reply_to = -1
-            else:
-                reply_to = post.id
+        # if raw.get('reply_to'):
+        #     reply_to_id = str(raw['reply_to']['reply_to_msg_id'])
+        #     post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
+        #     if post is None:
+        #         reply_to = -1
+        #     else:
+        #         reply_to = post.id
 
         mentions = []
 
-        for mention_entity in [entity for entity in raw['entities'] if entity['_'] == 'MessageEntityMention']:
+        # for mention_entity in [entity for entity in raw['entities'] if entity['_'] == 'MessageEntityMention']:
 
-            offset = mention_entity['offset']
-            length = mention_entity['length']
+        #     offset = mention_entity['offset']
+        #     length = mention_entity['length']
 
-            screenname = add_surrogate(raw['message'])[offset:offset+length].strip('@').strip()
+        #     screenname = add_surrogate(raw['message'])[offset:offset+length].strip('@').strip()
 
-            channel = session.query(Channel).filter(func.lower(Channel.screenname)==func.lower(screenname)).first()
+        #     channel = session.query(Channel).filter(func.lower(Channel.screenname)==func.lower(screenname)).first()
 
-            if channel is None:
+        #     if channel is None:
 
-                channel = Channel(
-                    name = None,
-                    platform_id = None,
-                    platform = 'Telegram',
-                    url="https://t.me/s/" + screenname,
-                    screenname=screenname,
-                    category='mentioned',
-                    source=self.__version__,
-                    )
+        #         channel = Channel(
+        #             name = None,
+        #             platform_id = None,
+        #             platform = 'Telegram',
+        #             url="https://t.me/s/" + screenname,
+        #             screenname=screenname,
+        #             category='mentioned',
+        #             source=self.__version__,
+        #             )
 
-                channel = insert(channel)
-                logger.info(f"Added {channel}")
+        #         channel = insert(channel)
+        #         logger.info(f"Added {channel}")
 
-            mentions.append(channel.id)
+        #     mentions.append(channel.id)
 
-        channel = session.query(Channel).filter_by(id=int(data.channel)).first()
+        # channel = session.query(Channel).filter_by(id=int(data.channel)).first()
 
-        if channel is not None and channel.url:
-            url = channel.url.strip('/') + f"/{raw['id']}"
-            author_username = channel.screenname
-        else:
-            url = ""
-            author_username = ""
+        # if channel is not None and channel.url:
+        #     url = channel.url.strip('/') + f"/{raw['id']}"
+        #     author_username = channel.screenname
+        # else:
+        #     url = ""
+        #     author_username = ""
 
         return Post(
             raw_id = data.id,
@@ -216,10 +216,10 @@ class TelegramTelethonTransformer(Transformer):
             date=dateutil.parser.parse(raw['date']),
             date_archived=data.date_archived,
             date_transformed=datetime.now(timezone.utc),
-            url=url,
+            url=None,
             content=add_markdown_links(raw),
             author_id=raw.get('peer_id', {}).get('channel_id'),
-            author_username=author_username,
+            author_username=None,
             forwarded_from=fwd_from,
             reply_to=reply_to,
             mentions = mentions,

@@ -301,7 +301,7 @@ class Post:
         elif self.detected_language == 'nl':
             nlp = nlp_nl
         else:
-            logger.info(f"No language model for {self.detected_language}")
+            # logger.info(f"No language model for {self.detected_language}")
             nlp = nlp_xx
             ner_only = True
 

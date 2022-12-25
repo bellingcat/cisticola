@@ -122,7 +122,7 @@ def retransform(args):
     logger.info(f"Transforming untransformed posts")
 
     controller = get_transformer_controller()
-    controller.retransform_all(query_kwargs = {'platform': 'Telegram'})
+    controller.retransform_all(query_kwargs = {'platform': 'Telegram'}, columns = ['content', 'outlinks'])
 
 def init_db():
     engine = create_engine(os.environ["DB"])
