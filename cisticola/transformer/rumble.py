@@ -57,7 +57,7 @@ class RumbleTransformer(Transformer):
         transformed = insert(transformed)
 
 
-    def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+    def get_transformed_post(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         transformed = Post(

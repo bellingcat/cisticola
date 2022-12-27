@@ -118,6 +118,12 @@ def transform_media(args):
     controller = get_transformer_controller()
     controller.transform_all_untransformed_media()
 
+def retransform(args):
+    logger.info(f"Transforming untransformed posts")
+
+    controller = get_transformer_controller()
+    controller.retransform_all(query_kwargs = {'platform': 'Telegram'}, columns = ['content', 'outlinks'])
+
 def init_db():
     engine = create_engine(os.environ["DB"])
     mapper_registry.metadata.create_all(bind=engine)
@@ -170,5 +176,8 @@ if __name__ == "__main__":
     elif args.command == "transform-media":
         logger.add("logs/transform-media.log", level="TRACE", rotation="100 MB")
         transform_media(args)
+    elif args.command == "retransform":
+        logger.add("logs/retransform.log", level="TRACE", rotation="100 MB")
+        retransform(args)
     else:
         logger.error(f"Unrecognized command {args.command}")

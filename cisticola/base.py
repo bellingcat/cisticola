@@ -262,28 +262,28 @@ class Post:
         self.outlinks += urls
         self.outlinks =  list(set(outlink for outlink in self.outlinks))
 
-        HASHTAG_REGEX = r"(?:^|\s)[＃#]{1}(\w+)"
+        # HASHTAG_REGEX = r"(?:^|\s)[＃#]{1}(\w+)"
         
-        hashtags = re.findall(HASHTAG_REGEX, self.content)
-        self.hashtags += hashtags
-        self.hashtags = list(set(hashtag.lower() for hashtag in self.hashtags))
+        # hashtags = re.findall(HASHTAG_REGEX, self.content)
+        # self.hashtags += hashtags
+        # self.hashtags = list(set(hashtag.lower() for hashtag in self.hashtags))
 
-        # regex patterns for finding crypto addresses
-        BTC_REGEX = r'\b(bc(0([ac-hj-np-z02-9]{39}|[ac-hj-np-z02-9]{59})|1[ac-hj-np-z02-9]{8,87})|[13][a-km-zA-HJ-NP-Z1-9]{25,35})\b'
-        ETHER_REGEX = r'(0x[a-fA-F0-9]{40})'
+        # # regex patterns for finding crypto addresses
+        # BTC_REGEX = r'\b(bc(0([ac-hj-np-z02-9]{39}|[ac-hj-np-z02-9]{59})|1[ac-hj-np-z02-9]{8,87})|[13][a-km-zA-HJ-NP-Z1-9]{25,35})\b'
+        # ETHER_REGEX = r'(0x[a-fA-F0-9]{40})'
         
-        self.cryptocurrency_addresses = [m[0] for m in re.findall(BTC_REGEX, self.content)] + re.findall(ETHER_REGEX, self.content)
+        # self.cryptocurrency_addresses = [m[0] for m in re.findall(BTC_REGEX, self.content)] + re.findall(ETHER_REGEX, self.content)
 
-        try:
-            self.detected_language = detect(self.content)
-        except LangDetectException:
-            self.detected_language = ""
+        # try:
+        #     self.detected_language = detect(self.content)
+        # except LangDetectException:
+        #     self.detected_language = ""
 
-        # Dutch (NL) is often misdetected as Afrikaans (af)
-        if self.detected_language == "af":
-            self.detected_language = "nl"
+        # # Dutch (NL) is often misdetected as Afrikaans (af)
+        # if self.detected_language == "af":
+        #     self.detected_language = "nl"
 
-        self.hydrate_spacy()
+        # self.hydrate_spacy()
 
     def hydrate_spacy(self):
         ner_only = False
@@ -301,7 +301,7 @@ class Post:
         elif self.detected_language == 'nl':
             nlp = nlp_nl
         else:
-            logger.info(f"No language model for {self.detected_language}")
+            # logger.info(f"No language model for {self.detected_language}")
             nlp = nlp_xx
             ner_only = True
 

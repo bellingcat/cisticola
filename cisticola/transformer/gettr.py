@@ -81,7 +81,7 @@ class GettrTransformer(Transformer):
 
         return channel.id
 
-    def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+    def get_transformed_post(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         if raw["activity"]["action"] == "shares_pst":

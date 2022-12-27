@@ -1,4 +1,4 @@
-from typing import List, Generator, Union, Callable
+from typing import List, Generator, Union, Callable, Tuple
 from loguru import logger
 from sqlalchemy import cast, String
 from sqlalchemy.orm import sessionmaker, make_transient
@@ -6,6 +6,7 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.sql.expression import func
 from collections import defaultdict
 from datetime import datetime, timezone
+import dataclasses
 
 from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Media, Channel, mapper_registry, Image, Video, Audio
 
@@ -35,10 +36,8 @@ class Transformer:
 
         pass
 
-    def transform(data: ScraperResult, insert: Callable) -> Generator[Union[Post, Channel, Media], None, None]:
-        """Transform a ScraperResult into objects with additional parameters for analysis. This function can
-        yield multiple objects, as it will find references to quoted/replied posts, media objects, and Channel
-        objects and provide all of these to be inserted into the database.
+    def get_transformed_post(data: ScraperResult, insert: Callable) -> Post:
+        """Return the transformed Post from a ScraperResult. 
 
         Parameters
         ----------
@@ -50,6 +49,21 @@ class Transformer:
         """
 
         pass
+
+    def transform(self, data: ScraperResult, insert: Callable, session) -> None:
+        """Transform a ScraperResult into objects with additional parameters for analysis.
+
+        Parameters
+        ----------
+        data : ScraperResult
+            The ScraperResult object to process.
+        insert : Callable
+            A function that either inserts the object into a database or finds an object with the
+            relevant unique constraints if applicable.
+        """
+
+        transformed = self.get_transformed_post(data = data, insert = insert, session = session)
+        transformed = insert(transformed)
 
     def transform_media(self, data: ScraperResult, transformed: Post, insert: Callable):
         '''Transform media'''
@@ -196,6 +210,42 @@ class ETLController:
                     logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
 
     @logger.catch(reraise=True)
+    def retransform_results(self, results: List[Tuple[ScraperResult, Post]], columns: List[str] = None, hydrate: bool = True):
+
+        if self.session is None:
+            logger.error("No DB session")
+            return
+
+        session = self.session()
+
+        # default to updating all fields
+        if 'date_transformed' not in columns:
+            columns.append('date_transformed')
+
+        for result, old_post in results:
+            if result.scraper is not None and result.platform is not None:
+                for transformer in self.transformers:
+                    handled = False
+
+                    if transformer.can_handle(result):
+                        logger.trace(f"{transformer} is handling result {result.id} ({result.date})")
+                        handled = True
+
+                        new_post = transformer.get_transformed_post(result, lambda obj: self.insert_or_select(obj, session, hydrate), session)
+
+                        if hydrate:
+                            new_post.hydrate()
+
+                        for column in columns:
+                            setattr(old_post, column, getattr(new_post, column))
+
+                        session.commit()
+                        break
+
+                if handled == False:
+                    logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
+
+    @logger.catch(reraise=True)
     def transform_all_untransformed(self, hydrate: bool = True):
         """Transform all ScraperResult objects in the database that do not have an
         equivalent Post object stored.
@@ -240,7 +290,51 @@ class ETLController:
                     .limit(BATCH_SIZE)
                 ).all()
 
+    def retransform_all(self, columns = None, query_kwargs: dict = None, hydrate: bool = True):
+        if self.session is None:
+            logger.error("No DB session")
+            return
 
+        if columns is None:
+            columns = [field.name for field in dataclasses.fields(Post)]
+
+        elif isinstance(columns, list):
+            if len(columns) == 0:
+                raise ValueError('`columns` argument must be non-empty list of strings specifying columns to update')
+
+        if query_kwargs is None:
+            query_kwargs = {}
+
+        session = self.session()
+
+        BATCH_SIZE = 50000
+        batch = []
+
+        logger.info(f"Fetching first post batch of {BATCH_SIZE} to re-transform")
+
+        batch = (session.query(ScraperResult, Post)
+            .filter(Post.raw_id == ScraperResult.id)
+            .filter_by(**query_kwargs)
+            .order_by(ScraperResult.date.asc())
+            .limit(BATCH_SIZE)
+        ).all()
+
+        while len(batch) > 0:
+            logger.info(f"Found {len(batch)} items to ETL")
+
+            self.retransform_results(batch, hydrate=hydrate, columns=columns)
+
+            max_date = max([raw.date for raw, _ in batch])
+
+            logger.info(f"Fetching posts batch of {BATCH_SIZE} to re-transform, offset {max_date}")
+
+            batch = (session.query(ScraperResult, Post)
+                .filter(Post.raw_id == ScraperResult.id)
+                .filter_by(**query_kwargs)
+                .where(ScraperResult.date >= max_date)
+                .order_by(ScraperResult.date.asc())
+                .limit(BATCH_SIZE)
+            ).all()
 
     @logger.catch(reraise=True)
     def transform_info(self, results: List[ChannelInfo]):
