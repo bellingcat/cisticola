@@ -57,6 +57,7 @@ def sync_channels(args, session):
         if c["id"] == "" or c["id"] is None:
             del c["id"]
             del c["normalized_url"]
+            del c["to_remove"]
 
             # check to see if this already exists,
             platform_id = None
@@ -81,6 +82,9 @@ def sync_channels(args, session):
                 if all([k in [None, True, False, ''] for k in c.values()]):
                     # end sync if completely empty row is encountered
                     break
+
+                channel = Channel(**c)
+
                 logger.debug(f"{channel} does not exist, adding")
                 session.add(channel)
                 session.flush()
