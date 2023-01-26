@@ -220,6 +220,7 @@ class ETLController:
 
         batch = (session.query(ScraperResult)
             .join(Post, isouter=True)
+            .where(ScraperResult.id > 35000000) # TODO this can be a CLI argument or something
             .where(Post.raw_id == None)
             .order_by(ScraperResult.date.asc())
             .limit(BATCH_SIZE)
@@ -234,6 +235,7 @@ class ETLController:
 
             batch = (session.query(ScraperResult)
                     .join(Post, isouter=True)
+                    .where(ScraperResult.id > 35000000) # TODO this can be a CLI argument or something
                     .where(Post.raw_id == None)
                     .where(ScraperResult.date >= max(batch, key=lambda v: v.date).date)
                     .order_by(ScraperResult.date.asc())

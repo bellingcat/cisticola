@@ -8,7 +8,7 @@ import sys
 from cisticola.base import mapper_registry
 from cisticola.scraper import (
     ScraperController,
-    VkontakteScraper,
+#    VkontakteScraper,
     TelegramTelethonScraper,
     GettrScraper,
     BitchuteScraper,
@@ -20,7 +20,7 @@ from cisticola.transformer import (
     GettrTransformer,
     RumbleTransformer,
     BitchuteTransformer,
-    VkontakteTransformer,
+#    VkontakteTransformer,
 )
 
 from sync_with_gsheet import sync_channels
@@ -41,7 +41,7 @@ def get_scraper_controller(telethon_session_name = None):
     controller = ScraperController()
     controller.connect_to_db(engine)
 
-    scrapers = [VkontakteScraper(),
+    scrapers = [ #VkontakteScraper(),
         TelegramTelethonScraper(telethon_session_name = telethon_session_name),
         GettrScraper(),
         BitchuteScraper(),
@@ -57,7 +57,7 @@ def get_transformer_controller():
     controller = ETLController()
     controller.connect_to_db(engine)
 
-    transformers = [VkontakteTransformer(),
+    transformers = [ #VkontakteTransformer(),
         TelegramTelethonTransformer(),
         GettrTransformer(),
         BitchuteTransformer(),
@@ -147,28 +147,28 @@ if __name__ == "__main__":
     if args.command == "init-db":
         init_db()
     elif args.command == "sync-channels":
-        logger.add("logs/sync-channels.log", level="TRACE", rotation="100 MB")
+        logger.add("logs/sync-channels.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
         sync_channels(args, get_db_session())
     elif args.command == "scrape-channels":
-        logger.add("logs/scrape-channels.log", level="TRACE", rotation="100 MB")
+        logger.add("logs/scrape-channels.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
         scrape_channels(args)
     elif args.command == "scrape-channels-old":
-        logger.add("logs/scrape-channels-old.log", level="TRACE", rotation="100 MB")
+        logger.add("logs/scrape-channels-old.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
         scrape_channels_old(args)
     elif args.command == "archive-media":
-        logger.add("logs/archive-media.log", level="TRACE", rotation="100 MB")
+        logger.add("logs/archive-media.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
         archive_media(args)
     elif args.command == "channel-info":
-        logger.add("logs/channel-info.log", level="TRACE", rotation="100 MB")
+        logger.add("logs/channel-info.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
         scrape_channel_info(args)
     elif args.command == "transform":
-        logger.add("logs/transform.log", level="TRACE", rotation="100 MB")
+        logger.add("logs/transform.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
         transform(args)
     elif args.command == "transform-info":
-        logger.add("logs/transform-info.log", level="TRACE", rotation="100 MB")
+        logger.add("logs/transform-info.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
         transform_info(args)
     elif args.command == "transform-media":
-        logger.add("logs/transform-media.log", level="TRACE", rotation="100 MB")
+        logger.add("logs/transform-media.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
         transform_media(args)
     else:
         logger.error(f"Unrecognized command {args.command}")
