@@ -20,7 +20,7 @@ class VkontakteTransformer(Transformer):
 
         return False        
 
-    def transform_info(self, data: RawChannelInfo, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+    def transform_info(self, data: RawChannelInfo, insert: Callable, session, channel=None) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         transformed = ChannelInfo(

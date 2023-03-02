@@ -1,6 +1,7 @@
 import gspread
 import time
 from loguru import logger
+import os
 
 from cisticola.base import Channel, ChannelInfo
 
@@ -32,7 +33,7 @@ def sync_channels(args, session):
     gc = gspread.service_account(filename="service_account.json")
 
     # Open a sheet from a spreadsheet in one go
-    wks = gc.open_by_url(args.gsheet).worksheet("channels")
+    wks = gc.open_by_url(os.environ['GSHEET']).worksheet("channels")
     channels = wks.get_all_records(expected_headers = expected_headers)
     row = 2
 

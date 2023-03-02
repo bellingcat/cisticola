@@ -115,7 +115,10 @@ class ETLController:
 
         # This is using some adhoc unique constraints that might be worth formalizing at some point
         if type(obj) == Channel:
-            instance = session.query(Channel).filter_by(url=obj.url, platform_id=str(obj.platform_id or '') or obj.platform_id, platform=obj.platform).first()
+            instance = session.query(Channel).filter(Channel.platform==obj.platform).filter(
+                (Channel.url==obj.url)|
+                (Channel.platform_id==(str(obj.platform_id or '') or obj.platform_id))
+                ).first()
             
         elif type(obj) == Post:
             instance = None
@@ -233,7 +236,7 @@ class ETLController:
 
             logger.info(f"Fetching untransformed posts batch of {BATCH_SIZE}, offset {max(batch, key=lambda v: v.date).date}")
 
-            batch = (session.query(ScraperResult)
+            batch = (query(ScraperResult)
                     .join(Post, isouter=True)
                     .where(ScraperResult.id > 35000000) # TODO this can be a CLI argument or something
                     .where(Post.raw_id == None)
@@ -252,7 +255,9 @@ class ETLController:
 
         session = self.session()
 
-        for result in results:
+        for data in results:
+            result = data.RawChannelInfo
+
             if result.scraper is not None and result.platform is not None:
                 handled = False
 
@@ -261,7 +266,7 @@ class ETLController:
                         logger.trace(f"{transformer} is handling raw info result {result.id} ({result.date_archived})")
                         handled = True
 
-                        transformer.transform_info(result, lambda obj: self.insert_or_select(obj, session, False), session)
+                        transformer.transform_info(result, lambda obj: self.insert_or_select(obj, session, False), session, channel=data.Channel)
 
                         session.commit()
                         break
@@ -282,9 +287,11 @@ class ETLController:
         offset = 0
         batch = []
 
-        query = (session.query(RawChannelInfo)
+        query = (session.query(RawChannelInfo, Channel)
+            .select_from(RawChannelInfo)
             .join(ChannelInfo, isouter=True)
-            .where(ChannelInfo.raw_channel_info_id == None)
+            .join(Channel, RawChannelInfo.channel==Channel.id)
+            .where(ChannelInfo.id == None)
             .order_by(RawChannelInfo.date_archived.asc())
         )
 
