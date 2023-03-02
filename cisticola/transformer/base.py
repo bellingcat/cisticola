@@ -152,7 +152,7 @@ class ETLController:
             logger.info(f"Found matching DB entry for {obj}: {instance}")
 
             if type(obj) == Channel:
-                if obj.source != instance.source and obj.source == 'linked_channel' and instance.source != 'researcher':
+                if obj.source != instance.source and obj.source == 'linked_channel' and instance.source != 'researcher' and (instance.source is None or instance.source[:4] != 'snow'):
                     logger.info(f"Updating source to linked channel")
                     instance.source = obj.source
                     instance.notes = obj.notes
