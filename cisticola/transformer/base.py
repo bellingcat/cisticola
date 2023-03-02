@@ -156,6 +156,9 @@ class ETLController:
                     logger.info(f"Updating source to linked channel")
                     instance.source = obj.source
                     instance.notes = obj.notes
+                    instance.category = obj.category
+                    instance.country = obj.country
+                    instance.influencer = obj.influencer
                     session.flush()
                     session.commit()
 
