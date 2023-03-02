@@ -115,10 +115,7 @@ class ETLController:
 
         # This is using some adhoc unique constraints that might be worth formalizing at some point
         if type(obj) == Channel:
-            instance = session.query(Channel).filter(Channel.platform==obj.platform).filter(
-                (Channel.url==obj.url)|
-                (Channel.platform_id==(str(obj.platform_id or '') or obj.platform_id))
-                ).first()
+            instance = session.query(Channel).filter_by(url=obj.url, platform_id=str(obj.platform_id or '') or obj.platform_id, platform=obj.platform).first()
             
         elif type(obj) == Post:
             instance = None
