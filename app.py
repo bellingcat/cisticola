@@ -112,6 +112,8 @@ def transform_info(args):
     controller = get_transformer_controller()
     controller.transform_all_untransformed_info()
 
+    # sync_channels(args, get_db_session())
+
 def transform_media(args):
     logger.info(f"Transforming untransformed channel media")
 

@@ -94,7 +94,7 @@ class TelegramTelethonTransformer(Transformer):
 
         return name
 
-    def transform_info(self, data: RawChannelInfo, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+    def transform_info(self, data: RawChannelInfo, insert: Callable, session, channel=None) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         chat_raw = raw['chats'][0]
@@ -120,6 +120,33 @@ class TelegramTelethonTransformer(Transformer):
         )
 
         transformed = insert(transformed)
+
+        if channel.platform_id is None:
+            logger.info(f"Missing platform ID on {channel}, setting to {raw['full_chat']['id']}")
+
+            new_channel = session.query(Channel).where(Channel.id == channel.id).one()
+            new_channel.platform_id = raw['full_chat']['id']
+            session.flush()
+            session.commit()
+
+        if len(raw['chats']) > 1:
+            for chat in raw['chats'][1:]:
+                new_chat = Channel(
+                    name=chat["title"],
+                    platform_id=chat["id"],
+                    category=channel.category, # this should be the same as the "parent"
+                    platform=channel.platform, # this should be the same as the "parent"
+                    url="",
+                    screenname=chat["username"] if "username" in chat else "",
+                    country=channel.country, # this should be the same as the "parent"
+                    influencer=channel.influencer, # this should be the same as the "parent"
+                    public=None,
+                    chat=None,
+                    notes=channel.id, # this should be the channel ID of the parent
+                    source="linked_channel"
+                )
+
+                insert(new_chat)
 
     def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
