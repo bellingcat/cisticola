@@ -150,6 +150,15 @@ class ETLController:
 
         if instance:
             logger.info(f"Found matching DB entry for {obj}: {instance}")
+
+            if type(obj) == Channel:
+                if obj.source != instance.source and obj.source == 'linked_channel' and instance.source != 'researcher':
+                    logger.info(f"Updating source to linked channel")
+                    instance.source = obj.source
+                    instance.notes = obj.notes
+                    session.flush()
+                    session.commit()
+
             return instance
 
         # Don't hydrate videos, because they can be quite large and this is time consuming
