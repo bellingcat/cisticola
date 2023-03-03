@@ -160,6 +160,12 @@ class ETLController:
                     instance.category = obj.category
                     instance.country = obj.country
                     instance.influencer = obj.influencer
+                    
+                    session.flush()
+                    session.commit()
+
+                if (instance.platform_id is None or instance.platform_id == ''):
+                    instance.platform_id = obj.platform_id
                     session.flush()
                     session.commit()
 
