@@ -218,7 +218,7 @@ class ETLController:
                     logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
 
     @logger.catch(reraise=True)
-    def transform_all_untransformed(self, hydrate: bool = True):
+    def transform_all_untransformed(self, hydrate: bool = True, min_id=0):
         """Transform all ScraperResult objects in the database that do not have an
         equivalent Post object stored.
 
@@ -242,7 +242,7 @@ class ETLController:
 
         batch = (session.query(ScraperResult)
             .join(Post, isouter=True)
-            .where(ScraperResult.id > 35000000) # TODO this can be a CLI argument or something
+            .where(ScraperResult.id > min_id)
             .where(Post.raw_id == None)
             .order_by(ScraperResult.date.asc())
             .limit(BATCH_SIZE)
@@ -255,11 +255,12 @@ class ETLController:
 
             logger.info(f"Fetching untransformed posts batch of {BATCH_SIZE}, offset {max(batch, key=lambda v: v.date).date}")
 
-            batch = (query(ScraperResult)
+            batch = (session.query(ScraperResult)
                     .join(Post, isouter=True)
-                    .where(ScraperResult.id > 35000000) # TODO this can be a CLI argument or something
+                    .where(ScraperResult.id > min_id)
                     .where(Post.raw_id == None)
-                    .where(ScraperResult.date >= max(batch, key=lambda v: v.date).date)
+                    .where(ScraperResult.id != batch[-1].id)
+                    .where(ScraperResult.date >= batch[-1].date)
                     .order_by(ScraperResult.date.asc())
                     .limit(BATCH_SIZE)
                 ).all()

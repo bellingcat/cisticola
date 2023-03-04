@@ -20,7 +20,7 @@ from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Ima
 
 
 class TelegramTelethonTransformer(Transformer):
-    __version__ = 'TelegramTelethonTransformer 0.0.3'
+    __version__ = 'TelegramTelethonTransformer 0.0.4'
 
     bad_channels = {}
 
@@ -30,18 +30,28 @@ class TelegramTelethonTransformer(Transformer):
             return True
 
         return False   
+    
+    def __init__(self, telethon_session_name = None):
+        super().__init__()
 
-    def get_screenname_from_id(self, channel_id):
         api_id = os.environ['TELEGRAM_API_ID']
         api_hash = os.environ['TELEGRAM_API_HASH']
+        phone = os.environ['TELEGRAM_PHONE']
 
+        if telethon_session_name is None:
+            telethon_session_name = phone
+
+        # set up a persistent client for Telethon
+        self.client = TelegramClient(telethon_session_name, api_id, api_hash)
+        self.client.connect()
+
+    def get_screenname_from_id(self, channel_id):
         try:
-            with TelegramClient("transform.session", api_id, api_hash) as client:
-                data = client.get_entity(channel_id)
-                if isinstance(data, types.User):
-                    return (data.username, str(data.first_name or "") + " " + str(data.last_name or ""), "")
-                else:
-                    return (data.username, data.title, "")
+            data = self.client.get_entity(channel_id)
+            if isinstance(data, types.User):
+                return (data.username, str(data.first_name or "") + " " + str(data.last_name or ""), "")
+            else:
+                return (data.username, data.title, "")
         except ChannelPrivateError:
             logger.info("ChannelPrivateError")
             return ("", "", "ChannelPrivateError")
@@ -231,6 +241,14 @@ class TelegramTelethonTransformer(Transformer):
             url = ""
             author_username = ""
 
+        author_id = raw.get('peer_id', {}).get('channel_id')
+        if raw['from_id'] and 'user_id' in raw['from_id']:
+            author_id = raw['from_id']['user_id']
+            author_username = ""
+            (screenname, name, notes) = self.get_screenname_from_id(author_id)
+            if screenname:
+                author_username = screenname
+
         transformed = Post(
             raw_id = data.id,
             platform_id = raw['id'],
@@ -243,7 +261,7 @@ class TelegramTelethonTransformer(Transformer):
             date_transformed=datetime.now(timezone.utc),
             url=url,
             content=add_markdown_links(raw),
-            author_id=raw.get('peer_id', {}).get('channel_id'),
+            author_id=author_id,
             author_username=author_username,
             forwarded_from=fwd_from,
             reply_to=reply_to,

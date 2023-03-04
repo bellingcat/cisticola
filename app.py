@@ -35,11 +35,16 @@ def get_db_session():
     return session
 
 
-def get_scraper_controller(telethon_session_name = None):
+def get_scraper_controller(args):
     engine = create_engine(os.environ["DB"])
 
     controller = ScraperController()
     controller.connect_to_db(engine)
+
+    if args.telethon_session:
+        telethon_session_name = args.telethon_session
+    else:
+        telethon_session_name = None
 
     scrapers = [ #VkontakteScraper(),
         TelegramTelethonScraper(telethon_session_name = telethon_session_name),
@@ -51,14 +56,19 @@ def get_scraper_controller(telethon_session_name = None):
 
     return controller
 
-def get_transformer_controller():
+def get_transformer_controller(args):
     engine = create_engine(os.environ["DB"])
 
     controller = ETLController()
     controller.connect_to_db(engine)
 
+    if args.telethon_session:
+        telethon_session_name = args.telethon_session
+    else:
+        telethon_session_name = None
+
     transformers = [ #VkontakteTransformer(),
-        TelegramTelethonTransformer(),
+        TelegramTelethonTransformer(telethon_session_name = telethon_session_name),
         GettrTransformer(),
         BitchuteTransformer(),
         RumbleTransformer()]
@@ -71,29 +81,26 @@ def get_transformer_controller():
 def scrape_channels(args):
     logger.info(f"Scraping channels, media: {args.media}")
 
-    controller = get_scraper_controller()
+    controller = get_scraper_controller(args)
     controller.scrape_all_channels(archive_media=args.media)
 
 def scrape_channels_old(args):
     logger.info(f"Scraping old posts from channels, media: {args.media}")
 
-    controller = get_scraper_controller()
+    controller = get_scraper_controller(args)
     controller.scrape_all_channels(archive_media=args.media, fetch_old=True)
 
 def scrape_channel_info(args):
     logger.info(f"Scraping channel info")
 
-    controller = get_scraper_controller()
+    controller = get_scraper_controller(args)
     controller.scrape_all_channel_info()
 
 
 def archive_media(args):
     logger.info(f"Archiving unarchived media")
 
-    if args.telethon_session:
-        controller = get_scraper_controller(telethon_session_name=args.telethon_session)
-    else:
-        controller = get_scraper_controller()
+    controller = get_scraper_controller(args)
     
     if args.chronological:
         controller.archive_unarchived_media(chronological=True)
@@ -103,13 +110,19 @@ def archive_media(args):
 def transform(args):
     logger.info(f"Transforming untransformed posts")
 
-    controller = get_transformer_controller()
-    controller.transform_all_untransformed()
+    controller = get_transformer_controller(args)
+
+    if args.min_id:
+        min_id = int(args.min_id)
+    else:
+        min_id = 0
+    
+    controller.transform_all_untransformed(min_id=min_id)
 
 def transform_info(args):
     logger.info(f"Transforming untransformed channel info")
 
-    controller = get_transformer_controller()
+    controller = get_transformer_controller(args)
     controller.transform_all_untransformed_info()
 
     # sync_channels(args, get_db_session())
@@ -117,7 +130,7 @@ def transform_info(args):
 def transform_media(args):
     logger.info(f"Transforming untransformed channel media")
 
-    controller = get_transformer_controller()
+    controller = get_transformer_controller(args)
     controller.transform_all_untransformed_media()
 
 def init_db():
@@ -143,6 +156,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--chronological", action="store_true")
     parser.add_argument("--telethon_session", type=str)
+    parser.add_argument("--min_id", type=int)
 
     args = parser.parse_args()
 
