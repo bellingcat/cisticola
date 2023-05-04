@@ -56,7 +56,7 @@ class BitchuteTransformer(Transformer):
 
         transformed = insert(transformed)
 
-    def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+    def transform(self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         if raw['category'] == 'comment':
@@ -64,6 +64,7 @@ class BitchuteTransformer(Transformer):
                 reply_to_id = raw['thread_id']
             else:
                 reply_to_id = raw['parent_id']
+            flush_posts()
             post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
             if post is None:
                 if raw['parent_id'] is not None:
@@ -108,7 +109,7 @@ class BitchuteTransformer(Transformer):
             video_duration = _parse_duration_str(raw['length']))
 
         # insert_post
-        transformed = insert(transformed)
+        transformed = insert_post(transformed)
 
 def parse_created(created: str, date_archived: datetime) -> datetime:
     """Convert a created string (e.g. ``"1 year, 10 months ago"``) to a datetime 

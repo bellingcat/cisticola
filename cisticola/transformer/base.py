@@ -234,13 +234,14 @@ class ETLController:
                         logger.trace(f"{transformer} is handling result {result.id} ({result.date})")
                         handled = True
 
-                        transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate), session)
+                        transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate), session, lambda obj: self.insert_post(obj, session, hydrate, flush=False), lambda: self.flush_posts(session))
 
                         break
 
                 if handled == False:
                     logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
         
+        self.flush_posts(session)
         session.commit()
 
 

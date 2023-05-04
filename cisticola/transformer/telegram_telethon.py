@@ -159,7 +159,7 @@ class TelegramTelethonTransformer(Transformer):
 
                 insert(new_chat)
 
-    def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+    def transform(self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         if raw['_'] != 'Message':
@@ -204,6 +204,7 @@ class TelegramTelethonTransformer(Transformer):
         if raw['reply_to']:
             reply_to_id = str(raw['reply_to']['reply_to_msg_id'])
             session.commit()
+            flush_posts()
             post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
             if post is None:
                 reply_to = -1
@@ -286,7 +287,7 @@ class TelegramTelethonTransformer(Transformer):
         )
 
         # insert_post
-        insert(transformed)
+        insert_post(transformed)
 
 def stripped(s):
     """https://stackoverflow.com/a/29933716"""

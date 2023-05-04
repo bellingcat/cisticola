@@ -81,7 +81,7 @@ class GettrTransformer(Transformer):
 
         return channel.id
 
-    def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+    def transform(self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         if raw["activity"]["action"] == "shares_pst":
@@ -119,7 +119,8 @@ class GettrTransformer(Transformer):
             views = raw.get('vfpst')
             )
 
-        insert(transformed)
+        # insert_post
+        insert_post(transformed)
 
         # media = self.process_media(raw, transformed.id, data)
         # for m in media:

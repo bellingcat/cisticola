@@ -72,7 +72,7 @@ class TwitterTransformer(Transformer):
         transformed = insert(transformed)
 
 
-    def transform(self, data: ScraperResult, insert: Callable, session) -> Generator[Union[Post, Channel, Media], None, None]:
+    def transform(self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
         transformed = Post(
@@ -134,4 +134,4 @@ class TwitterTransformer(Transformer):
             subtweet(raw['quotedTweet'])
 
         #insert_post
-        insert(transformed)
+        insert_post(transformed)

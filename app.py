@@ -117,7 +117,7 @@ def transform(args):
     if args.min_date:
         min_date = datetime.datetime.fromisoformat(args.min_date)
     else:
-        min_date = 0
+        min_date = datetime.datetime(1970, 1, 1)
     
     controller.transform_all_untransformed(min_date=min_date)
 
