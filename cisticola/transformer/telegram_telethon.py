@@ -28,6 +28,8 @@ class TelegramTelethonTransformer(Transformer):
     channels_cache_by_id = {}
     channels_cache_by_screenname = {}
 
+    posts_cache = {}
+
     def can_handle(self, data: ScraperResult) -> bool:
         scraper = data.scraper.split(' ')
         if scraper[0] == "TelegramTelethonScraper":
@@ -203,13 +205,20 @@ class TelegramTelethonTransformer(Transformer):
         reply_to = None
         if raw['reply_to']:
             reply_to_id = str(raw['reply_to']['reply_to_msg_id'])
-            session.commit()
-            flush_posts()
-            post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
-            if post is None:
-                reply_to = -1
+            # use cache rather than a DB request if possible
+
+            if (data.channel, reply_to_id) not in self.posts_cache:
+                session.commit()
+                flush_posts()
+                post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
+                if post is None:
+                    reply_to = -1
+                else:
+                    reply_to = post.id
+
+                self.posts_cache[(data.channel, reply_to_id)] = reply_to
             else:
-                reply_to = post.id
+                reply_to = self.posts_cache[(data.channel, reply_to_id)]
 
         mentions = []
 

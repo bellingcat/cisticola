@@ -112,7 +112,7 @@ class ETLController:
     # MAY4 can try adding some new functions for batching post inserts
     def flush_posts(self, session):
         session.bulk_save_objects(self.posts_to_insert)
-        logger.info(f"Bulk saved {len(self.posts_to_insert)} posts")
+        # logger.info(f"Bulk saved {len(self.posts_to_insert)} posts")
         self.posts_to_insert = []
 
     def insert_post(self, obj, session, hydrate: bool = True, flush: bool = False):
