@@ -9,7 +9,8 @@ import time
 from telethon.sync import TelegramClient
 from telethon.errors.rpcerrorlist import ChannelPrivateError, ChannelInvalidError
 from telethon.tl import types
-from telethon.helpers import add_surrogate
+from telethon.helpers import add_surrogate, del_surrogate
+from itertools import takewhile
 
 import os
 from datetime import datetime, timezone
@@ -23,6 +24,9 @@ class TelegramTelethonTransformer(Transformer):
     __version__ = 'TelegramTelethonTransformer 0.0.4'
 
     bad_channels = {}
+    channels_cache_by_platformid = {}
+    channels_cache_by_id = {}
+    channels_cache_by_screenname = {}
 
     def can_handle(self, data: ScraperResult) -> bool:
         scraper = data.scraper.split(' ')
@@ -53,13 +57,10 @@ class TelegramTelethonTransformer(Transformer):
             else:
                 return (data.username, data.title, "")
         except ChannelPrivateError:
-            logger.info("ChannelPrivateError")
             return ("", "", "ChannelPrivateError")
         except ChannelInvalidError:
-            logger.info("ChannelInvalidError")
             return ("", "", "ChannelInvalidError")
         except ValueError:
-            logger.info("ValueError")
             return ("", "", "ValueError")
 
     def get_name_from_web_interface(self, orig_screenname, id):
@@ -168,36 +169,41 @@ class TelegramTelethonTransformer(Transformer):
         fwd_from = None
 
         if raw['fwd_from'] and raw['fwd_from']['from_id'] and 'channel_id' in raw['fwd_from']['from_id']:
-            channel = session.query(Channel).filter_by(platform_id=str(raw['fwd_from']['from_id']['channel_id']), platform = 'Telegram').first()
+            # use cache rather than a DB request if possible
+            if str(raw['fwd_from']['from_id']['channel_id']) not in self.channels_cache_by_platformid:
+                channel = session.query(Channel).filter_by(platform_id=str(raw['fwd_from']['from_id']['channel_id']), platform = 'Telegram').first()
 
-            if channel is None:
-                (screenname, name, notes) = self.get_screenname_from_id(raw['fwd_from']['from_id']['channel_id'])
+                if channel is None:
+                    (screenname, name, notes) = self.get_screenname_from_id(raw['fwd_from']['from_id']['channel_id'])
 
-                if name == "":
-                    logger.info("Trying fallback web interface")
-                    orig_channel = session.query(Channel).filter_by(id=data.channel).first()
-                    if orig_channel.screenname is not None:
-                        name = self.get_name_from_web_interface(orig_channel.screenname, raw['id'])
+                    if name == "":
+                        logger.info("Trying fallback web interface")
+                        orig_channel = session.query(Channel).filter_by(id=data.channel).first()
+                        if orig_channel.screenname is not None:
+                            name = self.get_name_from_web_interface(orig_channel.screenname, raw['id'])
 
-                channel = Channel(
-                    name=name,
-                    platform_id=raw['fwd_from']['from_id']['channel_id'],
-                    platform=data.platform,
-                    url="https://t.me/s/" + screenname if screenname is not None else "",
-                    screenname=screenname,
-                    category='forwarded',
-                    source=self.__version__,
-                    notes=notes
-                    )
+                    channel = Channel(
+                        name=name,
+                        platform_id=raw['fwd_from']['from_id']['channel_id'],
+                        platform=data.platform,
+                        url="https://t.me/s/" + screenname if screenname is not None else "",
+                        screenname=screenname,
+                        category='forwarded',
+                        source=self.__version__,
+                        notes=notes
+                        )
 
-                channel = insert(channel)
-                logger.info(f"Added {channel}")
+                    channel = insert(channel)
+                    logger.info(f"Added {channel}")
 
-            fwd_from = channel.id
+                self.channels_cache_by_platformid[str(raw['fwd_from']['from_id']['channel_id'])] = channel
+            
+            fwd_from = self.channels_cache_by_platformid[str(raw['fwd_from']['from_id']['channel_id'])].id
 
         reply_to = None
         if raw['reply_to']:
             reply_to_id = str(raw['reply_to']['reply_to_msg_id'])
+            session.commit()
             post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
             if post is None:
                 reply_to = -1
@@ -207,32 +213,41 @@ class TelegramTelethonTransformer(Transformer):
         mentions = []
 
         for mention_entity in [entity for entity in raw['entities'] if entity['_'] == 'MessageEntityMention']:
-
             offset = mention_entity['offset']
             length = mention_entity['length']
 
             screenname = add_surrogate(raw['message'])[offset:offset+length].strip('@').strip()
 
-            channel = session.query(Channel).filter(func.lower(Channel.screenname)==func.lower(screenname)).first()
+            # use cache rather than a DB request if possible
+            if screenname.lower() not in self.channels_cache_by_screenname:
+                channel = session.query(Channel).filter(func.lower(Channel.screenname)==func.lower(screenname)).first()
 
-            if channel is None:
+                if channel is None:
 
-                channel = Channel(
-                    name = None,
-                    platform_id = None,
-                    platform = 'Telegram',
-                    url="https://t.me/s/" + screenname,
-                    screenname=screenname,
-                    category='mentioned',
-                    source=self.__version__,
-                    )
+                    channel = Channel(
+                        name = None,
+                        platform_id = None,
+                        platform = 'Telegram',
+                        url="https://t.me/s/" + screenname,
+                        screenname=screenname,
+                        category='mentioned',
+                        source=self.__version__,
+                        )
 
-                channel = insert(channel)
-                logger.info(f"Added {channel}")
+                    channel = insert(channel)
+                    logger.info(f"Added {channel}")
+                
+                self.channels_cache_by_screenname[screenname.lower()] = channel
+            channel = self.channels_cache_by_screenname[screenname.lower()]
 
             mentions.append(channel.id)
 
-        channel = session.query(Channel).filter_by(id=int(data.channel)).first()
+        # use cache rather than a DB request if possible
+        if int(data.channel) not in self.channels_cache_by_id:
+            channel = session.query(Channel).filter_by(id=int(data.channel)).first()
+            self.channels_cache_by_id[int(data.channel)] = channel
+
+        channel = self.channels_cache_by_id[int(data.channel)]
 
         if channel is not None and channel.url:
             url = channel.url.strip('/') + f"/{raw['id']}"
@@ -272,10 +287,20 @@ class TelegramTelethonTransformer(Transformer):
 
         transformed = insert(transformed)
 
+def stripped(s):
+    """https://stackoverflow.com/a/29933716"""
+
+    lstripped = ''.join(takewhile(str.isspace, s))
+    rstripped = ''.join(reversed(tuple(takewhile(str.isspace, reversed(s)))))
+
+    return lstripped + rstripped
+
 def add_markdown_links(raw_post):
+    """This function is necessary because Telethon's markdown.unparse doesn't 
+    correctly handle trailing whitespace or multi-line links"""
 
     global_offset = 0
-    transformed_content = raw_post['message']
+    transformed_content = add_surrogate(raw_post['message'])
     links = [entity for entity in raw_post['entities'] if entity['_'] == 'MessageEntityTextUrl']
 
     for link in links:
@@ -284,12 +309,18 @@ def add_markdown_links(raw_post):
         url = link['url']
 
         before_link = transformed_content[:offset]
-        link_text = f"[{transformed_content[offset:offset+length].strip()}]"
-        trailing_whitespace = ''.join([c for c in transformed_content[offset:offset+length] if c.isspace()])
-        link_href = f"({url})"
-        after_link = transformed_content[offset+length:]
-
-        transformed_content = before_link + link_text + link_href + trailing_whitespace + after_link
-        global_offset += (4 + len(url))
+        inner_text = transformed_content[offset:offset+length]
         
-    return transformed_content
+        # skip creation of link if inner link text is only whitespace
+        if inner_text.replace('\u200b', '').strip():
+        
+            processed_inner_text = inner_text.strip().replace('\n', '\\\n')
+            link_text = f"[{processed_inner_text}]"
+            trailing_whitespace = stripped(transformed_content[offset:offset+length])
+            link_href = f"({url})"
+            after_link = transformed_content[offset+length:]
+
+            transformed_content = before_link + link_text + link_href + trailing_whitespace + after_link
+            global_offset += (4 + len(url) + inner_text.strip().count('\n'))
+        
+    return del_surrogate(transformed_content)

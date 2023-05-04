@@ -28,6 +28,7 @@ ocrd-pyexiftool = "*"
 filelock = "*"
 telethon = "*"
 psycopg2 = "*"
+joblib = "*"
 
 [dev-packages]
 pytest = "*"
