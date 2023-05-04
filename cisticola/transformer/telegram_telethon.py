@@ -30,6 +30,8 @@ class TelegramTelethonTransformer(Transformer):
 
     posts_cache = {}
 
+    get_screenname_cache = {}
+
     def can_handle(self, data: ScraperResult) -> bool:
         scraper = data.scraper.split(' ')
         if scraper[0] == "TelegramTelethonScraper":
@@ -52,18 +54,26 @@ class TelegramTelethonTransformer(Transformer):
         self.client.connect()
 
     def get_screenname_from_id(self, channel_id):
-        try:
-            data = self.client.get_entity(channel_id)
-            if isinstance(data, types.User):
-                return (data.username, str(data.first_name or "") + " " + str(data.last_name or ""), "")
-            else:
-                return (data.username, data.title, "")
-        except ChannelPrivateError:
-            return ("", "", "ChannelPrivateError")
-        except ChannelInvalidError:
-            return ("", "", "ChannelInvalidError")
-        except ValueError:
-            return ("", "", "ValueError")
+        if channel_id in self.get_screenname_cache:
+            return self.get_screenname_cache[channel_id]
+        else:
+            output = ("", "", None)
+            
+            try:
+                data = self.client.get_entity(channel_id)
+                if isinstance(data, types.User):
+                    output = (data.username, str(data.first_name or "") + " " + str(data.last_name or ""), "")
+                else:
+                    output = (data.username, data.title, "")
+            except ChannelPrivateError:
+                output = ("", "", "ChannelPrivateError")
+            except ChannelInvalidError:
+                output = ("", "", "ChannelInvalidError")
+            except ValueError:
+                output = ("", "", "ValueError")
+
+            self.get_screenname_cache[channel_id] = output
+            return output
 
     def get_name_from_web_interface(self, orig_screenname, id):
         url = "https://t.me/s/" + orig_screenname + "/" + str(id)
