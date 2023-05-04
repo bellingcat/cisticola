@@ -9,7 +9,7 @@ import time
 from telethon.sync import TelegramClient
 from telethon.errors.rpcerrorlist import ChannelPrivateError, ChannelInvalidError
 from telethon.tl import types
-from telethon.helpers import add_surrogate
+from telethon.helpers import add_surrogate, del_surrogate
 
 import os
 from datetime import datetime, timezone
@@ -270,12 +270,23 @@ class TelegramTelethonTransformer(Transformer):
             views = raw.get('views')
         )
 
-        transformed = insert(transformed)
+        # insert_post
+        insert(transformed)
+
+def stripped(s):
+    """https://stackoverflow.com/a/29933716"""
+
+    lstripped = ''.join(takewhile(str.isspace, s))
+    rstripped = ''.join(reversed(tuple(takewhile(str.isspace, reversed(s)))))
+
+    return lstripped + rstripped
 
 def add_markdown_links(raw_post):
+    """This function is necessary because Telethon's markdown.unparse doesn't 
+    correctly handle trailing whitespace or multi-line links"""
 
     global_offset = 0
-    transformed_content = raw_post['message']
+    transformed_content = add_surrogate(raw_post['message'])
     links = [entity for entity in raw_post['entities'] if entity['_'] == 'MessageEntityTextUrl']
 
     for link in links:
@@ -284,12 +295,18 @@ def add_markdown_links(raw_post):
         url = link['url']
 
         before_link = transformed_content[:offset]
-        link_text = f"[{transformed_content[offset:offset+length].strip()}]"
-        trailing_whitespace = ''.join([c for c in transformed_content[offset:offset+length] if c.isspace()])
-        link_href = f"({url})"
-        after_link = transformed_content[offset+length:]
-
-        transformed_content = before_link + link_text + link_href + trailing_whitespace + after_link
-        global_offset += (4 + len(url))
+        inner_text = transformed_content[offset:offset+length]
         
-    return transformed_content
+        # skip creation of link if inner link text is only whitespace
+        if inner_text.replace('\u200b', '').strip():
+        
+            processed_inner_text = inner_text.strip().replace('\n', '\\\n')
+            link_text = f"[{processed_inner_text}]"
+            trailing_whitespace = stripped(transformed_content[offset:offset+length])
+            link_href = f"({url})"
+            after_link = transformed_content[offset+length:]
+
+            transformed_content = before_link + link_text + link_href + trailing_whitespace + after_link
+            global_offset += (4 + len(url) + inner_text.strip().count('\n'))
+        
+    return del_surrogate(transformed_content)

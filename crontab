@@ -1,0 +1,6 @@
+0,10,20,30,40,50 * * * * cd /home/appuser; /usr/bin/flock -w 0 scraper.lock pipenv run python app.py scrape-channels > /proc/1/fd/1 2>/proc/1/fd/2
+0 * * * * cd /home/appuser; /usr/bin/timeout -s 2 10800 /usr/bin/flock -w 0 transform.lock pipenv run python app.py transform > /proc/1/fd/1 2>/proc/1/fd/2
+0 21 * * * cd /home/appuser; /usr/bin/timeout -s 2 10800 /usr/bin/flock -w 0 scraper.lock pipenv run python app.py channel-info > /proc/1/fd/1 2>/proc/1/fd/2
+30 * * * * cd /home/appuser; /usr/bin/flock -w 0 transform.lock pipenv run python app.py transform-info > /proc/1/fd/1 2>/proc/1/fd/2
+0 * * * * cd /home/appuser; /usr/bin/flock -w 0 sync.lock pipenv run python app.py sync-channels --gsheet https://docs.google.com/spreadsheets/d/1UnBxtRVkabKHkDUkLxtFOSIX9akytd-rZyV-H_K1PWg/edit > /proc/1/fd/1 2>/proc/1/fd/2
+30 * * * * cd /home/appuser; /usr/bin/timeout -s 2 82800 pipenv run python app.py transform-media > /proc/1/fd/1 2>/proc/1/fd/2

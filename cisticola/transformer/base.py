@@ -75,6 +75,8 @@ class ETLController:
     for analysis by using Transformer objects that have been registered with the controller.
     """
 
+    posts_to_insert = []
+
     def __init__(self):
         self.transformers = []
 
@@ -107,6 +109,29 @@ class ETLController:
         self.session = sessionmaker()
         self.session.configure(bind=engine)
 
+    # MAY4 can try adding some new functions for batching post inserts
+    def flush_posts(self, session):
+        session.bulk_save_objects(self.posts_to_insert)
+        logger.info(f"Bulk saved {len(self.posts_to_insert)} posts")
+        self.posts_to_insert = []
+
+    def insert_post(self, obj, session, hydrate: bool = True, flush: bool = False):
+        if hydrate and type(obj) != Video:
+            obj.hydrate()
+
+        if flush:
+            self.flush_posts()
+
+            session.add(obj)
+            session.flush()
+
+            logger.trace(f"Inserted new object {obj}")
+
+            return obj
+        else:
+            self.posts_to_insert.append(obj)
+            return None
+
     def insert_or_select(self, obj, session, hydrate: bool = True):
         """Inserts an object into the database or returns an existing object from the database.
         Regardless, the resulting object has an `id` attribute that can be referenced later."""
@@ -122,7 +147,7 @@ class ETLController:
                 (Channel.platform==obj.platform)).first()
             
         elif type(obj) == Post:
-            instance = None
+            return self.insert_post(obj, session, hydrate)
             # instance = session.query(Post).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
 
         elif issubclass(type(obj), Media):
@@ -216,7 +241,7 @@ class ETLController:
 
                 if handled == False:
                     logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
-
+            
     @logger.catch(reraise=True)
     def transform_all_untransformed(self, hydrate: bool = True, min_id=0):
         """Transform all ScraperResult objects in the database that do not have an

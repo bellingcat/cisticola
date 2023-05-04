@@ -79,11 +79,8 @@ class RumbleTransformer(Transformer):
             video_title = raw['title'],
             video_duration=_parse_duration_str(raw['duration']))
 
+        # insert_post
         insert(transformed)
-
-        # media = self.process_media(raw, transformed.id, data)
-        # for m in media:
-        #     insert(m)
 
 def _process_number(s):
 

@@ -133,8 +133,5 @@ class TwitterTransformer(Transformer):
         if raw['quotedTweet'] is not None:
             subtweet(raw['quotedTweet'])
 
+        #insert_post
         insert(transformed)
-
-        media = self.process_media(raw, transformed.id, data)
-        for m in media:
-            insert(m)

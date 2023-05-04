@@ -107,8 +107,8 @@ class BitchuteTransformer(Transformer):
             video_title = raw['subject'],
             video_duration = _parse_duration_str(raw['length']))
 
+        # insert_post
         transformed = insert(transformed)
-        session.flush()
 
 def parse_created(created: str, date_archived: datetime) -> datetime:
     """Convert a created string (e.g. ``"1 year, 10 months ago"``) to a datetime 

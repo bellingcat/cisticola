@@ -66,6 +66,7 @@ class VkontakteTransformer(Transformer):
             outlinks =list(filter(None, raw["outlinks"])) if raw['outlinks'] else [],
             )
 
+        # insert_post
         insert(transformed)
 
         # media = self.process_media(raw, transformed.id, data)
