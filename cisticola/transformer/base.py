@@ -106,7 +106,7 @@ class ETLController:
         # create tables
         mapper_registry.metadata.create_all(bind=engine)
 
-        self.session = sessionmaker()
+        self.session = sessionmaker(expire_on_commit=False)
         self.session.configure(bind=engine)
 
     # MAY4 can try adding some new functions for batching post inserts
@@ -236,14 +236,16 @@ class ETLController:
 
                         transformer.transform(result, lambda obj: self.insert_or_select(obj, session, hydrate), session)
 
-                        session.commit()
                         break
 
                 if handled == False:
                     logger.warning(f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})")
-            
+        
+        session.commit()
+
+
     @logger.catch(reraise=True)
-    def transform_all_untransformed(self, hydrate: bool = True, min_id=0):
+    def transform_all_untransformed(self, hydrate: bool = True, min_date=datetime(2010, 1, 1)):
         """Transform all ScraperResult objects in the database that do not have an
         equivalent Post object stored.
 
@@ -267,7 +269,7 @@ class ETLController:
 
         batch = (session.query(ScraperResult)
             .join(Post, isouter=True)
-            .where(ScraperResult.id > min_id)
+            .where(ScraperResult.date > min_date)
             .where(Post.raw_id == None)
             .order_by(ScraperResult.date.asc())
             .limit(BATCH_SIZE)
@@ -282,7 +284,7 @@ class ETLController:
 
             batch = (session.query(ScraperResult)
                     .join(Post, isouter=True)
-                    .where(ScraperResult.id > min_id)
+                    .where(ScraperResult.date > min_date)
                     .where(Post.raw_id == None)
                     .where(ScraperResult.id != batch[-1].id)
                     .where(ScraperResult.date >= batch[-1].date)

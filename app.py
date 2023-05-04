@@ -1,7 +1,9 @@
 import argparse
+from asyncio import streams
 from loguru import logger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import datetime
 import os
 import sys
 
@@ -112,12 +114,12 @@ def transform(args):
 
     controller = get_transformer_controller(args)
 
-    if args.min_id:
-        min_id = int(args.min_id)
+    if args.min_date:
+        min_date = datetime.datetime.fromisoformat(args.min_date)
     else:
-        min_id = 0
+        min_date = 0
     
-    controller.transform_all_untransformed(min_id=min_id)
+    controller.transform_all_untransformed(min_date=min_date)
 
 def transform_info(args):
     logger.info(f"Transforming untransformed channel info")
@@ -156,7 +158,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--chronological", action="store_true")
     parser.add_argument("--telethon_session", type=str)
-    parser.add_argument("--min_id", type=int)
+    parser.add_argument("--min_date", type=str)
 
     args = parser.parse_args()
 
@@ -179,6 +181,7 @@ if __name__ == "__main__":
         scrape_channel_info(args)
     elif args.command == "transform":
         logger.add("logs/transform.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
+        logger.add("logs/transform_trace.log", level="TRACE", retention="7 days")
         transform(args)
     elif args.command == "transform-info":
         logger.add("logs/transform-info.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
