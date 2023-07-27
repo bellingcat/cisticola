@@ -120,8 +120,6 @@ class BitchuteScraper(Scraper):
             raw_data=json.dumps(profile, default = str),
             date_archived=datetime.now(timezone.utc))
             
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
-
 def strip_tags(html, convert_newlines=True):
     r"""
     Strip HTML from a string
@@ -156,8 +154,6 @@ def strip_tags(html, convert_newlines=True):
     stripper = HTMLStripper()
     stripper.feed(html)
     return stripper.get_data()
-
-#-----------------------------------------------------------------------------#
 
 def request_from_bitchute(session, method, url, headers=None, data=None):
     """
@@ -202,8 +198,6 @@ def request_from_bitchute(session, method, url, headers=None, data=None):
         raise RuntimeError()
 
     return response
-
-#-----------------------------------------------------------------------------#
 
 def append_details(video, detail):
     """
@@ -395,8 +389,6 @@ def append_details(video, detail):
     time.sleep(0.25)
     return (video, comments)
 
-#-----------------------------------------------------------------------------#
-
 def get_videos_user(session, user, csrftoken, detail):
     """
     Scrape videos for given BitChute user
@@ -469,8 +461,6 @@ def get_videos_user(session, user, csrftoken, detail):
                 # these need to be yielded *after* the video because else the result file will have the comments
                 # before the video, which is weird
                 yield comment
-
-#-----------------------------------------------------------------------------#
 
 def decode_cfemail(cfemail):
     

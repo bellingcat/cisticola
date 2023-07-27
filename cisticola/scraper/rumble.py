@@ -80,8 +80,6 @@ class RumbleScraper(Scraper):
             raw_data=json.dumps(profile),
             date_archived=datetime.now(timezone.utc))
 
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
-
 def get_media_url(url):
     
     r = make_request(url = url)
@@ -183,5 +181,3 @@ def get_channel_profile(url):
         'subscribers': soup.find('span', {'class' : 'subscribe-button-count'}).text}
         
     return profile
-
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#

@@ -1,11 +1,10 @@
+import os
 import pytest
 
 from sqlalchemy import create_engine
 
 from cisticola.scraper import ScraperController
 from cisticola.transformer import ETLController
-
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
 BITCHUTE_CHANNEL_KWARGS = {
     'name': 'bestonlinejewelrystoresusa@gmail.com (test)',
@@ -37,7 +36,7 @@ GAB_CHANNEL_KWARGS = {
 
 GAB_GROUP_KWARGS = {
     'name': 'iran group (test)',
-    'platform_id': 10001,
+    'platform_id': "10001",
     'category': 'test',
     'platform': 'Gab',
     'url': 'https://gab.com/groups/10001',
@@ -92,7 +91,7 @@ ODYSEE_CHANNEL_KWARGS = {
     'source': 'researcher'}
 
 RUMBLE_CHANNEL_KWARGS = {
-    'name': 'we are uploading videos wow products',
+    'name': 'we are uploading videos wow products (test)',
     'platform_id': 'c-916305',
     'category': 'test',
     'platform': 'Rumble',
@@ -106,13 +105,13 @@ RUMBLE_CHANNEL_KWARGS = {
     'source': 'researcher'}
 
 TELEGRAM_CHANNEL_KWARGS = {
-    'name': 'South West Ohio Proud Boys (test)',
-    'platform_id': -1001276612436,
+    'name': 'Star Game (test)',
+    'platform_id': "-1001866374682",
     'category': 'test',
     'platform': 'Telegram',
-    'url': 'https://t.me/SouthwestOhioPB',
-    'screenname': 'SouthwestOhioPB',
-    'country': 'US',
+    'url': 'https://t.me/stargameinfo',
+    'screenname': 'stargameinfo',
+    'country': 'RU',
     'influencer': None,
     'public': True,
     'chat': False,
@@ -121,7 +120,7 @@ TELEGRAM_CHANNEL_KWARGS = {
     
 TWITTER_CHANNEL_KWARGS = {
     'name': 'L Weber (test)',
-    'platform_id': 1424979017749442595,
+    'platform_id': "1424979017749442595",
     'category': 'test',
     'platform': 'Twitter',
     'url': 'https://twitter.com/LWeber33662141',
@@ -161,16 +160,13 @@ YOUTUBE_CHANNEL_KWARGS = {
     'notes': '',
     'source': 'researcher'}
 
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
-
 
 @pytest.fixture(scope='package')
 def engine(tmpdir_factory):
     """Initialize a SQLite database and SQLAlchemy engine to be used for all
     tests in the package"""
 
-    file = tmpdir_factory.mktemp('test_data').join('test.db')
-    engine = create_engine(f'sqlite:///{file}')
+    engine = create_engine(os.environ["TEST_DB"])
     
     return engine
 
@@ -211,5 +207,3 @@ def channel_kwargs():
         'twitter' : TWITTER_CHANNEL_KWARGS,
         'vkontakte' : VKONTAKTE_CHANNEL_KWARGS,
         'youtube' : YOUTUBE_CHANNEL_KWARGS}
-
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
