@@ -87,6 +87,8 @@ To run the test suite without archiving media (which can take a long time), run 
 
     pipenv run pytest -m "not media"
 
+To see the logging output from a test run, add the ``--capture=no`` flag to the command. 
+
 Examples
 --------
 

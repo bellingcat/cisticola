@@ -454,6 +454,39 @@ class ScraperController:
 
         session.close()
 
+    def archive_unarchived_media_batch(self, session = None, chronological=False):
+        if session is None:
+            session = self.session()
+        if chronological:
+            posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).where(ScraperResult.id >= 0).order_by(ScraperResult.date.desc()).limit(5000).all()
+        else:
+            # this query is really slow (~2.5 minutes) because of the shuffle. shuffling is so that multiple media archivers could work
+            # simultaneously with low risk of collision (at least while the number of unarchived items is very large)
+            posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).order_by(func.random()).limit(5000).all()
+
+        logger.info(f"Found {len(posts)} posts without media. Archiving now")
+
+        for post in posts:
+            handled = False
+
+            for scraper in self.scrapers:
+                # compare major versions
+                if post.scraper is not None and scraper.__version__.split('.')[0] == post.scraper.split('.')[0]:
+                    handled = True
+                    logger.debug(f"{scraper} is archiving media for ID {post.id}")
+                    post = scraper.archive_files(post)
+
+                    if post:
+                        session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': post.media_archived})
+                        session.commit()
+
+                    break
+            
+            if not handled:
+                logger.warning(f"No handler found for post scraped with {post.scraper}")
+
+        session.commit()
+                
     @logger.catch(reraise = True)
     def archive_unarchived_media(self, chronological=False):
         if self.session is None:
@@ -463,35 +496,10 @@ class ScraperController:
         session = self.session()
 
         while True:
-            if chronological:
-                posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).where(ScraperResult.id >= 0).order_by(ScraperResult.date.desc()).limit(5000).all()
-            else:
-                # this query is really slow (~2.5 minutes) because of the shuffle. shuffling is so that multiple media archivers could work
-                # simultaneously with low risk of collision (at least while the number of unarchived items is very large)
-                posts = session.query(ScraperResult).where(ScraperResult.media_archived == None).order_by(func.random()).limit(5000).all()
-
-            logger.info(f"Found {len(posts)} posts without media. Archiving now")
-
-            for post in posts:
-                handled = False
-
-                for scraper in self.scrapers:
-                    # compare major versions
-                    if post.scraper is not None and scraper.__version__.split('.')[0] == post.scraper.split('.')[0]:
-                        handled = True
-                        logger.debug(f"{scraper} is archiving media for ID {post.id}")
-                        post = scraper.archive_files(post)
-
-                        if post:
-                            session.query(ScraperResult).where(ScraperResult.id == post.id).update({'archived_urls': post.archived_urls, 'media_archived': post.media_archived})
-                            session.commit()
-
-                        break
-                
-                if not handled:
-                    logger.warning(f"No handler found for post scraped with {post.scraper}")
-
-            session.commit()
+            # # DEBUG
+            # assert 0
+            self.archive_unarchived_media_batch(self, session=session, chronological=chronological)
+            
             
         session.close()
 

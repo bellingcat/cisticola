@@ -15,7 +15,7 @@ def test_scrape_telegram_telethon_channel_no_media(controller, channel_kwargs):
 @pytest.mark.unarchived
 def test_scrape_telegram_telethon_unarchived_media(controller):
 
-    controller.archive_unarchived_media()
+    controller.archive_unarchived_media_batch()
 
 @pytest.mark.media
 def test_scrape_telegram_telethon_channel(controller, channel_kwargs):
@@ -28,7 +28,10 @@ def test_scrape_telegram_telethon_channel(controller, channel_kwargs):
     controller.scrape_channels(channels = channels, archive_media = True)
 
 @pytest.mark.profile
-def test_scrape_telegram_telethon_profile(channel_kwargs):
+def test_scrape_telegram_telethon_profile(controller, channel_kwargs):
+
+    controller.reset_db()
+    controller.remove_all_scrapers()
 
     scraper = TelegramTelethonScraper()
     channel = Channel(**channel_kwargs['telegram'])
