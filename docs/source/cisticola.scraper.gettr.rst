@@ -5,4 +5,3 @@ cisticola.scraper.gettr module
    :members:
    :undoc-members:
    :show-inheritance:
-   :private-members:

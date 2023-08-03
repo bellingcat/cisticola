@@ -81,12 +81,6 @@ The *cisticola* application uses pytest_ for unit testing. To run the full test 
 
     pipenv run pytest
 
-To run the test suite without archiving media (which can take a long time), run the following command from the package root directory:
-
-.. code-block::
-
-    pipenv run pytest -m "not media"
-
 To see the logging output from a test run, add the ``--capture=no`` flag to the command. 
 
 Examples

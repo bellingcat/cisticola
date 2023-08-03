@@ -5,4 +5,3 @@ cisticola.scraper.telegram\_telethon module
    :members:
    :undoc-members:
    :show-inheritance:
-   :private-members:

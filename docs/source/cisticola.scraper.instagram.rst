@@ -5,4 +5,3 @@ cisticola.scraper.instagram module
    :members:
    :undoc-members:
    :show-inheritance:
-   :private-members:

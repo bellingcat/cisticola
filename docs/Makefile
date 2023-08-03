@@ -9,7 +9,7 @@ SOURCEDIR     = source
 BUILDDIR      = build
 
 SPHINXAPIDOC  = sphinx-apidoc
-APIDOCFLAGS   = --separate --private --module-first
+APIDOCFLAGS   = --separate --module-first
 MODULEPATH    = ../cisticola
 SOURCEFILES   = cisticola.*
 MODULEFILE    = modules.rst

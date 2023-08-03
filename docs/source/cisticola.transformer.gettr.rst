@@ -1,7 +1,7 @@
-cisticola.scraper.vkontakte module
+cisticola.transformer.gettr module
 ==================================
 
-.. automodule:: cisticola.scraper.vkontakte
+.. automodule:: cisticola.transformer.gettr
    :members:
    :undoc-members:
    :show-inheritance:

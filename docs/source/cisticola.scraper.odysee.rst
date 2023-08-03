@@ -5,4 +5,3 @@ cisticola.scraper.odysee module
    :members:
    :undoc-members:
    :show-inheritance:
-   :private-members:

@@ -11,7 +11,7 @@ set SOURCEDIR=source
 set BUILDDIR=build
 
 set SPHINXAPIDOC=sphinx-apidoc
-set APIDOCFLAGS=--separate --private --module-first
+set APIDOCFLAGS=--separate --module-first
 set MODULEPATH=../cisticola
 set SOURCEFILES=cisticola.*
 set MODULEFILE=modules.rst

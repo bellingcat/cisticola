@@ -5,14 +5,17 @@ cisticola.transformer package
    :members:
    :undoc-members:
    :show-inheritance:
-   :private-members:
 
 Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    cisticola.transformer.base
    cisticola.transformer.bitchute
+   cisticola.transformer.gettr
+   cisticola.transformer.rumble
+   cisticola.transformer.telegram_telethon
    cisticola.transformer.twitter
+   cisticola.transformer.vkontakte

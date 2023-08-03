@@ -5,13 +5,12 @@ cisticola.scraper package
    :members:
    :undoc-members:
    :show-inheritance:
-   :private-members:
 
 Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    cisticola.scraper.base
    cisticola.scraper.bitchute
@@ -20,7 +19,6 @@ Submodules
    cisticola.scraper.instagram
    cisticola.scraper.odysee
    cisticola.scraper.rumble
-   cisticola.scraper.telegram_snscrape
    cisticola.scraper.telegram_telethon
    cisticola.scraper.twitter
    cisticola.scraper.vkontakte

@@ -5,4 +5,4 @@ cisticola.scraper.youtube module
    :members:
    :undoc-members:
    :show-inheritance:
-   :private-members:
+   :exclude-members: cookiestring
