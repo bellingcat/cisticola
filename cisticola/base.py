@@ -24,7 +24,7 @@ PIL.Image.MAX_IMAGE_PIXELS = 1024 * 1024 * 256
 
 @dataclass
 class ScraperResult:
-    """A minimally processed result from a scraper
+    """Minimally processed set of information from a scraper about one post
     """
 
     #: String specifying name and version of scraper used to generate result, e.g. ``"TwitterScraper 0.0.1"``.
@@ -100,7 +100,7 @@ class Channel:
 
 @dataclass
 class RawChannelInfo:
-    """A minimally processed result from a scraper
+    """Minimally processed set of information from a scraper about one channel
     """
 
     #: String specifying name and version of scraper used to generate result, e.g. ``"TwitterScraper 0.0.1"``.

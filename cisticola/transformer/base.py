@@ -30,7 +30,7 @@ class Transformer:
         Returns
         -------
         bool
-            True if it can be handled by this Transformer, false otherwise.
+            ``True`` if it can be handled by this Transformer, false otherwise.
         """
 
         pass
@@ -52,22 +52,36 @@ class Transformer:
         pass
 
     def transform_media(self, data: ScraperResult, transformed: Post, insert: Callable):
-        '''Transform media'''
+        """Transform a post's media attachment to standard form and insert into database. 
+        
+        Parameters
+        ----------
+        data: cisticola.base.ScraperResult
+            Raw post data of post that media file was attached to
+        transformed: cisticola.base.Post
+            Transformed post data of post that media file was attached to
+        insert: Callable
+            A function that either inserts the object into a database or finds an object with the
+            relevant unique constraints if applicable. 
+        """
         for k in data.archived_urls:
             if data.archived_urls[k]:
                 archived_url = data.archived_urls[k]
                 filename = archived_url.split('/')[-1]
                 ext = None if '.' not in filename else filename.split('.')[-1].lower()
 
-                if ext == 'mp4' or ext == 'mov' or ext == 'avi' or ext =='mkv':
-                    insert(Video(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k, date=data.date, date_archived=data.date_archived, date_transformed=datetime.now(timezone.utc), transformer=self.__version__, scraper=data.scraper, platform=data.platform))
-                elif ext == 'oga' or ext == 'mp3' or ext == "wav" or ext == 'aif' or ext == 'aiff' or ext == 'aac':
-                    insert(Audio(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k, date=data.date, date_archived=data.date_archived, date_transformed=datetime.now(timezone.utc), transformer=self.__version__, scraper=data.scraper, platform=data.platform))
-                elif ext == 'jpg' or ext == 'jpeg' or ext == 'png' or ext == 'gif' or ext == 'bmp' or ext == 'heic' or ext == 'tiff':
-                    insert(Image(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k, date=data.date, date_archived=data.date_archived, date_transformed=datetime.now(timezone.utc), transformer=self.__version__, scraper=data.scraper, platform=data.platform))
+                media_kwargs = dict(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k, date=data.date, date_archived=data.date_archived, date_transformed=datetime.now(timezone.utc), transformer=self.__version__, scraper=data.scraper, platform=data.platform)
+
+                if ext in ('mp4', 'mov', 'avi', 'mkv'):
+                    media_class = Video
+                elif ext in ('oga', 'mp3', "wav", 'aif', 'aiff', 'aac'):
+                    media_class = Audio
+                elif ext in ('jpg', 'jpeg', 'png', 'gif', 'bmp', 'heic', 'tiff'):
+                    media_class = Image
                 else:
                     logger.warning(f"Unknown file extension {ext}")
-                    insert(Media(url=archived_url, post=transformed.id, raw_id=data.id, original_url=k, date=data.date, date_archived=data.date_archived, date_transformed=datetime.now(timezone.utc), transformer=self.__version__, scraper=data.scraper, platform=data.platform))
+                    media_class = Media
+                insert(media_class(**media_kwargs))
 
 
 class ETLController:
@@ -81,27 +95,35 @@ class ETLController:
         self.transformers = []
 
     def register_transformer(self, transformer: Transformer):
-        """Adds a Transformer to the list of available Transformers.
+        """Add a single Transformer instance to the list of available Transformers.
 
         Parameters
         ----------
         transformer : Transformer
-            The Transformer to register
+            Instance of platform-specific Transformer to be controlled by the ETLController
         """
 
         self.transformers.append(transformer)
 
     def register_transformers(self, transformers):
+        """Add a a list of Transformer instances to the list of available Transformers.
+
+        Parameters
+        ----------
+        scrapers: <list>cisticola.scraper.Scraper
+            List of instances of platform-specific Transformers to be controlled by the ETLController
+
+        """
         for t in transformers:
             self.register_transformer(t)
 
     def connect_to_db(self, engine: Engine):
-        """Connects the ETLController to a SQLAlchemy engine.
+        """Connect the ETLController to a SQLAlchemy engine.
 
         Parameters
         ----------
-        engine : Engine
-            SQLAlchemy Engine object
+        engine : sqlalchemy.engine.Engine
+            Instance of SQLAlchemy Engine object to connect to
         """
         # create tables
         mapper_registry.metadata.create_all(bind=engine)
@@ -111,11 +133,36 @@ class ETLController:
 
     # MAY4 can try adding some new functions for batching post inserts
     def flush_posts(self, session):
+        """Save all outstanding posts to the database. For efficiency, instead of saving posts one at a time, the ETLController maintains a list of posts (``posts_to_insert``) and saves them in bulk.
+
+        Parameters
+        ----------
+        session: sqlalchemy.orm.Session
+            SQLAlchemy Session that interfaces with the database
+        """
         session.bulk_save_objects(self.posts_to_insert)
         # logger.info(f"Bulk saved {len(self.posts_to_insert)} posts")
         self.posts_to_insert = []
 
     def insert_post(self, obj, session, hydrate: bool = True, flush: bool = False):
+        """Insert an object into the connected database.
+
+        Parameters
+        ----------
+        obj: 
+            Instance of ORM-mapped class in the ``cisticola.base`` module to be inserted into the database
+        session: sqlalchemy.orm.Session
+            SQLAlchemy Session that interfaces with the database
+        hydrate: bool
+            If ``True``, additional data fields are extracted from the object and populated in the given database table
+        flush: bool
+            If ``True``, the object is returned with additional populated data fields (such as a primary key ID).
+            If ``False``, the object is added to ``posts_to_insert`` and nothing is returned
+
+        Returns
+        -------
+        None, or instance of ORM-mapped class from ``cisticola.base`` that has been inserted into the database, with additional data fields if ``flush`` argument is ``True``.
+        """
         if hydrate and type(obj) != Video:
             obj.hydrate()
 
@@ -133,8 +180,23 @@ class ETLController:
             return None
 
     def insert_or_select(self, obj, session, hydrate: bool = True):
-        """Inserts an object into the database or returns an existing object from the database.
-        Regardless, the resulting object has an `id` attribute that can be referenced later."""
+        """Insert an object into the database or return an existing object from the database.
+        Regardless, the resulting object has an `id` attribute that can be referenced later.
+        
+        Parameters
+        ----------
+        obj: 
+            Instance of ORM-mapped class in the ``cisticola.base`` module to be inserted into the database
+        session: sqlalchemy.orm.Session
+            SQLAlchemy Session that interfaces with the database
+        hydrate: bool
+            If ``True``, additional data fields are extracted from the object and populated in the given database table
+
+        Returns
+        -------
+        Object that has been inserted into the database, or existing object in the database, or None.
+
+        """
 
         instance = None
 
@@ -209,7 +271,7 @@ class ETLController:
 
     @logger.catch(reraise=True)
     def transform_results(self, results: List[ScraperResult], hydrate: bool = True):
-        """Transforms raw ScraperResults objects into Post objects and
+        """Transform raw ScraperResults objects into Post objects and
         Media objects. Then, adds them to the database.
 
         Parameters
@@ -254,6 +316,8 @@ class ETLController:
         ----------
         hydrate : bool
             Whether or not to fully hydrate transformed media. Default True.
+        min_date: datetime.datetime
+            Posts made before this date are not transformed.
         """
 
         if self.session is None:
@@ -263,7 +327,6 @@ class ETLController:
         session = self.session()
 
         BATCH_SIZE = 5000
-        offset = 0
         batch = []
 
         logger.info(f"Fetching first untransformed post batch of {BATCH_SIZE}")
@@ -294,9 +357,15 @@ class ETLController:
                 ).all()
 
 
-
     @logger.catch(reraise=True)
     def transform_info(self, results: List[ChannelInfo]):
+        """Transform raw RawChannelInfo objects into ChannelInfo objects. 
+
+        Parameters
+        ----------
+        results : List[ChannelInfo]
+            A list of ChannelInfo objects to be transformed
+        """
         if self.session is None:
             logger.error("No DB session")
             return
@@ -325,6 +394,9 @@ class ETLController:
 
     @logger.catch(reraise=True)
     def transform_all_untransformed_info(self):
+        """Transform all RawChannelInfo objects in the database that do not have an
+        equivalent ChannelInfo object stored.
+        """
         if self.session is None:
             logger.error("No DB session")
             return
@@ -355,15 +427,15 @@ class ETLController:
 
     @logger.catch(reraise=True)
     def transform_media(self, results: List, hydrate: bool = True):
-        """Transforms raw ScraperResults objects into Post objects and
-        Media objects. Then, adds them to the database.
+        """Transform raw ScraperResults objects into Post objects and
+        Media objects, then add them to the database.
 
         Parameters
         ----------
         results : List[ScraperResult]
             A list of ScraperResult objects to be transformed
         hydrate : bool
-            Whether or not to fully hydrate transformed media. Default True.
+            Whether or not to fully hydrate transformed media. Default ``True``.
         """
         if self.session is None:
             logger.error("No DB session")

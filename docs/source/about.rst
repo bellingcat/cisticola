@@ -21,3 +21,8 @@ Cisticola has many components
 The data extracted by scrapers varies by platform, but typically includes media files attached to posts. 
 
 Separating the "scraping" and "transforming" steps is useful because it ensures that no data is thrown away during the transormation. There may be some fields in the raw data that aren't included in the transformed format, but could be found to be useful in the future.
+
+TODO
+- Add diagram
+- Describe common workflow and steps
+- Update environment variables

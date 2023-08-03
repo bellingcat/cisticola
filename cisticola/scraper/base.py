@@ -323,19 +323,43 @@ class ScraperController:
         self.session = None
 
     def register_scraper(self, scraper: Scraper):
-        """Register a single Scraper instance to the controller.
+        """Add a single Scraper instance to the list of available Scrapers.
+
+        Parameters
+        ----------
+        scraper: cisticola.scraper.Scraper
+            Instance of platform-specific scraper to be controlled by the ScraperController
         """
         self.scrapers.append(scraper)
 
-    def register_scrapers(self, scraper: List[Scraper]):
-        """Register a list of Scraper instances to the controller.
+    def register_scrapers(self, scrapers: List[Scraper]):
+        """Add a a list of Scraper instances to the list of available Scrapers.
+
+        Parameters
+        ----------
+        scrapers: <list>cisticola.scraper.Scraper
+            List of instances of platform-specific scrapers to be controlled by the ScraperController
+
         """
-        self.scrapers.extend(scraper)
+        self.scrapers.extend(scrapers)
 
     def remove_all_scrapers(self):
+        """Reset the ScraperController so that it doesn't control any scrapers
+        """
         self.scrapers = []
 
     def scrape_all_channels(self, archive_media: bool = True, fetch_old: bool = False):
+        """Scrape posts from all channels in the database, that satisfy a researcher-specified criteria
+
+        Parameters
+        ----------
+        archive_media: bool
+            If ``True``, any media files (images, video, etc.) from posts are archived. 
+            If ``False``, media files are not archived.
+        fetch_old: bool
+            If ``True``, scrape all posts from channels, regardless of when channel was last scraped.
+            If ``False``, scrape only posts that are more recent than the previous scrape of each channel.
+        """
         if self.session is None:
             logger.error("No DB session")
             return
@@ -350,6 +374,8 @@ class ScraperController:
         return self.scrape_channels(channels, archive_media=archive_media, fetch_old=fetch_old)
 
     def scrape_all_channel_info(self):
+        """Scrape profile information from all channels in the database.
+        """
         if self.session is None:
             logger.error("No DB session")
             return
@@ -368,7 +394,7 @@ class ScraperController:
         return self.scrape_channel_info(channels)
     
     def scrape_channels(self, channels: List[Channel], archive_media: bool = True, fetch_old: bool = False):
-        """Scrape all posts for all specified channels. 
+        """Scrape all posts from a specified list of channels. 
 
         Parameters
         ----------
@@ -376,7 +402,10 @@ class ScraperController:
             List of Channel instances to be scraped
         archive_media: bool
             If ``True``, any media files (images, video, etc.) from posts are archived. 
-            If ``False``, media files are not archived. 
+            If ``False``, media files are not archived.
+        fetch_old: bool
+            If ``True``, scrape all posts from channels, regardless of when channel was last scraped.
+            If ``False``, scrape only posts that are more recent than the previous scrape of each channel.
         """
 
         if self.session is None:
@@ -455,6 +484,16 @@ class ScraperController:
         session.close()
 
     def archive_unarchived_media_batch(self, session = None, chronological=False):
+        """Archive previously unarchived media URLs from a batch of raw_post rows.
+
+        Parameters
+        ----------
+        session: sqlalchemy.orm.Session or None
+            SQLAlchemy Session that interfaces with the database
+        chronological: bool
+            If ``True``, media attachments are archived starting with the oldest post
+            If ``False``, media attachments are archived in random order
+        """
         if session is None:
             session = self.session()
         if chronological:
@@ -489,6 +528,14 @@ class ScraperController:
                 
     @logger.catch(reraise = True)
     def archive_unarchived_media(self, chronological=False):
+        """Archive previously unarchived media URLs from all raw_post rows.
+
+        Parameters
+        ----------
+        chronological: bool
+            If ``True``, media attachments are archived starting with the oldest post
+            If ``False``, media attachments are archived in random order
+        """
         if self.session is None:
             logger.error("No DB session")
             return
@@ -498,9 +545,6 @@ class ScraperController:
         while True:
             self.archive_unarchived_media_batch(self, session=session, chronological=chronological)
             
-            
-        session.close()
-
     @logger.catch(reraise = True)
     def scrape_channel_info(self, channels: List[Channel]):
         """Scrape channel info for specified channels. 
@@ -509,9 +553,6 @@ class ScraperController:
         ----------
         channels: list<Channel>
             List of Channel instances to be scraped
-        archive_media: bool
-            If ``True``, any media files (images, video, etc.) from posts are archived. 
-            If ``False``, media files are not archived. 
         """
 
         if self.session is None:
@@ -551,6 +592,11 @@ class ScraperController:
 
     def connect_to_db(self, engine):
         """Connect the specified SQLAlchemy engine to the controller.
+
+        Parameters
+        ----------
+        engine: sqlalchemy.engine.Engine
+            Instance of SQLAlchemy engine to connect to
         """
         
         # create tables

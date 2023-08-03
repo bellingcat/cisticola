@@ -14,6 +14,8 @@ MODULEPATH    = ../cisticola
 SOURCEFILES   = cisticola.*
 MODULEFILE    = modules.rst
 
+POST_APIDOC   = edit_apidoc.sh
+
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
@@ -25,6 +27,8 @@ apidoc:
 	rm $(SOURCEDIR)/$(SOURCEFILES)
 	$(SPHINXAPIDOC) $(APIDOCFLAGS) -o "$(SOURCEDIR)" "$(MODULEPATH)"
 	rm $(SOURCEDIR)/$(MODULEFILE)
+	bash $(POST_APIDOC)
+	
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
