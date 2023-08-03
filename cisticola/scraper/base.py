@@ -11,6 +11,7 @@ import ffmpeg
 from sqlalchemy.orm import sessionmaker
 import yt_dlp
 from sqlalchemy.sql.expression import func
+from sqlalchemy.orm.session import close_all_sessions
 from pathlib import Path
 from sqlalchemy import nullsfirst
 
@@ -256,7 +257,7 @@ class Scraper:
         Parameters
         ----------
         result: ScraperResult
-            Previously scraped ScraperResult run with ``archive_media=False``.
+            Previously scraped ScraperResult.
 
         Returns
         -------
@@ -291,7 +292,7 @@ class Scraper:
         raise NotImplementedError
 
     @logger.catch
-    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
         """Scrape all posts from the specified Channel.
 
         Parameters
@@ -301,9 +302,6 @@ class Scraper:
         since: ScraperResult or None
             Most recently scraped ScraperResult from a previous scrape, or 
             ``None`` if scraper has not run before.
-        archive_media: bool
-            If ``True``, any media files (images, video, etc.) from posts are archived. 
-            If ``False``, media files are not archived. 
 
         Yields
         ------
@@ -348,14 +346,11 @@ class ScraperController:
         """
         self.scrapers = []
 
-    def scrape_all_channels(self, archive_media: bool = True, fetch_old: bool = False):
+    def scrape_all_channels(self, fetch_old: bool = False):
         """Scrape posts from all channels in the database, that satisfy a researcher-specified criteria
 
         Parameters
         ----------
-        archive_media: bool
-            If ``True``, any media files (images, video, etc.) from posts are archived. 
-            If ``False``, media files are not archived.
         fetch_old: bool
             If ``True``, scrape all posts from channels, regardless of when channel was last scraped.
             If ``False``, scrape only posts that are more recent than the previous scrape of each channel.
@@ -371,7 +366,7 @@ class ScraperController:
 
         session.close()
 
-        return self.scrape_channels(channels, archive_media=archive_media, fetch_old=fetch_old)
+        return self.scrape_channels(channels, fetch_old=fetch_old)
 
     def scrape_all_channel_info(self):
         """Scrape profile information from all channels in the database.
@@ -393,16 +388,13 @@ class ScraperController:
         session.close()
         return self.scrape_channel_info(channels)
     
-    def scrape_channels(self, channels: List[Channel], archive_media: bool = True, fetch_old: bool = False):
+    def scrape_channels(self, channels: List[Channel], fetch_old: bool = False):
         """Scrape all posts from a specified list of channels. 
 
         Parameters
         ----------
         channels: list<Channel>
             List of Channel instances to be scraped
-        archive_media: bool
-            If ``True``, any media files (images, video, etc.) from posts are archived. 
-            If ``False``, media files are not archived.
         fetch_old: bool
             If ``True``, scrape all posts from channels, regardless of when channel was last scraped.
             If ``False``, scrape only posts that are more recent than the previous scrape of each channel.
@@ -450,7 +442,7 @@ class ScraperController:
                         else:
                             until = None
 
-                        posts = scraper.get_posts(channel, until=until, archive_media=archive_media)
+                        posts = scraper.get_posts(channel, until=until)
 
                     else:
                         # get most recent post
@@ -466,7 +458,7 @@ class ScraperController:
                         else:
                             since = None
 
-                        posts = scraper.get_posts(channel, since=since, archive_media=archive_media)
+                        posts = scraper.get_posts(channel, since=since)
 
                     for post in posts:
                         session.add(post)
@@ -610,7 +602,7 @@ class ScraperController:
         """Drop all data from the connected SQLAlchemy database.
         """
 
-        self.session.close_all()
+        close_all_sessions()
 
         mapper_registry.metadata.drop_all(bind=self.engine)
         self.connect_to_db(self.engine)

@@ -25,7 +25,7 @@ class BitchuteScraper(Scraper):
         return username
 
     @logger.catch
-    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
 
         session = requests.Session()
         session.headers.update(self.headers)
@@ -50,12 +50,6 @@ class BitchuteScraper(Scraper):
                 url = post['video_url']
                 archived_urls[url] = None 
 
-                if archive_media:
-
-                    media_blob, content_type, key = self.url_to_blob(url)
-                    archived_url = self.archive_blob(media_blob, content_type, key)
-                    archived_urls[url] = archived_url
-
             yield ScraperResult(
                 scraper=self.__version__,
                 platform="Bitchute",
@@ -65,7 +59,7 @@ class BitchuteScraper(Scraper):
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post),
                 archived_urls=archived_urls,
-                media_archived=datetime.now(timezone.utc) if archive_media else None)
+                media_archived=None)
 
     def can_handle(self, channel):
         if channel.platform == "Bitchute" and self.get_username_from_url(channel.url) is not None:

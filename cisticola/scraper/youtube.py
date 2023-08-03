@@ -19,7 +19,7 @@ class YoutubeScraper(Scraper):
     cookiefilename = 'cookiefile.txt'
 
     @logger.catch
-    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
 
         content_type = 'video/mp4'
 
@@ -53,7 +53,7 @@ class YoutubeScraper(Scraper):
             try:
                 meta = ydl.extract_info(
                     channel.url,
-                    download=archive_media)
+                    download=False)
             except yt_dlp.utils.DownloadError as e:
                 raise e
             else:
@@ -67,17 +67,6 @@ class YoutubeScraper(Scraper):
                     archived_urls = {url: None}
                     
                     video_id = video["id"]
-                    video_ext = video["ext"]
-
-                    if archive_media:
-                    
-                        key = f"{video_id}.{video_ext}"
-
-                        with open(Path(temp_dir)/key, "rb") as f:
-                            media_blob = f.read()
-
-                        archived_url = self.archive_blob(media_blob, content_type, key)
-                        archived_urls[url] = archived_url
 
                     yield ScraperResult(
                         scraper=self.__version__,
@@ -88,7 +77,7 @@ class YoutubeScraper(Scraper):
                         date_archived=datetime.now(timezone.utc),
                         raw_data=json.dumps(video, default = str),
                         archived_urls=archived_urls,
-                        media_archived=datetime.now(timezone.utc) if archive_media else None)
+                        media_archived=None)
                         
     def can_handle(self, channel):
         if channel.platform == "Youtube" and channel.url:

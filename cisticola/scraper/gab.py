@@ -24,7 +24,7 @@ class GabScraper(Scraper):
         return group_id
 
     @logger.catch
-    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
         client = Client(
             username = os.environ['GAB_USER'],
             password = os.environ['GAB_PASS'],
@@ -67,13 +67,6 @@ class GabScraper(Scraper):
                     else:
                         archived_urls[attachment['url']] = None
 
-            for url in archived_urls.keys():
-
-                if archive_media:
-                    media_blob, content_type, key = self.url_to_blob(url)
-                    archived_url = self.archive_blob(media_blob, content_type, key)
-                    archived_urls[url] = archived_url
-
             yield ScraperResult(
                 scraper=self.__version__,
                 platform="Gab",
@@ -83,7 +76,7 @@ class GabScraper(Scraper):
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post),
                 archived_urls=archived_urls,
-                media_archived=datetime.now(timezone.utc) if archive_media else None)
+                media_archived=None)
 
     def can_handle(self, channel: Channel) -> bool:
         if channel.platform == "Gab" and self.get_username_from_url(channel.url) is not None:

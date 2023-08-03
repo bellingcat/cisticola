@@ -21,7 +21,7 @@ class GettrScraper(Scraper):
         return username
 
     @logger.catch
-    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
         client = PublicClient()
         username = self.get_username_from_url(channel.url).lower()
         scraper = client.user_activity(username=username, type="posts")
@@ -45,13 +45,6 @@ class GettrScraper(Scraper):
                 url = "https://media.gettr.com/" + post['ovid']
                 archived_urls[url] = None
 
-            for url in archived_urls.keys():
-
-                if archive_media:
-                    media_blob, content_type, key = self.url_to_blob(url)
-                    archived_url = self.archive_blob(media_blob, content_type, key)
-                    archived_urls[url] = archived_url
-
             yield ScraperResult(
                 scraper=self.__version__,
                 platform="Gettr",
@@ -61,7 +54,7 @@ class GettrScraper(Scraper):
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post),
                 archived_urls=archived_urls,
-                media_archived=datetime.now(timezone.utc) if archive_media else None)
+                media_archived=None)
 
     def can_handle(self, channel):
         if channel.platform == "Gettr" and self.get_username_from_url(channel.url) is not None:

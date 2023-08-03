@@ -131,8 +131,8 @@ class TelegramTelethonScraper(Scraper):
         if channel.platform == "Telegram":
             return True
 
-    @logger.catch
-    def get_posts(self, channel: Channel, since: ScraperResult = None, until: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+    # @logger.catch
+    def get_posts(self, channel: Channel, since: ScraperResult = None, until: ScraperResult = None) -> Generator[ScraperResult, None, None]:
         username = TelegramTelethonScraper.get_channel_identifier(channel)
         if until is not None:
             logger.info(f"Only getting old posts, up to ID {until.platform_id.split('/')[-1]}")
@@ -157,13 +157,6 @@ class TelegramTelethonScraper(Scraper):
                 archived_urls[post_url] = None
                 media_archived = None
 
-                # if archive_media:
-                #     blob, output_file_with_ext = self.archive_post_media(post, client)
-                #     if blob is not None:
-                #         # TODO specify Content-Type
-                #         archived_url = self.archive_blob(blob = blob, content_type = '', key = output_file_with_ext)
-                #         archived_urls[post_url] = archived_url
-
             yield ScraperResult(
                 scraper=self.__version__,
                 platform="Telegram",
@@ -187,7 +180,7 @@ class TelegramTelethonScraper(Scraper):
                 raw_data=json.dumps(post.to_dict(), default=str),
                 archived_urls=archived_urls,
                 media_archived=media_archived)
-            for p in self.get_posts(channel, since=since, until=new_until, archive_media=archive_media):
+            for p in self.get_posts(channel, since=since, until=new_until):
                 yield p  
             
 

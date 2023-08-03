@@ -81,16 +81,16 @@ def get_transformer_controller(args):
 
 
 def scrape_channels(args):
-    logger.info(f"Scraping channels, media: {args.media}")
+    logger.info(f"Scraping channels")
 
     controller = get_scraper_controller(args)
-    controller.scrape_all_channels(archive_media=args.media)
+    controller.scrape_all_channels()
 
 def scrape_channels_old(args):
-    logger.info(f"Scraping old posts from channels, media: {args.media}")
+    logger.info(f"Scraping old posts from channels")
 
     controller = get_scraper_controller(args)
-    controller.scrape_all_channels(archive_media=args.media, fetch_old=True)
+    controller.scrape_all_channels(fetch_old=True)
 
 def scrape_channel_info(args):
     logger.info(f"Scraping channel info")
@@ -152,9 +152,6 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--gsheet", type=str, help="[sync-channels] URL of Google Sheet to synchronize"
-    )
-    parser.add_argument(
-        "--media", action="store_true", help="[scrape-channels] Add this flag to media"
     )
     parser.add_argument("--chronological", action="store_true")
     parser.add_argument("--telethon_session", type=str)

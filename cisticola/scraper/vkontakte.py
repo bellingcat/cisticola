@@ -21,7 +21,7 @@ class VkontakteScraper(Scraper):
         return username
 
     @logger.catch
-    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
 
         username = self.get_username_from_url(channel.url)
         scraper = VKontakteUserScraper(username)
@@ -51,17 +51,6 @@ class VkontakteScraper(Scraper):
             if post.video:
                 archived_urls[post.video.url] = None
 
-            for url in archived_urls.keys():
-
-                if archive_media:
-                    if re.match(VKIE._VALID_URL, url):
-                        # Uses regex from yt_dlp to verify VK video URL
-                        media_blob, content_type, key = self.ytdlp_url_to_blob(url)
-                    else:
-                        media_blob, content_type, key = self.url_to_blob(url)
-                    archived_url = self.archive_blob(media_blob, content_type, key)
-                    archived_urls[url] = archived_url
-
             yield ScraperResult(
                 scraper=self.__version__,
                 platform="VK",
@@ -71,7 +60,7 @@ class VkontakteScraper(Scraper):
                 date_archived=datetime.now(timezone.utc),
                 raw_data=post.json(),
                 archived_urls=archived_urls,
-                media_archived=datetime.now(timezone.utc) if archive_media else None)
+                media_archived=None)
 
     @logger.catch
     def archive_files(self, result: ScraperResult) -> ScraperResult:

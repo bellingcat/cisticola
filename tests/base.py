@@ -46,7 +46,7 @@ def test_scraper_and_transformer(platform, session, controller, etl_controller, 
     scraper = CONTROLLERS[platform]['scraper']
     controller.register_scraper(scraper = scraper())
 
-    controller.scrape_channels(channels = channels, archive_media = False)
+    controller.scrape_channels(channels = channels)
     controller.scrape_all_channel_info()
     controller.archive_unarchived_media_batch()
 

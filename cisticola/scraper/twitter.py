@@ -13,7 +13,7 @@ class TwitterScraper(Scraper):
     __version__ = "TwitterScraper 0.0.0"
 
     @logger.catch
-    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
         if channel.platform_id:
             identifier = int(channel.platform_id)
         else:
@@ -60,11 +60,6 @@ class TwitterScraper(Scraper):
                 if url is not None and url not in archived_urls:
                     archived_urls[url] = None
 
-                    if archive_media:
-                        media_blob, content_type, key = self.url_to_blob(url)
-                        archived_url = self.archive_blob(media_blob, content_type, key)
-                        archived_urls[url] = archived_url
-
             yield ScraperResult(
                 scraper=self.__version__,
                 platform="Twitter",
@@ -74,7 +69,7 @@ class TwitterScraper(Scraper):
                 date_archived=datetime.now(timezone.utc),
                 raw_data=tweet.json(),
                 archived_urls=archived_urls,
-                media_archived=datetime.now(timezone.utc) if archive_media else None)
+                media_archived=None)
 
     def can_handle(self, channel):
         if channel.platform == "Twitter" and (channel.platform_id or channel.screenname):

@@ -20,7 +20,7 @@ class RumbleScraper(Scraper):
     cookiefilename = 'cookiefile.txt'
 
     @logger.catch
-    def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
+    def get_posts(self, channel: Channel, since: ScraperResult = None) -> Generator[ScraperResult, None, None]:
 
         scraper = get_channel_videos(channel.url)
 
@@ -32,12 +32,6 @@ class RumbleScraper(Scraper):
 
             archived_urls = {url: None}
 
-            if archive_media:
-
-                media_blob, content_type, key = self.ytdlp_url_to_blob(url)
-                archived_url = self.archive_blob(media_blob, content_type, key)
-                archived_urls[url] = archived_url
-
             yield ScraperResult(
                 scraper=self.__version__,
                 platform="Rumble",
@@ -47,7 +41,7 @@ class RumbleScraper(Scraper):
                 date_archived=datetime.now(timezone.utc),
                 raw_data=json.dumps(post, default = str),
                 archived_urls=archived_urls,
-                media_archived=datetime.now(timezone.utc) if archive_media else None)
+                media_archived=None)
 
     def url_to_key(self, url: str, content_type: str) -> str:
         ext = '.' + content_type.split('/')[-1]
