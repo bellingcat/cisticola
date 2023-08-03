@@ -2,6 +2,7 @@ import os
 import pytest
 
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from cisticola.scraper import ScraperController
 from cisticola.transformer import ETLController
@@ -105,12 +106,12 @@ RUMBLE_CHANNEL_KWARGS = {
     'source': 'researcher'}
 
 TELEGRAM_CHANNEL_KWARGS = {
-    'name': 'Star Game (test)',
-    'platform_id': "-1001866374682",
+    'name': 'Бутылка (test)',
+    'platform_id': "-1001760492118",
     'category': 'test',
     'platform': 'Telegram',
-    'url': 'https://t.me/stargameinfo',
-    'screenname': 'stargameinfo',
+    'url': 'https://t.me/butylka1488',
+    'screenname': 'butylka1488',
     'country': 'RU',
     'influencer': None,
     'public': True,
@@ -170,6 +171,13 @@ def engine(tmpdir_factory):
     
     return engine
 
+@pytest.fixture(scope='package')
+def session(engine):
+    """Initialize a SQLAlchemy session to be used for all tests in the package"""
+
+    sessionfactory = sessionmaker()
+    sessionfactory.configure(bind=engine)
+    return sessionfactory()
 
 @pytest.fixture(scope='package')
 def controller(engine):

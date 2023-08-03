@@ -24,7 +24,8 @@ class BitchuteScraper(Scraper):
 
         return username
 
-    @logger.catch
+    # @logger.catch
+    @logger.catch(reraise = True)
     def get_posts(self, channel: Channel, since: ScraperResult = None, archive_media: bool = True) -> Generator[ScraperResult, None, None]:
 
         session = requests.Session()

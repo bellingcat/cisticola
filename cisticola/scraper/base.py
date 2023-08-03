@@ -496,8 +496,6 @@ class ScraperController:
         session = self.session()
 
         while True:
-            # # DEBUG
-            # assert 0
             self.archive_unarchived_media_batch(self, session=session, chronological=chronological)
             
             
@@ -565,6 +563,8 @@ class ScraperController:
     def reset_db(self):
         """Drop all data from the connected SQLAlchemy database.
         """
+
+        self.session.close_all()
 
         mapper_registry.metadata.drop_all(bind=self.engine)
         self.connect_to_db(self.engine)
