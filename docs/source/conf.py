@@ -57,4 +57,4 @@ autodoc_default_options = {'exclude-members': '_sa_class_manager'}
 html_favicon = '../images/favicon.ico'
 html_logo = '../images/cisticola_logo.svg'
 
-html_theme_options = {'style_nav_header_background': '#000000'}
+html_theme_options = {'style_nav_header_background': '#292a2b'}

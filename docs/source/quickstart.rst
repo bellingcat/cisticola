@@ -16,35 +16,10 @@ and then install the dependencies using the following command from the package r
 
     pipenv install
 
-To install the necessary dependencies for building the documentation and running unit tests, run the following command from the package root directory:
-
-.. code-block::
-
-    pipenv install --dev
-
 Environment Variables
 ---------------------
 
-Three of the scrapers in *cisticola* (:py:mod:`~cisticola.scraper.gab.GabScraper`,  :py:mod:`~cisticola.scraper.instagram.InstagramScraper`, and :py:mod:`~cisticola.scraper.telegram_telethon.TelegramTelethonScraper`) require platform credentials to work correctly. 
-
-Gab
-"""
-
-The Gab credentials can be configured by running the following command from the root directory:
-
-.. code-block::
-
-    pipenv run garc configure 
-
-which will direct you to provide the username and password for your Gab account.
-
-Instagram
-"""""""""
-
-The Instagram credentials can be configured by setting the following environment variables, either in the project's ``.env`` file or in the system's environment:
-
-- ``INSTAGRAM_USERNAME``: username of your Instagram account
-- ``INSTAGRAM_PASSWORD``: password of your Instagram account
+One of the scrapers in *cisticola* (:py:mod:`~cisticola.scraper.telegram_telethon.TelegramTelethonScraper`) requires platform credentials to work correctly. 
 
 Telegram Telethon
 """""""""""""""""
@@ -56,6 +31,12 @@ The Telegram credentials can be configured by setting the following environment 
 - ``TELEGRAM_PHONE``: phone number for the account corresponding to your your Telegram application
 
 If you do not already have a Telegram application, you can create one by following the instructions on `this page`_.
+
+To initialize a Telegram session, run the following script from the package's root directory using the command-line:
+
+.. bash::
+
+    bash telethon_session_init.py
 
 Documentation
 -------------
@@ -86,11 +67,7 @@ To see the logging output from a test run, add the ``--capture=no`` flag to the 
 Examples
 --------
 
-An example of a *cisticola* ingest file ``russian_telegram_ingest.py`` is included in the package root directory, showing how the list of channels to scrape is defined, and how the :py:mod:`~cisticola.scraper.base.ScraperController` and :py:mod:`~cisticola.transformer.base.Transformer` classes are used. To run the ingest script, run the following command from the package root directory:
-
-.. code-block::
-
-    pipenv run python russian_telegram_ingest.py
+The script ``app.py`` is included in the package root directory, showing how the list of channels to scrape is defined, and how the :py:mod:`~cisticola.scraper.base.ScraperController` and :py:mod:`~cisticola.transformer.base.Transformer` classes are used.
 
 .. _pipenv: https://pipenv.pypa.io/en/latest/
 .. _Sphinx: https://www.sphinx-doc.org/en/master/

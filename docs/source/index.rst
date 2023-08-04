@@ -6,4 +6,6 @@ Welcome to Cisticola's documentation!
 
   about
   quickstart
+  deployment
+  developer_guide
   cisticola
