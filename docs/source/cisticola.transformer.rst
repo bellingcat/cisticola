@@ -17,5 +17,3 @@ Submodules
    cisticola.transformer.gettr
    cisticola.transformer.rumble
    cisticola.transformer.telegram_telethon
-   cisticola.transformer.twitter
-   cisticola.transformer.vkontakte

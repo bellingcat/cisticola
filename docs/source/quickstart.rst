@@ -34,7 +34,7 @@ If you do not already have a Telegram application, you can create one by followi
 
 To initialize a Telegram session, run the following script from the package's root directory using the command-line:
 
-.. bash::
+.. code-block:: console
 
     bash telethon_session_init.py
 
@@ -43,13 +43,13 @@ Documentation
 
 The *cisticola* application uses Sphinx_ to generate and display its documentation. To build the documentation in the HTML format, run the following command from the ``docs/`` directory:
 
-.. code-block::
+.. code-block:: console
 
     pipenv run make html
 
 For developers, if changes are made to the package structure or additional modules are created, you can update the Sphinx source ``*.rst`` files by running the following command from the ``docs/`` directory:
 
-.. code-block::
+.. code-block:: console
 
     pipenv run make apidoc
 

@@ -5,7 +5,7 @@ HIDE_COOKIESTRING="   :exclude-members: cookiestring"
 REPLACE_MAXDEPTH="s/   :maxdepth: 4/   :maxdepth: 1/g"
 
 # Remove display of ``cookiestring`` class variable, otherwise Sphinx generates docs containing the value of your cookiestring, based on your ``YOUTUBE_COOKIESTRING`` environment variable
-for file in cisticola.scraper.base.rst cisticola.scraper.rumble.rst cisticola.scraper.youtube.rst
+for file in cisticola.scraper.base.rst cisticola.scraper.rumble.rst
 do
     echo "$HIDE_COOKIESTRING" >> $RST_SOURCE_DIR/$file;
 done
