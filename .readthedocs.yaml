@@ -17,6 +17,14 @@ build:
     post_install:
       # Install dev dependencies, without using a virtual environment
       - pipenv install --dev --system
+      # This is a sloppy workaround
+      - pipenv run python -m spacy download xx_ent_wiki_sm
+      - pipenv run python -m spacy download fr_core_news_sm
+      - pipenv run python -m spacy download de_core_news_sm
+      - pipenv run python -m spacy download nl_core_news_sm
+      - pipenv run python -m spacy download it_core_news_sm
+      - pipenv run python -m spacy download ru_core_news_sm
+      - pipenv run python -m spacy download en_core_web_sm
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
