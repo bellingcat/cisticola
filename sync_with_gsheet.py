@@ -97,17 +97,29 @@ def sync_channels(args, session):
                 logger.info(f"Channel found, updating channel {channel}")
                 was_researcher = channel.source == "researcher"
 
-                channel.name = c["name"]
-                channel.category = c["category"]
-                channel.platform = c["platform"]
-                channel.url = c["url"]
-                channel.screenname = c["screenname"]
-                channel.country = None if c["country"] is None else list(map(standardize_country, c["country"].split('/')))
-                channel.influencer = c["influencer"]
-                channel.public = c["public"]
-                channel.chat = c["chat"]
-                channel.notes = c["notes"]
-                channel.source = c["source"]
+                # Update only non-empty/none values from the sheet
+                if c["name"]:
+                    channel.name = c["name"]
+                if c["category"]:
+                    channel.category = c["category"]
+                if c["platform"]:
+                    channel.platform = c["platform"]
+                if c["url"]:
+                    channel.url = c["url"]
+                if c["screenname"]:
+                    channel.screenname = c["screenname"]
+                if c["country"]:
+                    channel.country = None if c["country"] is None else list(map(standardize_country, c["country"].split('/')))
+                if c["influencer"]:
+                    channel.influencer = c["influencer"]
+                if c["public"]:
+                    channel.public = c["public"]
+                if c["chat"]:
+                    channel.chat = c["chat"]
+                if c["notes"]:
+                    channel.notes = c["notes"]
+                if c["source"]:
+                    channel.source = c["source"]
 
                 session.flush()
                 session.commit()
