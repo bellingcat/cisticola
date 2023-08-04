@@ -23,11 +23,16 @@ from cisticola.base import RawChannelInfo, ChannelInfo, ScraperResult, Post, Ima
 class TelegramTelethonTransformer(Transformer):
     __version__ = 'TelegramTelethonTransformer 0.0.4'
 
+    # TODO cache
+    # cache channels for which we cannot get the name from the web interface
     bad_channels = {}
+
+    # cache channels for which we have already looked up the name
     channels_cache_by_platformid = {}
     channels_cache_by_id = {}
     channels_cache_by_screenname = {}
 
+    # cache the ID of posts that get replies, avoiding database lookups when possible
     posts_cache = {}
 
     get_screenname_cache = {}
@@ -159,18 +164,19 @@ class TelegramTelethonTransformer(Transformer):
                     platform_id=chat["id"],
                     category=channel.category, # this should be the same as the "parent"
                     platform=channel.platform, # this should be the same as the "parent"
-                    url="",
+                    url=("https://t.me/s/" + chat["username"]) if "username" in chat else "",
                     screenname=chat["username"] if "username" in chat else "",
                     country=channel.country, # this should be the same as the "parent"
                     influencer=channel.influencer, # this should be the same as the "parent"
                     public=None,
-                    chat=None,
+                    chat=not chat["broadcast"],
                     notes=channel.id, # this should be the channel ID of the parent
                     source="linked_channel"
                 )
 
                 insert(new_chat)
 
+    # TODO this method API is chaotic and could be cleaned up
     def transform(self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
@@ -181,7 +187,7 @@ class TelegramTelethonTransformer(Transformer):
         fwd_from = None
 
         if raw['fwd_from'] and raw['fwd_from']['from_id'] and 'channel_id' in raw['fwd_from']['from_id']:
-            # use cache rather than a DB request if possible
+            # use cache to look up channel instead of a DB request if possible
             if str(raw['fwd_from']['from_id']['channel_id']) not in self.channels_cache_by_platformid:
                 channel = session.query(Channel).filter_by(platform_id=str(raw['fwd_from']['from_id']['channel_id']), platform = 'Telegram').first()
 
@@ -215,11 +221,11 @@ class TelegramTelethonTransformer(Transformer):
         reply_to = None
         if raw['reply_to']:
             reply_to_id = str(raw['reply_to']['reply_to_msg_id'])
-            # use cache rather than a DB request if possible
 
+            # use cache to find post ID instead of a DB request, if possible
             if (data.channel, reply_to_id) not in self.posts_cache:
                 session.commit()
-                flush_posts()
+                flush_posts() # TODO this is necessary because the post we are looking for might have been added in the same session
                 post = session.query(Post).filter_by(channel=data.channel, platform_id=reply_to_id).first()
                 if post is None:
                     reply_to = -1
@@ -258,6 +264,7 @@ class TelegramTelethonTransformer(Transformer):
                     logger.info(f"Added {channel}")
                 
                 self.channels_cache_by_screenname[screenname.lower()] = channel
+
             channel = self.channels_cache_by_screenname[screenname.lower()]
 
             mentions.append(channel.id)
@@ -307,14 +314,6 @@ class TelegramTelethonTransformer(Transformer):
 
         # insert_post
         insert_post(transformed)
-
-def stripped(s):
-    """https://stackoverflow.com/a/29933716"""
-
-    lstripped = ''.join(takewhile(str.isspace, s))
-    rstripped = ''.join(reversed(tuple(takewhile(str.isspace, reversed(s)))))
-
-    return lstripped + rstripped
 
 def stripped(s):
     """https://stackoverflow.com/a/29933716"""
