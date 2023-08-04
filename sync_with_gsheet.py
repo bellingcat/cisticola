@@ -20,10 +20,12 @@ expected_headers = [
     "chat",
     "notes",
     "normalized_url",
-    "to_remove"]
+    "to_remove",
+]
+
 
 def standardize_country(s):
-    _s = s.split('(')[0].split('?')[0]
+    _s = s.split("(")[0].split("?")[0]
     return _s.strip()
 
 
@@ -33,8 +35,8 @@ def sync_channels(args, session):
     gc = gspread.service_account(filename="service_account.json")
 
     # Open a sheet from a spreadsheet in one go
-    wks = gc.open_by_url(os.environ['GSHEET']).worksheet("channels")
-    channels = wks.get_all_records(expected_headers = expected_headers)
+    wks = gc.open_by_url(os.environ["GSHEET"]).worksheet("channels")
+    channels = wks.get_all_records(expected_headers=expected_headers)
     row = 2
 
     for c in channels:
@@ -67,20 +69,28 @@ def sync_channels(args, session):
 
             channel = (
                 session.query(Channel)
-                .filter_by(
-                    platform_id=str(platform_id), platform=str(c["platform"])
-                )
+                .filter_by(platform_id=str(platform_id), platform=str(c["platform"]))
                 .first()
             )
 
             if not channel:
-                channel = session.query(Channel).filter_by(platform=str(c["platform"]), url=str(c["url"])).first()
+                channel = (
+                    session.query(Channel)
+                    .filter_by(platform=str(c["platform"]), url=str(c["url"]))
+                    .first()
+                )
 
-            if not channel and c["screenname"] != '' and c["screenname"] is not None:
-                channel = session.query(Channel).filter_by(platform=str(c["platform"]), screenname=str(c["screenname"])).first()
+            if not channel and c["screenname"] != "" and c["screenname"] is not None:
+                channel = (
+                    session.query(Channel)
+                    .filter_by(
+                        platform=str(c["platform"]), screenname=str(c["screenname"])
+                    )
+                    .first()
+                )
 
             if not channel:
-                if all([k in [None, True, False, ''] for k in c.values()]):
+                if all([k in [None, True, False, ""] for k in c.values()]):
                     # end sync if completely empty row is encountered
                     break
 
@@ -109,7 +119,11 @@ def sync_channels(args, session):
                 if c["screenname"]:
                     channel.screenname = c["screenname"]
                 if c["country"]:
-                    channel.country = None if c["country"] is None else list(map(standardize_country, c["country"].split('/')))
+                    channel.country = (
+                        None
+                        if c["country"] is None
+                        else list(map(standardize_country, c["country"].split("/")))
+                    )
                 if c["influencer"]:
                     channel.influencer = c["influencer"]
                 if c["public"]:
@@ -129,23 +143,27 @@ def sync_channels(args, session):
 
                 # this likely means that the channel was duplicated in the Google Sheet, so add a red highlight
                 if was_researcher:
-                    logger.warning(f"This channel (ID {channel.id}) is possibly a duplicate.")
-                    
-                    wks.format(f"A{str(row)}:A{str(row)}", {
-                        "backgroundColor": {
-                            "red": 1.0,
-                            "green": 0.0,
-                            "blue": 0.0
-                    }})
-                    time.sleep(1)
+                    logger.warning(
+                        f"This channel (ID {channel.id}) is possibly a duplicate."
+                    )
 
+                    wks.format(
+                        f"A{str(row)}:A{str(row)}",
+                        {"backgroundColor": {"red": 1.0, "green": 0.0, "blue": 0.0}},
+                    )
+                    time.sleep(1)
 
         # channel has ID
         else:
             cid = int(c["id"])
 
             channel = session.query(Channel).filter_by(id=cid).first()
-            channel_info = session.query(ChannelInfo).filter_by(channel=cid).order_by(ChannelInfo.date_archived.desc()).first()
+            channel_info = (
+                session.query(ChannelInfo)
+                .filter_by(channel=cid)
+                .order_by(ChannelInfo.date_archived.desc())
+                .first()
+            )
 
             logger.info(f"Updating channel {channel}")
             logger.info(f"Found info {channel_info}")
@@ -155,7 +173,11 @@ def sync_channels(args, session):
             channel.platform = c["platform"]
             channel.url = c["url"]
             channel.screenname = c["screenname"]
-            channel.country = None if c["country"] is None else list(map(standardize_country, c["country"].split('/')))
+            channel.country = (
+                None
+                if c["country"] is None
+                else list(map(standardize_country, c["country"].split("/")))
+            )
             channel.influencer = c["influencer"]
             channel.public = c["public"]
             channel.chat = c["chat"]
@@ -167,7 +189,9 @@ def sync_channels(args, session):
                 wks.update_cell(row, 7, channel_info.screenname)
                 time.sleep(1)
 
-            if channel_info and str(channel.platform_id) != str(channel_info.platform_id):
+            if channel_info and str(channel.platform_id) != str(
+                channel_info.platform_id
+            ):
                 channel.platform_id = channel_info.platform_id
                 wks.update_cell(row, 3, channel_info.platform_id)
                 time.sleep(1)

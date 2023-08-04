@@ -10,7 +10,6 @@ import sys
 from cisticola.base import mapper_registry
 from cisticola.scraper import (
     ScraperController,
-#    VkontakteScraper,
     TelegramTelethonScraper,
     GettrScraper,
     BitchuteScraper,
@@ -22,10 +21,10 @@ from cisticola.transformer import (
     GettrTransformer,
     RumbleTransformer,
     BitchuteTransformer,
-#    VkontakteTransformer,
 )
 
 from sync_with_gsheet import sync_channels
+
 
 def get_db_session():
     engine = create_engine(os.environ["DB"])
@@ -48,15 +47,17 @@ def get_scraper_controller(args):
     else:
         telethon_session_name = None
 
-    scrapers = [ #VkontakteScraper(),
-        TelegramTelethonScraper(telethon_session_name = telethon_session_name),
+    scrapers = [  # VkontakteScraper(),
+        TelegramTelethonScraper(telethon_session_name=telethon_session_name),
         GettrScraper(),
         BitchuteScraper(),
-        RumbleScraper()]
+        RumbleScraper(),
+    ]
 
     controller.register_scrapers(scrapers)
 
     return controller
+
 
 def get_transformer_controller(args):
     engine = create_engine(os.environ["DB"])
@@ -69,11 +70,12 @@ def get_transformer_controller(args):
     else:
         telethon_session_name = None
 
-    transformers = [ #VkontakteTransformer(),
-        TelegramTelethonTransformer(telethon_session_name = telethon_session_name),
+    transformers = [  # VkontakteTransformer(),
+        TelegramTelethonTransformer(telethon_session_name=telethon_session_name),
         GettrTransformer(),
         BitchuteTransformer(),
-        RumbleTransformer()]
+        RumbleTransformer(),
+    ]
 
     controller.register_transformers(transformers)
 
@@ -86,11 +88,13 @@ def scrape_channels(args):
     controller = get_scraper_controller(args)
     controller.scrape_all_channels()
 
+
 def scrape_channels_old(args):
     logger.info(f"Scraping old posts from channels")
 
     controller = get_scraper_controller(args)
     controller.scrape_all_channels(fetch_old=True)
+
 
 def scrape_channel_info(args):
     logger.info(f"Scraping channel info")
@@ -103,11 +107,12 @@ def archive_media(args):
     logger.info(f"Archiving unarchived media")
 
     controller = get_scraper_controller(args)
-    
+
     if args.chronological:
         controller.archive_unarchived_media(chronological=True)
     else:
         controller.archive_unarchived_media()
+
 
 def transform(args):
     logger.info(f"Transforming untransformed posts")
@@ -118,8 +123,9 @@ def transform(args):
         min_date = datetime.datetime.fromisoformat(args.min_date)
     else:
         min_date = datetime.datetime(1970, 1, 1)
-    
+
     controller.transform_all_untransformed(min_date=min_date)
+
 
 def transform_info(args):
     logger.info(f"Transforming untransformed channel info")
@@ -129,11 +135,13 @@ def transform_info(args):
 
     # sync_channels(args, get_db_session())
 
+
 def transform_media(args):
     logger.info(f"Transforming untransformed channel media")
 
     controller = get_transformer_controller(args)
     controller.transform_all_untransformed_media()
+
 
 def init_db():
     engine = create_engine(os.environ["DB"])
@@ -162,29 +170,77 @@ if __name__ == "__main__":
     if args.command == "init-db":
         init_db()
     elif args.command == "sync-channels":
-        logger.add("logs/sync-channels.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
+        logger.add(
+            "logs/sync-channels.log",
+            level="DEBUG",
+            rotation="100 MB",
+            retention="2 weeks",
+            compression="zip",
+        )
         sync_channels(args, get_db_session())
     elif args.command == "scrape-channels":
-        logger.add("logs/scrape-channels.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
+        logger.add(
+            "logs/scrape-channels.log",
+            level="DEBUG",
+            rotation="100 MB",
+            retention="2 weeks",
+            compression="zip",
+        )
         scrape_channels(args)
     elif args.command == "scrape-channels-old":
-        logger.add("logs/scrape-channels-old.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
+        logger.add(
+            "logs/scrape-channels-old.log",
+            level="DEBUG",
+            rotation="100 MB",
+            retention="2 weeks",
+            compression="zip",
+        )
         scrape_channels_old(args)
     elif args.command == "archive-media":
-        logger.add("logs/archive-media.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
+        logger.add(
+            "logs/archive-media.log",
+            level="DEBUG",
+            rotation="100 MB",
+            retention="2 weeks",
+            compression="zip",
+        )
         archive_media(args)
     elif args.command == "channel-info":
-        logger.add("logs/channel-info.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
+        logger.add(
+            "logs/channel-info.log",
+            level="DEBUG",
+            rotation="100 MB",
+            retention="2 weeks",
+            compression="zip",
+        )
         scrape_channel_info(args)
     elif args.command == "transform":
-        logger.add("logs/transform.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
+        logger.add(
+            "logs/transform.log",
+            level="DEBUG",
+            rotation="100 MB",
+            retention="2 weeks",
+            compression="zip",
+        )
         logger.add("logs/transform_trace.log", level="TRACE", retention="7 days")
         transform(args)
     elif args.command == "transform-info":
-        logger.add("logs/transform-info.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
+        logger.add(
+            "logs/transform-info.log",
+            level="DEBUG",
+            rotation="100 MB",
+            retention="2 weeks",
+            compression="zip",
+        )
         transform_info(args)
     elif args.command == "transform-media":
-        logger.add("logs/transform-media.log", level="DEBUG", rotation="100 MB", retention="2 weeks", compression="zip")
+        logger.add(
+            "logs/transform-media.log",
+            level="DEBUG",
+            rotation="100 MB",
+            retention="2 weeks",
+            compression="zip",
+        )
         transform_media(args)
     else:
         logger.error(f"Unrecognized command {args.command}")

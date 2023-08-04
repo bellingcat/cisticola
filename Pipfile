@@ -24,6 +24,8 @@ ratelimit = "*"
 pytz = "*"
 langdetect = "*"
 spacy = "==3.2.4"
+# Temporary fix for https://github.com/explosion/spaCy/issues/12659
+typing_extensions = "==4.4.0"
 ocrd-pyexiftool = "*"
 filelock = "*"
 telethon = "*"
@@ -38,6 +40,7 @@ pytest-metadata = "*"
 black = "*"
 Sphinx = "*"
 sphinx-rtd-theme = "*"
+pre-commit = "*"
 
 [requires]
 python_version = "3.9"

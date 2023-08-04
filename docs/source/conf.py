@@ -12,14 +12,15 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../'))
+
+sys.path.insert(0, os.path.abspath("../../"))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'Cisticola'
-copyright = '2022, Bellingcat'
-author = 'Bellingcat'
+project = "Cisticola"
+copyright = "2022, Bellingcat"
+author = "Bellingcat"
 
 
 # -- General configuration ---------------------------------------------------
@@ -27,10 +28,10 @@ author = 'Bellingcat'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.napoleon']
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.coverage", "sphinx.ext.napoleon"]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -43,7 +44,7 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -52,9 +53,9 @@ html_static_path = []
 
 # -- Default flags for autodoc------------------------------------------------
 
-autodoc_default_options = {'exclude-members': '_sa_class_manager'}
+autodoc_default_options = {"exclude-members": "_sa_class_manager"}
 
-html_favicon = '../images/favicon.ico'
-html_logo = '../images/cisticola_logo.svg'
+html_favicon = "../images/favicon.ico"
+html_logo = "../images/cisticola_logo.svg"
 
-html_theme_options = {'style_nav_header_background': '#292a2b'}
+html_theme_options = {"style_nav_header_background": "#292a2b"}

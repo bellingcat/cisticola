@@ -1,5 +1,5 @@
 import argparse
-from telethon.sync import TelegramClient 
+from telethon.sync import TelegramClient
 import os
 
 if __name__ == "__main__":
@@ -8,9 +8,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    api_id = os.environ['TELEGRAM_API_ID']
-    api_hash = os.environ['TELEGRAM_API_HASH']
-    phone = os.environ['TELEGRAM_PHONE']
+    api_id = os.environ["TELEGRAM_API_ID"]
+    api_hash = os.environ["TELEGRAM_API_HASH"]
+    phone = os.environ["TELEGRAM_PHONE"]
     telethon_session_name = args.telethon_session
 
     if telethon_session_name is None:
