@@ -206,9 +206,8 @@ class TelegramTelethonTransformer(Transformer):
 
                 insert(new_chat)
 
-    # TODO this method API is chaotic and could be cleaned up
     def transform(
-        self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts
+        self, data: ScraperResult, insert: Callable, session, flush_posts
     ) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
@@ -283,7 +282,8 @@ class TelegramTelethonTransformer(Transformer):
             # use cache to find post ID instead of a DB request, if possible
             if (data.channel, reply_to_id) not in self.posts_cache:
                 session.commit()
-                flush_posts()  # TODO this is necessary because the post we are looking for might have been added in the same session
+                # this is necessary because the post we are looking for could be batched but not yet committed to the DB
+                flush_posts()
                 post = (
                     session.query(Post)
                     .filter_by(channel=data.channel, platform_id=reply_to_id)
@@ -385,8 +385,7 @@ class TelegramTelethonTransformer(Transformer):
             views=raw.get("views"),
         )
 
-        # insert_post
-        insert_post(transformed)
+        insert(transformed)
 
 
 def stripped(s):

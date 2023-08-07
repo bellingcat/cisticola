@@ -82,7 +82,7 @@ class BitchuteTransformer(Transformer):
         transformed = insert(transformed)
 
     def transform(
-        self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts
+        self, data: ScraperResult, insert: Callable, session, flush_posts
     ) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
@@ -146,8 +146,7 @@ class BitchuteTransformer(Transformer):
             video_duration=_parse_duration_str(raw["length"]),
         )
 
-        # insert_post
-        transformed = insert_post(transformed)
+        transformed = insert(transformed)
 
 
 def parse_created(created: str, date_archived: datetime) -> datetime:

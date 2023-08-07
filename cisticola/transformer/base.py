@@ -205,7 +205,6 @@ class ETLController:
 
     def insert_or_select(self, obj, session, hydrate: bool = True):
         """Insert an object into the database or return an existing object from the database.
-        Regardless, the resulting object has an `id` attribute that can be referenced later.
 
         Parameters
         ----------
@@ -253,6 +252,7 @@ class ETLController:
             )
 
         elif type(obj) == Post:
+            # attempt to add to current batch
             return self.insert_post(obj, session, hydrate)
             # instance = session.query(Post).filter_by(platform=obj.platform, platform_id=obj.platform_id).first()
 
@@ -351,9 +351,6 @@ class ETLController:
                             result,
                             lambda obj: self.insert_or_select(obj, session, hydrate),
                             session,
-                            lambda obj: self.insert_post(
-                                obj, session, hydrate, flush=False
-                            ),
                             lambda: self.flush_posts(session),
                         )
 

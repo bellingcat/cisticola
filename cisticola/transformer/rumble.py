@@ -78,7 +78,7 @@ class RumbleTransformer(Transformer):
         transformed = insert(transformed)
 
     def transform(
-        self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts
+        self, data: ScraperResult, insert: Callable, session, flush_posts
     ) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
@@ -102,8 +102,7 @@ class RumbleTransformer(Transformer):
             video_duration=_parse_duration_str(raw["duration"]),
         )
 
-        # insert_post
-        insert_post(transformed)
+        insert(transformed)
 
 
 def _process_number(s):

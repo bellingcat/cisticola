@@ -100,7 +100,7 @@ class GettrTransformer(Transformer):
         return channel.id
 
     def transform(
-        self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts
+        self, data: ScraperResult, insert: Callable, session, flush_posts
     ) -> Generator[Union[Post, Channel, Media], None, None]:
         raw = json.loads(data.raw_data)
 
@@ -147,8 +147,7 @@ class GettrTransformer(Transformer):
             views=raw.get("vfpst"),
         )
 
-        # insert_post
-        insert_post(transformed)
+        insert(transformed)
 
         # media = self.process_media(raw, transformed.id, data)
         # for m in media:
