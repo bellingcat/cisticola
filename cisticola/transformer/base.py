@@ -6,6 +6,7 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.sql.expression import func
 from collections import defaultdict
 from datetime import datetime, timezone
+import spacy
 
 from cisticola.base import (
     RawChannelInfo,
@@ -117,6 +118,7 @@ class ETLController:
 
     def __init__(self):
         self.transformers = []
+        self.load_nlp()
 
     def register_transformer(self, transformer: Transformer):
         """Add a single Transformer instance to the list of available Transformers.
@@ -168,6 +170,19 @@ class ETLController:
         # logger.info(f"Bulk saved {len(self.posts_to_insert)} posts")
         self.posts_to_insert = []
 
+    def load_nlp(self):
+        """Load spaCy models into a dict."""
+        kwargs = {"disable": ["parser", "tok2vec", "attribute_ruler"]}
+        self.nlp_models = {
+            "en": spacy.load("en_core_web_sm", **kwargs),
+            "de": spacy.load("de_core_news_sm", **kwargs),
+            "it": spacy.load("it_core_news_sm", **kwargs),
+            "fr": spacy.load("fr_core_news_sm", **kwargs),
+            "ru": spacy.load("ru_core_news_sm", **kwargs),
+            "nl": spacy.load("nl_core_news_sm", **kwargs),
+            "xx": spacy.load("xx_ent_wiki_sm", **kwargs),
+        }
+
     def insert_post(self, obj, session, hydrate: bool = True, flush: bool = False):
         """Insert an object into the connected database.
 
@@ -187,7 +202,9 @@ class ETLController:
         -------
         None, or instance of ORM-mapped class from ``cisticola.base`` that has been inserted into the database, with additional data fields if ``flush`` argument is ``True``.
         """
-        if hydrate and type(obj) != Video:
+        if hydrate and type(obj) == Post:
+            obj.hydrate(nlp_models=self.nlp_models)
+        elif hydrate and type(obj) != Video:
             obj.hydrate()
 
         if flush:
@@ -307,8 +324,10 @@ class ETLController:
 
             return instance
 
-        # Don't hydrate videos, because they can be quite large and this is time consuming
-        if hydrate and type(obj) != Video:
+        # Don't hydrate videos, because they can be quite large and this is time consuming, include spaCy models
+        if hydrate and type(obj) == Post:
+            obj.hydrate(nlp_models=self.nlp_models)
+        elif hydrate and type(obj) != Video:
             obj.hydrate()
 
         session.add(obj)
