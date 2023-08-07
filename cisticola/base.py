@@ -151,15 +151,32 @@ class ChannelInfo:
     #: String specifying name and version of transformer used to tranform result, e.g. ``"TwitterTransformer 0.0.1"``.
     transformer: str
 
-    #: attributes extracted from the raw channel info object
+    # Attributes extracted from the raw channel info object
+    #: Screen name/username of channel.
     screenname: str
+
+    #: Name of channel (different from username because it can be non-unique and contain emojis), e.g. ``T🕊Редакция Президент Гордон🕊"``.
     name: str
+
+    #: Channel's description/bio included in their profile.
     description: str
+
+    #: Channel's profile website linked in the channel description.
     description_url: str
+
+    #: Channel's profile location specified in the channel description.
     description_location: str
+
+    #: Number of followers/subscribers.
     followers: int
+
+    #: Number of accounts the channel follows/is subscribed to.
     following: int
+
+    #: Whether or not the channel is "verified" on the given platform.
     verified: bool
+
+    #: Datetime at which the channel was created.
     date_created: datetime
 
     #: Datetime (relative to UTC) that the scraped channel info was archived at.
@@ -267,6 +284,7 @@ class Post:
     video_duration: int = None
 
     def hydrate(self):
+        """Populate additional fields from processed data, including language detection, named entity recognition, and extraction of outlinks, hashtags, and cryptocurrency addresses."""
         URL_REGEX = r"""(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:\'\".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))"""
 
         # replace is here in order to prevent catastrophic backtracking
@@ -302,6 +320,7 @@ class Post:
         self.hydrate_spacy()
 
     def hydrate_spacy(self):
+        """Extract named entities and normalize text content."""
         ner_only = False
 
         if self.detected_language == "en":
@@ -458,7 +477,13 @@ mapper_registry = registry()
 raw_posts_table = Table(
     "raw_posts",
     mapper_registry.metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column(
+        "id",
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        doc="Unique numerical ID of the raw scraped post.",
+    ),
     Column("scraper", String),
     Column("platform", String),
     Column("channel", Integer, ForeignKey("channels.id"), index=True),
@@ -473,7 +498,12 @@ raw_posts_table = Table(
 raw_channel_info_table = Table(
     "raw_channel_info",
     mapper_registry.metadata,
-    Column("id", Integer, primary_key=True),
+    Column(
+        "id",
+        Integer,
+        primary_key=True,
+        doc="Unique numerical ID of the raw scraped channel information.",
+    ),
     Column("scraper", String),
     Column("platform", String),
     Column("channel", Integer, ForeignKey("channels.id"), index=True),
@@ -484,11 +514,27 @@ raw_channel_info_table = Table(
 channel_info_table = Table(
     "channel_info",
     mapper_registry.metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
     Column(
-        "raw_channel_info_id", Integer, ForeignKey("raw_channel_info.id"), index=True
+        "id",
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        doc="Unique numerical ID of the processed channel information.",
     ),
-    Column("channel", Integer, ForeignKey("channels.id"), index=True),
+    Column(
+        "raw_channel_info_id",
+        Integer,
+        ForeignKey("raw_channel_info.id"),
+        index=True,
+        doc="Primary key of the ``raw_channel_info`` table this object was transformed from.",
+    ),
+    Column(
+        "channel",
+        Integer,
+        ForeignKey("channels.id"),
+        index=True,
+        doc="Primary key of the ``channels`` table corresponding to the channel whose information was scraped and processed",
+    ),
     Column("platform_id", String),
     Column("scraper", String),
     Column("transformer", String),
@@ -509,7 +555,13 @@ channel_info_table = Table(
 channel_table = Table(
     "channels",
     mapper_registry.metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column(
+        "id",
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        doc="Unique numerical ID of the channel.",
+    ),
     Column("name", String),
     Column("platform_id", String),
     Column("category", String),
@@ -527,7 +579,13 @@ channel_table = Table(
 post_table = Table(
     "posts",
     mapper_registry.metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column(
+        "id",
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        doc="Unique numerical ID of processed post.",
+    ),
     Column("raw_id", Integer, ForeignKey("raw_posts.id"), index=True),
     Column("platform_id", String, index=True),
     Column("scraper", String),
@@ -566,14 +624,24 @@ posts_forwarded_from_channel_index = Index(
 media_table = Table(
     "media",
     mapper_registry.metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column(
+        "id",
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        doc="Unique numerical ID of the media file.",
+    ),
     Column("type", String),
     Column("raw_id", Integer, ForeignKey("raw_posts.id"), index=True),
     Column("post", Integer, ForeignKey("posts.id"), index=True),
     Column("url", String),
     Column("original_url", String),
     Column("exif", String),
-    Column("ocr", String),
+    Column(
+        "ocr",
+        String,
+        doc="Text contents of the media file, extracted using optical character recognition.",
+    ),
     Column("date", DateTime, index=True),
     Column("date_archived", DateTime, index=True),
     Column("date_transformed", DateTime, index=True),
