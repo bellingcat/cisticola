@@ -1,21 +1,22 @@
-from typing import List, Callable
-from loguru import logger
-from sqlalchemy import cast, String
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.engine.base import Engine
 from datetime import datetime, timezone
+from typing import Callable, List
+
+from loguru import logger
+from sqlalchemy import String, cast
+from sqlalchemy.engine.base import Engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from cisticola.base import (
-    RawChannelInfo,
-    ChannelInfo,
-    ScraperResult,
-    Post,
-    Media,
-    Channel,
-    mapper_registry,
-    Image,
-    Video,
     Audio,
+    Channel,
+    ChannelInfo,
+    Image,
+    Media,
+    Post,
+    RawChannelInfo,
+    ScraperResult,
+    Video,
+    mapper_registry,
 )
 
 

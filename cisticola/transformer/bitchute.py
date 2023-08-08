@@ -1,19 +1,13 @@
 import json
-from typing import Callable
 from datetime import datetime, timezone
-from dateutil.relativedelta import relativedelta
+from typing import Callable
 
 from bs4 import BeautifulSoup
+from dateutil.relativedelta import relativedelta
 from sqlalchemy.orm import Session
 
+from cisticola.base import ChannelInfo, Post, RawChannelInfo, ScraperResult, Video
 from cisticola.transformer.base import Transformer
-from cisticola.base import (
-    RawChannelInfo,
-    ScraperResult,
-    Post,
-    Video,
-    ChannelInfo,
-)
 
 
 class BitchuteTransformer(Transformer):

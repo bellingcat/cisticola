@@ -1,3 +1,1 @@
-from . import base
-from . import scraper
-from . import transformer
+from . import base, scraper, transformer

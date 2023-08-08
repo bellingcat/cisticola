@@ -1,16 +1,16 @@
-from datetime import datetime, timezone
-import time
-import re
-from html.parser import HTMLParser
-import dateparser
 import json
+import re
+import time
+from datetime import datetime, timezone
+from html.parser import HTMLParser
 from typing import Generator, Optional
 
+import dateparser
 import requests
 from bs4 import BeautifulSoup
 from loguru import logger
 
-from cisticola.base import Channel, ScraperResult, RawChannelInfo
+from cisticola.base import Channel, RawChannelInfo, ScraperResult
 from cisticola.scraper.base import Scraper
 
 

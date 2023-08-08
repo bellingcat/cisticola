@@ -1,31 +1,31 @@
-from typing import Optional
+import io
+import json
+import re
+import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime
-import tempfile
-import json
-import io
+from typing import Optional
 
-from sqlalchemy.orm import registry
-from sqlalchemy import (
-    Table,
-    Column,
-    Integer,
-    String,
-    JSON,
-    DateTime,
-    ForeignKey,
-    Boolean,
-    Index,
-)
-from sqlalchemy.dialects.postgresql import JSONB
-import pytesseract
-import PIL
 import exiftool
-import re
+import PIL
+import pytesseract
+import spacy
 from langdetect import detect
 from langdetect.lang_detect_exception import LangDetectException
 from loguru import logger
-import spacy
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Table,
+)
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import registry
 
 from .utils import make_request
 

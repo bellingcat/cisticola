@@ -1,12 +1,12 @@
-from datetime import datetime, timezone
 import json
+from datetime import datetime, timezone
 from typing import Generator, Optional
 from urllib.parse import urlparse
-from loguru import logger
 
 from gogettr import PublicClient
+from loguru import logger
 
-from cisticola.base import Channel, ScraperResult, RawChannelInfo
+from cisticola.base import Channel, RawChannelInfo, ScraperResult
 from cisticola.scraper.base import Scraper
 
 

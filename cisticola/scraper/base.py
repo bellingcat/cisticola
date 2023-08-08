@@ -1,19 +1,19 @@
-from typing import Generator, Tuple, List, Optional
 import os
-from io import BytesIO
-from urllib.parse import urlparse
 import tempfile
 from datetime import datetime, timezone
+from io import BytesIO
+from pathlib import Path
+from typing import Generator, List, Optional, Tuple
+from urllib.parse import urlparse
 
 import boto3
-from loguru import logger
 import ffmpeg
-from sqlalchemy.orm import sessionmaker
 import yt_dlp
-from sqlalchemy.sql.expression import func
-from sqlalchemy.orm.session import close_all_sessions
-from pathlib import Path
+from loguru import logger
 from sqlalchemy import nullsfirst
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import close_all_sessions
+from sqlalchemy.sql.expression import func
 
 from cisticola.base import Channel, RawChannelInfo, ScraperResult, mapper_registry
 from cisticola.utils import make_request

@@ -1,6 +1,7 @@
 import argparse
-from telethon.sync import TelegramClient
 import os
+
+from telethon.sync import TelegramClient
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Cisticola command line tools")

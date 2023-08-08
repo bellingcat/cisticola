@@ -1,6 +1,7 @@
+import time
+
 import requests
 from loguru import logger
-import time
 
 
 def make_request(url, headers=None, max_retries=5, break_codes=None):

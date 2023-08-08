@@ -1,27 +1,27 @@
 import argparse
-from loguru import logger
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 import datetime
 import os
 import sys
 
+from loguru import logger
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 from cisticola.base import mapper_registry
 from cisticola.scraper import (
+    BitchuteScraper,
+    GettrScraper,
+    RumbleScraper,
     ScraperController,
     TelegramTelethonScraper,
-    GettrScraper,
-    BitchuteScraper,
-    RumbleScraper,
 )
 from cisticola.transformer import (
+    BitchuteTransformer,
     ETLController,
-    TelegramTelethonTransformer,
     GettrTransformer,
     RumbleTransformer,
-    BitchuteTransformer,
+    TelegramTelethonTransformer,
 )
-
 from sync_with_gsheet import sync_channels
 
 

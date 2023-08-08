@@ -1,13 +1,13 @@
-from datetime import datetime, timezone
 import json
+import os
+from datetime import datetime, timezone
 from typing import Generator, Optional
 from urllib.parse import urlparse
-from loguru import logger
 
 from bs4 import BeautifulSoup
-import os
+from loguru import logger
 
-from cisticola.base import Channel, ScraperResult, RawChannelInfo
+from cisticola.base import Channel, RawChannelInfo, ScraperResult
 from cisticola.scraper import Scraper, make_request
 
 BASE_URL = "https://rumble.com"

@@ -1,29 +1,22 @@
 import json
-from loguru import logger
-from typing import Callable
-import dateutil.parser
-from bs4 import BeautifulSoup
-import requests
-from telethon.sync import TelegramClient
-from telethon.errors.rpcerrorlist import ChannelPrivateError, ChannelInvalidError
-from telethon.tl import types
-from telethon.helpers import add_surrogate, del_surrogate
-from itertools import takewhile
-
 import os
 from datetime import datetime, timezone
+from itertools import takewhile
+from typing import Callable
+
+import dateutil.parser
+import requests
+from bs4 import BeautifulSoup
+from loguru import logger
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from telethon.errors.rpcerrorlist import ChannelInvalidError, ChannelPrivateError
+from telethon.helpers import add_surrogate, del_surrogate
+from telethon.sync import TelegramClient
+from telethon.tl import types
 
-
+from cisticola.base import Channel, ChannelInfo, Post, RawChannelInfo, ScraperResult
 from cisticola.transformer.base import Transformer
-from cisticola.base import (
-    RawChannelInfo,
-    ChannelInfo,
-    ScraperResult,
-    Post,
-    Channel,
-)
 
 
 class TelegramTelethonTransformer(Transformer):

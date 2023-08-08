@@ -1,17 +1,17 @@
-from typing import Generator, Optional
-from datetime import datetime, timezone
-import os
 import json
+import os
 import tempfile
-from pathlib import Path
 import time
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Generator, Optional
 
 from loguru import logger
 from telethon.sync import TelegramClient
-from telethon.tl.functions.channels import GetFullChannelRequest
 from telethon.tl import types
+from telethon.tl.functions.channels import GetFullChannelRequest
 
-from cisticola.base import Channel, ScraperResult, RawChannelInfo
+from cisticola.base import Channel, RawChannelInfo, ScraperResult
 from cisticola.scraper.base import Scraper
 
 MEDIA_TYPES = ["photo", "video", "document", "webpage"]

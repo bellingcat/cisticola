@@ -1,17 +1,13 @@
 import json
-from typing import Callable, Optional
-import dateutil.parser
 from datetime import datetime, timezone
+from typing import Callable, Optional
+
+import dateutil.parser
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from cisticola.base import ChannelInfo, Post, RawChannelInfo, ScraperResult
 from cisticola.transformer.base import Transformer
-from cisticola.base import (
-    RawChannelInfo,
-    ChannelInfo,
-    ScraperResult,
-    Post,
-)
 
 
 class RumbleTransformer(Transformer):

@@ -2,24 +2,24 @@ import pytest
 from sqlalchemy.sql import text
 
 from cisticola.base import (
-    Post,
     Channel,
     ChannelInfo,
     Media,
-    ScraperResult,
+    Post,
     RawChannelInfo,
+    ScraperResult,
 )
 from cisticola.scraper import (
-    TelegramTelethonScraper,
     BitchuteScraper,
     GettrScraper,
     RumbleScraper,
+    TelegramTelethonScraper,
 )
 from cisticola.transformer import (
-    TelegramTelethonTransformer,
     BitchuteTransformer,
     GettrTransformer,
     RumbleTransformer,
+    TelegramTelethonTransformer,
 )
 
 CONTROLLERS = {

@@ -1,20 +1,14 @@
 import json
-from typing import Callable
 from datetime import datetime, timezone
-from sqlalchemy import func
-from sqlalchemy.orm import Session
+from typing import Callable
 
 from gogettr import PublicClient
 from gogettr.api import GettrApiError
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 
+from cisticola.base import Channel, ChannelInfo, Post, RawChannelInfo, ScraperResult
 from cisticola.transformer.base import Transformer
-from cisticola.base import (
-    RawChannelInfo,
-    ChannelInfo,
-    ScraperResult,
-    Post,
-    Channel,
-)
 
 
 class GettrTransformer(Transformer):
