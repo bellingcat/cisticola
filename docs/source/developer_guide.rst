@@ -4,7 +4,7 @@ Developer Guide
 Installation
 ------------
 
-To install the necessary dependencies for building the documentation and running unit tests, run the following command from the package root directory:
+To install the necessary dependencies for building the documentation, running unit tests, and performing pre-commit linting, run the following command from the package root directory:
 
 .. code-block::
 
@@ -20,4 +20,4 @@ If changes are made to the package structure or additional modules are created, 
 
 Formatting
 ----------
-Cisticola uses `black <https://github.com/psf/black>`_ to format source code.
+Cisticola uses `black <https://github.com/psf/black>`_ and `isort <https://pycqa.github.io/isort/>`_ to format source code. These packages are configured in a `pre-commit <https://pre-commit.com/>`_ hook in the root directory (``.pre-commit-config.yaml``) to ensure that all commits are properly formatted, which avoids unnecessarily large diffs.
