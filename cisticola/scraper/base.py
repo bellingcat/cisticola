@@ -1,4 +1,4 @@
-from typing import Generator, Tuple, List
+from typing import Generator, Tuple, List, Optional
 import os
 from io import BytesIO
 from urllib.parse import urlparse
@@ -90,7 +90,9 @@ class Scraper:
         key = urlparse(url).path.split("/")[-1]
         return key
 
-    def url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
+    def url_to_blob(
+        self, url: str, key: Optional[str] = None
+    ) -> Tuple[bytes, str, str]:
         """Download media file from a specified media file URL.
 
         Parameters
@@ -122,7 +124,9 @@ class Scraper:
 
         return blob, content_type, key
 
-    def m3u8_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
+    def m3u8_url_to_blob(
+        self, url: str, key: Optional[str] = None
+    ) -> Tuple[bytes, str, str]:
         """Download media file from a specified media URL, where the media file
         is formatted as an m3u8 playlist, which is then decoded to an mp4 file.
 
@@ -164,7 +168,9 @@ class Scraper:
 
         return blob, content_type, key
 
-    def ytdlp_url_to_blob(self, url: str, key: str = None) -> Tuple[bytes, str, str]:
+    def ytdlp_url_to_blob(
+        self, url: str, key: Optional[str] = None
+    ) -> Tuple[bytes, str, str]:
         """Download media file from a specified media URL, using a fork of
         youtube-dl that enables faster downloading.
 
@@ -302,7 +308,7 @@ class Scraper:
 
     @logger.catch
     def get_posts(
-        self, channel: Channel, since: ScraperResult = None
+        self, channel: Channel, since: Optional[ScraperResult] = None
     ) -> Generator[ScraperResult, None, None]:
         """Scrape all posts from the specified Channel.
 
@@ -428,7 +434,7 @@ class ScraperController:
 
         Parameters
         ----------
-        channels: list<Channel>
+        channels: list[Channel]
             List of Channel instances to be scraped
         fetch_old: bool
             If ``True``, scrape all posts from channels, regardless of when channel was last scraped.
@@ -615,7 +621,7 @@ class ScraperController:
 
         Parameters
         ----------
-        channels: list<Channel>
+        channels: list[Channel]
             List of Channel instances to be scraped
         """
 

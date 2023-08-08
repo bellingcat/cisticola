@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import json
-from typing import Generator
+from typing import Generator, Optional
 from urllib.parse import urlparse
 from loguru import logger
 
@@ -24,7 +24,7 @@ class GettrScraper(Scraper):
 
     @logger.catch
     def get_posts(
-        self, channel: Channel, since: ScraperResult = None
+        self, channel: Channel, since: Optional[ScraperResult] = None
     ) -> Generator[ScraperResult, None, None]:
         client = PublicClient()
         username = self.get_username_from_url(channel.url).lower()

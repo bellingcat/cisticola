@@ -1,7 +1,7 @@
 from typing import List, Generator, Union, Callable
 from loguru import logger
 from sqlalchemy import cast, String
-from sqlalchemy.orm import sessionmaker, make_transient
+from sqlalchemy.orm import sessionmaker, make_transient, Session
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.sql.expression import func
 from collections import defaultdict
@@ -29,7 +29,7 @@ class Transformer:
     def __init__(self):
         pass
 
-    def can_handle(data: ScraperResult) -> bool:
+    def can_handle(self, data: ScraperResult) -> bool:
         """Specifies whether or not a Transformer is capable of handling a particular
         piece of scraped data.
 
@@ -44,11 +44,16 @@ class Transformer:
             ``True`` if it can be handled by this Transformer, false otherwise.
         """
 
-        pass
+        raise NotImplementedError
 
     def transform(
-        data: ScraperResult, insert: Callable
-    ) -> Generator[Union[Post, Channel, Media], None, None]:
+        self,
+        data: ScraperResult,
+        insert: Callable,
+        session: Session,
+        insert_post: Callable,
+        flush_posts: Callable,
+    ):
         """Transform a ScraperResult into objects with additional parameters for analysis. This function can
         yield multiple objects, as it will find references to quoted/replied posts, media objects, and Channel
         objects and provide all of these to be inserted into the database.
@@ -62,7 +67,7 @@ class Transformer:
             relevant unique constraints if applicable.
         """
 
-        pass
+        raise NotImplementedError
 
     def transform_media(self, data: ScraperResult, transformed: Post, insert: Callable):
         """Transform a post's media attachment to standard form and insert into database.
@@ -191,7 +196,7 @@ class ETLController:
             obj.hydrate()
 
         if flush:
-            self.flush_posts()
+            self.flush_posts(session=session)
 
             session.add(obj)
             session.flush()

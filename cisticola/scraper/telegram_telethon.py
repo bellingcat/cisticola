@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, Optional
 from datetime import datetime, timezone
 import os
 import json
@@ -64,9 +64,9 @@ class TelegramTelethonScraper(Scraper):
         if len(result.archived_urls.keys()) == 0:
             return result
 
-        if len(list(result.archived_urls.keys())) != 1:
+        if len(result.archived_urls.keys()) != 1:
             logger.warning(
-                f"Expected 1 key in archived_urls, found {result.archived_keys}"
+                f"Expected 1 key in archived_urls, found {len(result.archived_urls.keys())}"
             )
         else:
             key = list(result.archived_urls.keys())[0]
@@ -147,7 +147,10 @@ class TelegramTelethonScraper(Scraper):
 
     # @logger.catch
     def get_posts(
-        self, channel: Channel, since: ScraperResult = None, until: ScraperResult = None
+        self,
+        channel: Channel,
+        since: Optional[ScraperResult] = None,
+        until: Optional[ScraperResult] = None,
     ) -> Generator[ScraperResult, None, None]:
         username = TelegramTelethonScraper.get_channel_identifier(channel)
         if until is not None:

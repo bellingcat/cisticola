@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 import tempfile
@@ -62,7 +62,7 @@ class ScraperResult:
     archived_urls: dict
 
     #: What date was the media archived? (None if not archived)
-    media_archived: datetime
+    media_archived: Optional[datetime]
 
 
 @dataclass
@@ -70,10 +70,10 @@ class Channel:
     """Information about a specific channel to be scraped."""
 
     #: Name of channel (different from username because it can be non-unique and contain emojis), e.g. ``T🕊Редакция Президент Гордон🕊"``.
-    name: str
+    name: Optional[str]
 
     #: String that uniquely identifies the channel on the given platform, e.g. ``"-1001101170442"``.
-    platform_id: str
+    platform_id: Optional[str]
 
     #: User-specified category for the channel, e.g. ``"explicit_qanon"``.
     category: str
@@ -82,28 +82,28 @@ class Channel:
     platform: str
 
     #: URL for the given channel on the platform, e.g. ``"https://t.me/prezidentgordonteam"``
-    url: str
+    url: Optional[str]
 
     #: Screen name/username of channel.
     screenname: str
 
     #: 2 digit country code for the country of origin for the channel, e.g. ``"RU"``.
-    country: str = None
+    country: Optional[str] = None
 
     #: Name of influencer, if channel belongs to an influencer that operates on multiple platforms.
-    influencer: str = None
+    influencer: Optional[str] = None
 
     #: Whether or not the channel is publicly-accessible.
-    public: bool = None
+    public: Optional[bool] = None
 
     #: Whether or not the channel is a chat (i.e. allows users who are not the channel creator to post/message)
-    chat: bool = None
+    chat: Optional[bool] = None
 
     #: Any other additional notes about the channel.
     notes: str = ""
 
     #: Did the channel come from a researcher or a scraping process?
-    source: str = None
+    source: Optional[str] = None
 
     def hydrate(self):
         pass
@@ -177,7 +177,7 @@ class ChannelInfo:
     verified: bool
 
     #: Datetime at which the channel was created.
-    date_created: datetime
+    date_created: Optional[datetime]
 
     #: Datetime (relative to UTC) that the scraped channel info was archived at.
     date_archived: datetime
@@ -260,28 +260,28 @@ class Post:
     normalized_content: str = ""
 
     #: The ID of the Channel that the post was forwarded or quoted from
-    forwarded_from: int = None
+    forwarded_from: Optional[int] = None
 
     #: The ID of the Post that this Post is a reply to
-    reply_to: int = None
+    reply_to: Optional[int] = None
 
     #: Other users mentioned in the post
     mentions: list = field(default_factory=list)
 
     #: Number of positive post reactions (e.g. likes, favorites, rumbles, upvotes, etc.)
-    likes: int = None
+    likes: Optional[int] = None
 
     #: Number of times the post was forwarded/retweeted/shared
-    forwards: int = None
+    forwards: Optional[int] = None
 
     #: Number of times the post was viewed
-    views: int = None
+    views: Optional[int] = None
 
     #: Video title, if post is a video
-    video_title: str = None
+    video_title: Optional[str] = None
 
     #: Video duration in seconds, if post is a video
-    video_duration: int = None
+    video_duration: Optional[int] = None
 
     def hydrate(self):
         """Populate additional fields from processed data, including language detection, named entity recognition, and extraction of outlinks, hashtags, and cryptocurrency addresses."""
@@ -404,7 +404,7 @@ class Media:
     date_transformed: datetime
 
     #: JSON dump of the dict containing metadata information for the media file.
-    exif: str = None
+    exif: Optional[str] = None
 
     def get_blob(self):
         """Download media file as bytes blob."""

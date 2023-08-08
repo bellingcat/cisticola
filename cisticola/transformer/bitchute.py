@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 
 from bs4 import BeautifulSoup
+from sqlalchemy.orm import Session
 
 from cisticola.transformer.base import Transformer
 from cisticola.base import (
@@ -31,9 +32,7 @@ class BitchuteTransformer(Transformer):
 
         return False
 
-    def transform_media(
-        self, data: ScraperResult, transformed: Post, insert: Callable
-    ) -> Generator[Media, None, None]:
+    def transform_media(self, data: ScraperResult, transformed: Post, insert: Callable):
         raw = json.loads(data.raw_data)
 
         orig = raw["video_url"]
@@ -56,7 +55,7 @@ class BitchuteTransformer(Transformer):
 
     def transform_info(
         self, data: RawChannelInfo, insert: Callable, session, channel=None
-    ) -> Generator[Union[Post, Channel, Media], None, None]:
+    ):
         raw = json.loads(data.raw_data)
 
         transformed = ChannelInfo(
@@ -82,8 +81,13 @@ class BitchuteTransformer(Transformer):
         transformed = insert(transformed)
 
     def transform(
-        self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts
-    ) -> Generator[Union[Post, Channel, Media], None, None]:
+        self,
+        data: ScraperResult,
+        insert: Callable,
+        session: Session,
+        insert_post: Callable,
+        flush_posts: Callable,
+    ):
         raw = json.loads(data.raw_data)
 
         if raw["category"] == "comment":

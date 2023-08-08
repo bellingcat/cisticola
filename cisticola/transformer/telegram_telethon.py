@@ -15,6 +15,8 @@ from itertools import takewhile
 import os
 from datetime import datetime, timezone
 from sqlalchemy import func
+from sqlalchemy.orm import Session
+
 
 from cisticola.transformer.base import Transformer
 from cisticola.base import (
@@ -148,7 +150,7 @@ class TelegramTelethonTransformer(Transformer):
 
     def transform_info(
         self, data: RawChannelInfo, insert: Callable, session, channel=None
-    ) -> Generator[Union[Post, Channel, Media], None, None]:
+    ):
         raw = json.loads(data.raw_data)
 
         chat_raw = raw["chats"][0]
@@ -208,8 +210,13 @@ class TelegramTelethonTransformer(Transformer):
 
     # TODO this method API is chaotic and could be cleaned up
     def transform(
-        self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts
-    ) -> Generator[Union[Post, Channel, Media], None, None]:
+        self,
+        data: ScraperResult,
+        insert: Callable,
+        session: Session,
+        insert_post: Callable,
+        flush_posts: Callable,
+    ):
         raw = json.loads(data.raw_data)
 
         if raw["_"] != "Message":

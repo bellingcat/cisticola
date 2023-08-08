@@ -1,9 +1,10 @@
 import json
 from loguru import logger
-from typing import Generator, Union, Callable
+from typing import Generator, Union, Callable, Optional
 import dateutil.parser
 from datetime import datetime, timezone
 from sqlalchemy import func, JSON, String, cast, text
+from sqlalchemy.orm import Session
 
 from cisticola.transformer.base import Transformer
 from cisticola.base import (
@@ -32,7 +33,7 @@ class RumbleTransformer(Transformer):
 
     def transform_info(
         self, data: RawChannelInfo, insert: Callable, session, channel=None
-    ) -> Generator[Union[Post, Channel, Media], None, None]:
+    ):
         raw = json.loads(data.raw_data)
 
         if "id" not in raw:
@@ -78,8 +79,13 @@ class RumbleTransformer(Transformer):
         transformed = insert(transformed)
 
     def transform(
-        self, data: ScraperResult, insert: Callable, session, insert_post, flush_posts
-    ) -> Generator[Union[Post, Channel, Media], None, None]:
+        self,
+        data: ScraperResult,
+        insert: Callable,
+        session: Session,
+        insert_post: Callable,
+        flush_posts: Callable,
+    ):
         raw = json.loads(data.raw_data)
 
         transformed = Post(
@@ -106,9 +112,9 @@ class RumbleTransformer(Transformer):
         insert_post(transformed)
 
 
-def _process_number(s):
+def _process_number(s: str) -> int:
     if s is None:
-        return None
+        return -1
     else:
         s = s.replace(" ", "").replace(",", "")
         if s.endswith("M"):
@@ -118,7 +124,7 @@ def _process_number(s):
         return int(s)
 
 
-def _parse_duration_str(duration_str: str) -> int:
+def _parse_duration_str(duration_str: str) -> Optional[int]:
     """Convert duration string (e.g. '2:27:04') to the number of seconds (e.g. 8824)."""
     if not duration_str:
         return None
