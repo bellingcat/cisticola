@@ -6,9 +6,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Run isort
-        uses: actions/checkout@v3
         uses: isort/isort-action@v1
       - name: Run black
-        uses: actions/checkout@v3
         uses: psf/black@stable
