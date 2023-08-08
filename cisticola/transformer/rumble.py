@@ -74,7 +74,6 @@ class RumbleTransformer(Transformer):
         data: ScraperResult,
         insert: Callable,
         session: Session,
-        insert_post: Callable,
         flush_posts: Callable,
     ):
         raw = json.loads(data.raw_data)
@@ -99,8 +98,7 @@ class RumbleTransformer(Transformer):
             video_duration=_parse_duration_str(raw["duration"]),
         )
 
-        # insert_post
-        insert_post(transformed)
+        insert(transformed)
 
 
 def _process_number(s: str) -> int:
