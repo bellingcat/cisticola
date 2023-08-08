@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 import tempfile
@@ -22,7 +22,7 @@ import pytesseract
 import PIL
 import exiftool
 import re
-from langdetect import detect, DetectorFactory
+from langdetect import detect
 from langdetect.lang_detect_exception import LangDetectException
 from loguru import logger
 import spacy

@@ -1,10 +1,8 @@
-from typing import List, Generator, Union, Callable
+from typing import List, Callable
 from loguru import logger
 from sqlalchemy import cast, String
-from sqlalchemy.orm import sessionmaker, make_transient, Session
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.engine.base import Engine
-from sqlalchemy.sql.expression import func
-from collections import defaultdict
 from datetime import datetime, timezone
 
 from cisticola.base import (
@@ -295,7 +293,7 @@ class ETLController:
                     and instance.source != "researcher"
                     and (instance.source is None or instance.source[:4] != "snow")
                 ):
-                    logger.info(f"Updating source to linked channel")
+                    logger.info("Updating source to linked channel")
                     instance.source = obj.source
                     instance.notes = obj.notes
                     instance.category = obj.category
@@ -364,7 +362,7 @@ class ETLController:
 
                         break
 
-                if handled == False:
+                if not handled:
                     logger.warning(
                         f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})"
                     )
@@ -465,7 +463,7 @@ class ETLController:
                         session.commit()
                         break
 
-                    if handled == False:
+                    if not handled:
                         logger.warning(
                             f"No Transformer could handle raw channel info ID {result.id} with platform {result.platform} ({result.date_archived})"
                         )
@@ -547,7 +545,7 @@ class ETLController:
                         session.commit()
                         break
 
-                if handled == False:
+                if not handled:
                     logger.warning(
                         f"No Transformer could handle ID {result.id} with platform {result.platform} ({result.date})"
                     )

@@ -5,7 +5,6 @@ from html.parser import HTMLParser
 import dateparser
 import json
 from typing import Generator, Optional
-from dateutil.relativedelta import relativedelta
 
 import requests
 from bs4 import BeautifulSoup

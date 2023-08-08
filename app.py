@@ -1,5 +1,4 @@
 import argparse
-from asyncio import streams
 from loguru import logger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -83,28 +82,28 @@ def get_transformer_controller(args):
 
 
 def scrape_channels(args):
-    logger.info(f"Scraping channels")
+    logger.info("Scraping channels")
 
     controller = get_scraper_controller(args)
     controller.scrape_all_channels()
 
 
 def scrape_channels_old(args):
-    logger.info(f"Scraping old posts from channels")
+    logger.info("Scraping old posts from channels")
 
     controller = get_scraper_controller(args)
     controller.scrape_all_channels(fetch_old=True)
 
 
 def scrape_channel_info(args):
-    logger.info(f"Scraping channel info")
+    logger.info("Scraping channel info")
 
     controller = get_scraper_controller(args)
     controller.scrape_all_channel_info()
 
 
 def archive_media(args):
-    logger.info(f"Archiving unarchived media")
+    logger.info("Archiving unarchived media")
 
     controller = get_scraper_controller(args)
 
@@ -115,7 +114,7 @@ def archive_media(args):
 
 
 def transform(args):
-    logger.info(f"Transforming untransformed posts")
+    logger.info("Transforming untransformed posts")
 
     controller = get_transformer_controller(args)
 
@@ -128,7 +127,7 @@ def transform(args):
 
 
 def transform_info(args):
-    logger.info(f"Transforming untransformed channel info")
+    logger.info("Transforming untransformed channel info")
 
     controller = get_transformer_controller(args)
     controller.transform_all_untransformed_info()
@@ -137,7 +136,7 @@ def transform_info(args):
 
 
 def transform_media(args):
-    logger.info(f"Transforming untransformed channel media")
+    logger.info("Transforming untransformed channel media")
 
     controller = get_transformer_controller(args)
     controller.transform_all_untransformed_media()

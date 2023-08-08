@@ -1,9 +1,8 @@
 import json
-from loguru import logger
-from typing import Generator, Union, Callable, Optional
+from typing import Callable, Optional
 import dateutil.parser
 from datetime import datetime, timezone
-from sqlalchemy import func, JSON, String, cast, text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from cisticola.transformer.base import Transformer
@@ -12,10 +11,6 @@ from cisticola.base import (
     ChannelInfo,
     ScraperResult,
     Post,
-    Image,
-    Video,
-    Media,
-    Channel,
 )
 
 

@@ -1,11 +1,9 @@
 import json
 from loguru import logger
-from typing import Generator, Union, Callable
+from typing import Callable
 import dateutil.parser
 from bs4 import BeautifulSoup
-from psycopg2 import DatabaseError
 import requests
-import time
 from telethon.sync import TelegramClient
 from telethon.errors.rpcerrorlist import ChannelPrivateError, ChannelInvalidError
 from telethon.tl import types
@@ -24,10 +22,6 @@ from cisticola.base import (
     ChannelInfo,
     ScraperResult,
     Post,
-    Image,
-    Video,
-    Audio,
-    Media,
     Channel,
 )
 

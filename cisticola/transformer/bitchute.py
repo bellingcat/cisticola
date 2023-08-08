@@ -1,6 +1,5 @@
 import json
-from loguru import logger
-from typing import Generator, Union, Callable
+from typing import Callable
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 
@@ -12,10 +11,7 @@ from cisticola.base import (
     RawChannelInfo,
     ScraperResult,
     Post,
-    Image,
     Video,
-    Media,
-    Channel,
     ChannelInfo,
 )
 
